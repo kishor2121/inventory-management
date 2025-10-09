@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import "./login.css";
-import router from "next/router";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter(); //
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,16 +19,16 @@ export default function SignInPage() {
       body: JSON.stringify({ email, password }),
     });
 
-  //   const data = await res.json();
-  //   if (res.ok) {
-  //     alert("Login successful! Token: " + data.token);
-  //   } else {
-  //     alert("Login failed: " + data.message);
-  //   }
-  // };
-
     const data = await res.json();
-     if (res.ok) {
+    if (res.ok) {
+      // Persist token and user for client-side UI
+      try {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      } catch (e) {
+        // ignore storage errors
+      }
+
       router.push("/home"); // ✅ Safe to use now
     } else {
       alert("Login failed: " + data.message);

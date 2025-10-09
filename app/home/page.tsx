@@ -1,12 +1,61 @@
 "use client";
 
+import { useState } from "react";
 import "./home.css";
 
 export default function HomePage() {
+  const today = new Date();
+  const [month, setMonth] = useState(today.getMonth());
+  const [year, setYear] = useState(today.getFullYear());
+
+  const monthNames = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+
+  const getDaysInMonth = (year: number, month: number) =>
+    new Date(year, month + 1, 0).getDate();
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = getDaysInMonth(year, month);
+
+  const prevMonth = () => {
+    if (month === 0) {
+      setMonth(11);
+      setYear((y) => y - 1);
+    } else {
+      setMonth(month - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (month === 11) {
+      setMonth(0);
+      setYear((y) => y + 1);
+    } else {
+      setMonth(month + 1);
+    }
+  };
+
+  // Create array of days for rendering
+  const calendarDays: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) calendarDays.push(null);
+  for (let i = 1; i <= daysInMonth; i++) calendarDays.push(i);
+
+  const weeks = [];
+  for (let i = 0; i < calendarDays.length; i += 7) {
+    weeks.push(calendarDays.slice(i, i + 7));
+  }
+
   return (
     <div className="home-container">
       <div className="calendar">
-        <h2>October 2025</h2>
+        <div className="calendar-header">
+          <button onClick={prevMonth}>‹</button>
+          <h2>{monthNames[month]} {year}</h2>
+          <button onClick={nextMonth}>›</button>
+        </div>
+
         <table>
           <thead>
             <tr>
@@ -20,51 +69,15 @@ export default function HomePage() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>28</td>
-              <td>29</td>
-              <td>30</td>
-              <td>October 1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-            </tr>
-            <tr>
-              <td>5</td>
-              <td>6</td>
-              <td>7</td>
-              <td>8</td>
-              <td>9</td>
-              <td>10</td>
-              <td>11</td>
-            </tr>
-            <tr>
-              <td>12</td>
-              <td>13</td>
-              <td>14</td>
-              <td>15</td>
-              <td>16</td>
-              <td>17</td>
-              <td>18</td>
-            </tr>
-            <tr>
-              <td>19</td>
-              <td>20</td>
-              <td>21</td>
-              <td>22</td>
-              <td>23</td>
-              <td>24</td>
-              <td>25</td>
-            </tr>
-            <tr>
-              <td>26</td>
-              <td>27</td>
-              <td>28</td>
-              <td>29</td>
-              <td>30</td>
-              <td>31</td>
-              <td>November 1</td>
-            </tr>
+            {weeks.map((week, i) => (
+              <tr key={i}>
+                {week.map((day, j) => (
+                  <td key={j} className={day ? "day" : "empty"}>
+                    {day || ""}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

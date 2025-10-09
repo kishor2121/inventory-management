@@ -1,27 +1,99 @@
+/* home.css */
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background-color: #f3f6fa;
+}
+
 .home-container {
-  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px;
+  background-color: #f3f6fa;
+  min-height: 100vh;
 }
 
 .calendar {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  width: 90%;
+  max-width: 1000px;
+  transition: transform 0.2s ease;
 }
 
-.calendar table {
+.calendar:hover {
+  transform: scale(1.005);
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(90deg, #e6f0ff, #f5f9ff);
+}
+
+.calendar-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.calendar-header button {
+  background-color: #2563eb;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.calendar-header button:hover {
+  background-color: #1e40af;
+}
+
+table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th {
   text-align: center;
-}
-
-.calendar th,
-.calendar td {
-  border: 1px solid #ddd;
-  padding: 10px;
-}
-
-.calendar th {
-  background-color: #f8fafc;
+  padding: 10px 0;
+  color: #475569;
   font-weight: 600;
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+td {
+  text-align: right;
+  padding: 14px;
+  height: 70px;
+  vertical-align: top;
+  border: 1px solid #f1f5f9;
+  color: #1f2937;
+  font-size: 13px;
+  background-color: #ffffff;
+  transition: background-color 0.2s ease;
+}
+
+td.day:hover {
+  background-color: #e0edff;
+  color: #1e3a8a;
+  cursor: pointer;
+}
+
+.empty {
+  background-color: #f9fafb;
+  color: transparent;
 }
