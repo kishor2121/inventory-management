@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Edit2, Trash2 } from 'lucide-react';
 import styles from './products.module.css';
+import Confirmation from '../../components/confirmation';
 
 type Product = {
   id: string;
@@ -18,6 +19,8 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filter, setFilter] = useState('available');
   const [search, setSearch] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -29,10 +32,21 @@ export default function ProductsPage() {
     setProducts(data.data);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      await fetch(`/api/products/${id}`, { method: 'DELETE' });
+  const openDeleteModal = (id: string) => {
+    setSelectedProductId(id);
+    setModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setSelectedProductId(null);
+    setModalOpen(false);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedProductId) {
+      await fetch(`/api/products/${selectedProductId}`, { method: 'DELETE' });
       fetchProducts();
+      closeDeleteModal();
     }
   };
 
@@ -43,86 +57,96 @@ export default function ProductsPage() {
   );
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>Products</h1>
-        <div className={styles.controls}>
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className={styles.select}
-          >
-            <option value="available">Available</option>
-            <option value="in Laundry">In Laundry</option>
-            <option value="archived">Archived</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Search by SKU"
-            className={styles.search}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Link href="/products/add" className={styles.addBtn}>
-            + Add Product
-          </Link>
-          <button className={styles.importBtn}>Import</button>
+    <>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1>Products</h1>
+          <div className={styles.controls}>
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className={styles.select}
+            >
+              <option value="available">Available</option>
+              <option value="in Laundry">In Laundry</option>
+              <option value="archived">Archived</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Search by SKU"
+              className={styles.search}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Link href="/products/add" className={styles.addBtn}>
+              + Add Product
+            </Link>
+            <button className={styles.importBtn}>Import</button>
+          </div>
         </div>
-      </div>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>SKU</th>
-            <th>Product Name</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredProducts.map((product) => (
-            <tr key={product.id}>
-              <td className={styles.imageCell}>
-                {product.images?.[0] ? (
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className={styles.productImage}
-                  />
-                ) : (
-                  <div className={styles.noImage}>No Image</div>
-                )}
-              </td>
-              <td>{product.sku}</td>
-              <td>
-                <Link href={`/products/${product.id}`} className={styles.productLink}>
-                  {product.name}
-                </Link>
-              </td>
-              <td>₹{product.price}</td>
-              <td>
-                <span className={styles.status}>{product.status}</span>
-              </td>
-              <td className={styles.actions}>
-                <button className={styles.edit}>
-                  <Edit2 size={16} />
-                </button>
-                <button onClick={() => handleDelete(product.id)} className={styles.delete}>
-                  <Trash2 size={16} />
-                </button>
-              </td>
-            </tr>
-          ))}
-          {filteredProducts.length === 0 && (
+        <table className={styles.table}>
+          <thead>
             <tr>
-              <td colSpan={6} className={styles.noData}>
-                No products found.
-              </td>
+              <th>Image</th>
+              <th>SKU</th>
+              <th>Product Name</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {filteredProducts.map((product) => (
+              <tr key={product.id}>
+                <td className={styles.imageCell}>
+                  {product.images?.[0] ? (
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className={styles.productImage}
+                    />
+                  ) : (
+                    <div className={styles.noImage}>No Image</div>
+                  )}
+                </td>
+                <td>{product.sku}</td>
+                <td>
+                  <Link href={`/products/${product.id}`} className={styles.productLink}>
+                    {product.name}
+                  </Link>
+                </td>
+                <td>₹{product.price}</td>
+                <td>
+                  <span className={styles.status}>{product.status}</span>
+                </td>
+                <td className={styles.actions}>
+                  <button className={styles.edit}>
+                    <Edit2 size={16} />
+                  </button>
+                  <button onClick={() => openDeleteModal(product.id)} className={styles.delete}>
+                    <Trash2 size={16} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {filteredProducts.length === 0 && (
+              <tr>
+                <td colSpan={6} className={styles.noData}>
+                  No products found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <Confirmation
+        isOpen={modalOpen}
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteModal}
+        title="Confirm Product Deletion?"
+        message="Are you sure you want to delete this product? This action cannot be undone."
+      />
+    </>
   );
 }
