@@ -1,12 +1,12 @@
+import validate from "../../auth/validate"; 
 import { NextResponse } from "next/server";
-import validate from "../auth/validate";
 import prisma from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
 
 export async function GET(req: Request, context: any) {
 
   await validate(); 
-  
+
   const params = await context.params;
   const id = params.id;
 
