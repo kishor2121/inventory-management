@@ -120,3 +120,9 @@
   color: #888;
   padding: 20px;
 }
+
+.addBtn {
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+}

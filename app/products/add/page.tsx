@@ -1,138 +1,116 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import styles from './addProduct.module.css';
 
 export default function AddProductPage() {
-  const router = useRouter();
+  const [gender, setGender] = useState('');
+  const [name, setName] = useState('');
+  const [sku, setSku] = useState('');
+  const [category, setCategory] = useState('');
+  const [amount, setAmount] = useState('');
+  const [size, setSize] = useState('');
+  const [description, setDescription] = useState('');
+  const [images, setImages] = useState<File[]>([]);
 
-  const [form, setForm] = useState({
-    name: '',
-    sku: '',
-    description: '',
-    price: '',
-    imageUrl: '',
-    gender: 'Men',
-    category: '',
-    size: '',
-    status: 'in Laundry',
-  });
-
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleGenderChange = (gender: 'Men' | 'Women') => {
-    setForm((prev) => ({ ...prev, gender }));
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setImages(Array.from(e.target.files));
+    }
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    const payload = {
-      ...form,
-      price: parseFloat(form.price),
-      images: [form.imageUrl],
-      organizationId: '687b44b825e5a8e58023cfd5',
-    };
+    // Step 1: Validate
+    if (!name || !sku || !category || !amount) {
+      alert('Please fill all required fields');
+      return;
+    }
 
-    try {
-      const res = await fetch('http://localhost:3000/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+    // Step 2: Form data
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('sku', sku);
+    formData.append('category', category);
+    formData.append('amount', amount);
+    formData.append('size', size);
+    formData.append('description', description);
+    formData.append('gender', gender);
 
-      if (res.ok) {
-        alert('Product added successfully');
-        router.push('/products');
-      } else {
-        const err = await res.json();
-        alert('Error: ' + err.message);
-      }
-    } catch (err) {
-      alert('Failed to add product');
-    } finally {
-      setLoading(false);
+    images.forEach((img) => {
+      formData.append('images', img);
+    });
+
+    // Step 3: Send to API
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (res.ok) {
+      alert('Product added successfully!');
+      // optionally redirect to /products
+    } else {
+      alert('Something went wrong!');
     }
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className={styles.container}>
       <h1>Add Product</h1>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 800 }}>
-
+      <form className={styles.form} onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
         {/* Gender */}
-        <div>
+        <div className={styles.row}>
           <label>Gender Type:</label>
-          <div>
-            <label>
-              <input
-                type="radio"
-                name="gender"
-                checked={form.gender === 'Men'}
-                onChange={() => handleGenderChange('Men')}
-              /> Men
-            </label>
-            <label style={{ marginLeft: '1rem' }}>
-              <input
-                type="radio"
-                name="gender"
-                checked={form.gender === 'Women'}
-                onChange={() => handleGenderChange('Women')}
-              /> Women
-            </label>
-          </div>
+          <label><input type="radio" name="gender" value="Men" onChange={(e) => setGender(e.target.value)} /> Men</label>
+          <label><input type="radio" name="gender" value="Women" onChange={(e) => setGender(e.target.value)} /> Women</label>
         </div>
 
-        {/* SKU, Name */}
-        <input type="text" name="sku" placeholder="SKU" value={form.sku} onChange={handleChange} />
-        <input type="text" name="name" placeholder="Product Name" value={form.name} onChange={handleChange} />
+        {/* SKU & Name */}
+        <div className={styles.row}>
+          <input type="text" placeholder="SKU" value={sku} onChange={(e) => setSku(e.target.value)} />
+          <input type="text" placeholder="Product Name" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
 
-        {/* Category, Price, Size */}
-        <select name="category" value={form.category} onChange={handleChange}>
-          <option value="">Select category</option>
-          <option value="Chaniya-Choli">Chaniya-Choli</option>
-          <option value="Saree">Saree</option>
-        </select>
+        {/* Category & Amount & Size */}
+        <div className={styles.row}>
+          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">Select category</option>
+            <option value="shirt">Shirt</option>
+            <option value="pants">Pants</option>
+            <option value="dress">Dress</option>
+          </select>
 
-        <input type="number" name="price" placeholder="Enter Amount" value={form.price} onChange={handleChange} />
-        <select name="size" value={form.size} onChange={handleChange}>
-          <option value="">Select size</option>
-          <option value="S">S</option>
-          <option value="M">M</option>
-          <option value="L">L</option>
-        </select>
+          <input type="number" placeholder="Enter Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
 
-        {/* Image */}
-        <input
-          type="text"
-          name="imageUrl"
-          placeholder="Image URL"
-          value={form.imageUrl}
-          onChange={handleChange}
-        />
+          <select value={size} onChange={(e) => setSize(e.target.value)}>
+            <option value="">Select size</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+          </select>
+        </div>
 
         {/* Description */}
         <textarea
-          name="description"
           placeholder="Description"
-          value={form.description}
-          onChange={handleChange}
+          value={description}
           maxLength={1000}
-          rows={4}
+          onChange={(e) => setDescription(e.target.value)}
         />
 
-        {/* Submit */}
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={() => router.push('/products')}>Cancel</button>
-          <button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Adding...' : '+ Add Product'}
-          </button>
+        {/* Image Upload */}
+        <div className={styles.uploadBox}>
+          <label>Upload Images</label>
+          <input type="file" multiple accept="image/*" onChange={handleImageUpload} />
         </div>
-      </div>
+
+        {/* Buttons */}
+        <div className={styles.actions}>
+          <button type="button">Cancel</button>
+          <button type="submit">+ Add Product</button>
+        </div>
+      </form>
     </div>
   );
 }
