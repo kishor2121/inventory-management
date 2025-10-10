@@ -1,36 +1,44 @@
-"use client"; // needed for useState
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import "./login.css";
-
+import { Eye, EyeOff } from "lucide-react"; 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    // call login API
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
-    if (res.ok) {
-      // Persist token and user for client-side UI
-      try {
-        localStorage.setItem("user", JSON.stringify(data.user));
-      } catch (e) {
-        // ignore storage errors
+      const data = await res.json();
+
+      if (res.ok) {
+        try {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        } catch (e) {
+        }
+        router.push("/home");
+      } else {
+        setError(data.message || "Invalid email or password");
       }
-
-      router.push("/home"); // ✅ Safe to use now
-    } else {
-      alert("Login failed: " + data.message);
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,15 +59,27 @@ export default function SignInPage() {
         />
 
         <label>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter password"
-          required
-        />
+        <div className="password-input">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter password"
+            required
+          />
+          <span
+            className="toggle-visibility"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </span>
+        </div>
 
-        <button type="submit">Sign In</button>
+        {error && <div className="error-message">{error}</div>}
+
+        <button type="submit" disabled={loading}>
+          {loading ? <span className="loader"></span> : "Sign In"}
+        </button>
       </form>
     </div>
   );
