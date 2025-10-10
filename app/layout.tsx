@@ -4,8 +4,6 @@ import "./globals.css";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-
-// ✅ Importing Lucide icons
 import {
   User,
   Lock,
@@ -21,7 +19,7 @@ import {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<{ name?: string } | null>(null);
+  const [user, setUser] = useState<{ id?: string; name?: string } | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
@@ -51,7 +49,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     localStorage.removeItem("user");
     router.push("/sign-in");
   };
-
 
   return (
     <html lang="en">
@@ -112,7 +109,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <button className="dropdown-item">
                       <User className="icon" size={16} /> Profile
                     </button>
-                    <button className="dropdown-item">
+                    <button
+                      onClick={() => {
+                        setShowDropdown(false);
+                        router.push("/change-password");
+                      }}
+                      className="dropdown-item"
+                    >
                       <Lock className="icon" size={16} /> Change Password
                     </button>
                     <button onClick={handleLogout} className="dropdown-item logout">
