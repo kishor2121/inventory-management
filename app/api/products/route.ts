@@ -1,7 +1,8 @@
 import validate from "../auth/validate";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import cloudinary from "@/lib/cloudinary";
+// import cloudinary from "@/lib/cloudinary";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 export async function GET() {
   await validate(); 
@@ -12,7 +13,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return new Response(JSON.stringify({ success: true, data: products }), { status: 200 });
+    return new Response(JSON.stringify({ data: products }), { status: 200 });
   } catch (error: any) {
     return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
   }
@@ -20,6 +21,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   await validate();
+
   try {
     let name: string;
     let sku: string;
@@ -61,16 +63,9 @@ export async function POST(req: Request) {
       const files = formData.getAll("images");
       for (const file of files) {
         if (file instanceof File) {
-          const buffer = Buffer.from(await file.arrayBuffer());
-          const uploaded = await new Promise((resolve, reject) => {
-            cloudinary.uploader
-              .upload_stream({ folder: "inventory-products" }, (err, result) => {
-                if (err) reject(err);
-                else resolve(result);
-              })
-              .end(buffer);
-          });
-          images.push((uploaded as any).secure_url);
+          // Upload image using optimized Cloudinary upload
+          const url = await uploadImageToCloudinary(file, "inventory-products");
+          images.push(url);
         }
       }
     } else {
@@ -80,39 +75,37 @@ export async function POST(req: Request) {
       );
     }
 
-    try {
-      const product = await prisma.product.create({
-        data: {
-          name,
-          sku,
-          description,
-          price,
-          images,
-          gender,
-          category,
-          size,
-          status, 
-          organizationId,
-        },
-      });
+    // Save product in DB
+    const product = await prisma.product.create({
+      data: {
+        name,
+        sku,
+        description,
+        price,
+        images,
+        gender,
+        category,
+        size,
+        status,
+        organizationId,
+      },
+    });
 
-      return NextResponse.json({
-        message: "Product created successfully",
-        data: product, 
-      });
-    } catch (err: any) {
-      if (err.code === "P2002" && err.meta?.target?.includes("sku")) {
-        return NextResponse.json(
-          { message: `SKU "${sku}" already exists. Please use a different SKU.` },
-          { status: 400 }
-        );
-      }
-      throw err;
+    return NextResponse.json({
+      message: "Product created successfully",
+      data: product,
+    });
+
+  } catch (err: any) {
+    if (err.code === "P2002" && err.meta?.target?.includes("sku")) {
+      return NextResponse.json(
+        { message: `SKU "${sku}" already exists. Please use a different SKU.` },
+        { status: 400 }
+      );
     }
-  } catch (error) {
-    console.error("Error creating product:", error);
+    console.error("Error creating product:", err);
     return NextResponse.json(
-      { message: "Failed to create product", error: String(error) },
+      { message: "Failed to create product", error: String(err) },
       { status: 500 }
     );
   }
