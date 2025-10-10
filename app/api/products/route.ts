@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     let category: string;
     let size: string;
     let organizationId: string;
+    let status: string = "available";
     const images: string[] = [];
 
     const contentType = req.headers.get("content-type") || "";
@@ -37,6 +38,7 @@ export async function POST(req: Request) {
       category = data.category;
       size = data.size;
       organizationId = data.organizationId;
+      status = data.status || "available";
       if (Array.isArray(data.images)) images.push(...data.images);
     } else if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
@@ -48,6 +50,7 @@ export async function POST(req: Request) {
       category = formData.get("category") as string;
       size = formData.get("size") as string;
       organizationId = formData.get("organizationId") as string;
+      status = (formData.get("status") as string) || "available";
 
       const files = formData.getAll("images");
       for (const file of files) {
@@ -65,7 +68,10 @@ export async function POST(req: Request) {
         }
       }
     } else {
-      return NextResponse.json({ message: "Unsupported Content-Type" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Unsupported Content-Type" },
+        { status: 400 }
+      );
     }
 
     try {
@@ -79,12 +85,14 @@ export async function POST(req: Request) {
           gender,
           category,
           size,
+          status, 
           organizationId,
         },
       });
 
       return NextResponse.json({
-        message: "Product created successfully"
+        message: "Product created successfully",
+        data: product, 
       });
     } catch (err: any) {
       if (err.code === "P2002" && err.meta?.target?.includes("sku")) {
@@ -93,7 +101,7 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-      throw err; 
+      throw err;
     }
   } catch (error) {
     console.error("Error creating product:", error);
@@ -103,3 +111,4 @@ export async function POST(req: Request) {
     );
   }
 }
+
