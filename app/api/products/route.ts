@@ -1,19 +1,25 @@
+import validate from "../auth/validate";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
 
 export async function GET() {
-  const products = await prisma.product.findMany({
-    where: { isDeleted: false },
-    orderBy: { createdAt: "desc" },
-  });
+  await validate(); 
 
-  return NextResponse.json({
-    data: products,
-  });
+  try {
+    const products = await prisma.product.findMany({
+      where: { isDeleted: false },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return new Response(JSON.stringify({ success: true, data: products }), { status: 200 });
+  } catch (error: any) {
+    return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {
+  await validate();
   try {
     let name: string;
     let sku: string;

@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
+import validate from "../auth/validate";
 import prisma from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
 
 export async function GET(req: Request, context: any) {
+
+  await validate(); 
+  
   const params = await context.params;
   const id = params.id;
 
@@ -18,6 +22,8 @@ export async function GET(req: Request, context: any) {
 }
 
 export async function PUT(req: Request, context: any) {
+
+  await validate(); 
 
   const params = await context.params;
   const id = params.id;
@@ -55,6 +61,9 @@ export async function PUT(req: Request, context: any) {
 }
 
 export async function DELETE(req: Request, context: any) {
+
+  await validate(); 
+
   const params = await context.params;
   const id = params.id;
 
