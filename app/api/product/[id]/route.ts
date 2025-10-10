@@ -2,10 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: Request, context: any) {
+  const params = await context.params;
   const id = params.id;
 
   const product = await prisma.product.findFirst({
@@ -13,23 +11,17 @@ export async function GET(
   });
 
   if (!product) {
-    return NextResponse.json(
-      { message: "Product not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ message: "Product not found" }, { status: 404 });
   }
 
-  return NextResponse.json({
-    message: "Product fetched successfully",
-    data: product,
-  });
+  return NextResponse.json({ data: product });
 }
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } } // destructure directly
-) {
-  const id = params.id; // use string id
+export async function PUT(req: Request, context: any) {
+
+  const params = await context.params;
+  const id = params.id;
+
   const data = await req.json();
 
   try {
@@ -48,7 +40,9 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json({ message: "Product updated successfully", data: updatedProduct });
+    return NextResponse.json({
+      message: "Product updated successfully"
+    });
   } catch (err: any) {
     if (err.code === "P2002" && err.meta?.target?.includes("sku")) {
       return NextResponse.json(
@@ -61,7 +55,7 @@ export async function PUT(
 }
 
 export async function DELETE(req: Request, context: any) {
-  const { params } = await context;
+  const params = await context.params;
   const id = params.id;
 
   const product = await prisma.product.findUnique({ where: { id } });
@@ -82,4 +76,3 @@ export async function DELETE(req: Request, context: any) {
     message: "Product deleted successfully"
   });
 }
-
