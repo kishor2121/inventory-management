@@ -1,68 +1,133 @@
 /* home.css */
-body {
+body, html {
   margin: 0;
+  padding: 0;
   font-family: "Inter", sans-serif;
   background-color: #f3f6fa;
+  height: 100%;
 }
 
+/* ✅ Full-page layout */
 .home-container {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   background-color: #f3f6fa;
-  min-height: 100vh;
+  height: 100vh; /* fill full screen */
+  padding: 20px 0;
+  box-sizing: border-box;
 }
 
+/* ✅ Toolbar just above the calendar */
+.calendar-toolbar {
+  width: 95%;
+  max-width: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.calendar-toolbar .toolbar-left {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.calendar-toolbar .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calendar-toolbar select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background-color: white;
+  color: #111827;
+  cursor: pointer;
+}
+
+.calendar-toolbar select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.calendar-toolbar .create-btn {
+  background-color: #111827;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.calendar-toolbar .create-btn:hover {
+  background-color: #1f2937;
+}
+
+/* ✅ Calendar takes up remaining height neatly */
 .calendar {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  width: 90%;
-  max-width: 1000px;
+  width: 95%;
+  max-width: 1200px;
+  flex-grow: 1; /* fill remaining vertical space */
+  display: flex;
+  flex-direction: column;
   transition: transform 0.2s ease;
 }
 
 .calendar:hover {
-  transform: scale(1.005);
+  transform: scale(1.002);
 }
 
 .calendar-header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: 16px 24px;
   border-bottom: 1px solid #e5e7eb;
   background: linear-gradient(90deg, #e6f0ff, #f5f9ff);
 }
 
 .calendar-header h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: #1e3a8a;
 }
 
 .calendar-header button {
-  background-color: #2563eb;
+  background-color: #111827;
   border: none;
   color: white;
   font-size: 16px;
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 6px;
   transition: all 0.2s ease;
 }
 
 .calendar-header button:hover {
-  background-color: #1e40af;
+  background-color: #2563eb;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  height: 100%;
 }
 
 th {
@@ -72,19 +137,19 @@ th {
   font-weight: 600;
   background-color: #f1f5f9;
   border-bottom: 1px solid #e2e8f0;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 td {
   text-align: right;
   padding: 14px;
-  height: 70px;
   vertical-align: top;
   border: 1px solid #f1f5f9;
   color: #1f2937;
-  font-size: 13px;
+  font-size: 14px;
   background-color: #ffffff;
   transition: background-color 0.2s ease;
+  height: calc((100% - 50px) / 6); /* evenly divide table height */
 }
 
 td.day:hover {

@@ -1,0 +1,342 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background-color: #f8fafc;
+}
+
+.booking-page {
+  min-height: 100vh;
+  padding: 40px 60px;
+  background: linear-gradient(135deg, #ffffff, #f1f5f9);
+  transition: all 0.3s ease;
+}
+
+.breadcrumb {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 18px;
+}
+
+.breadcrumb span {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.booking-container {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.booking-left {
+  flex: 2.5;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.booking-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.card {
+  background: linear-gradient(135deg, #ffffff, #f1f5f9);
+  border-radius: 20px;
+  padding: 28px 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background-color: #fff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.checkbox-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #334155;
+}
+
+.checkbox-right input {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+}
+
+.add-item-btn,
+.book-btn,
+.cancel-btn {
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-item-btn {
+  background-color: #0f172a;
+  color: white;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.add-item-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.cancel-btn {
+  background-color: #f1f5f9;
+  color: #374151;
+}
+
+.cancel-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.book-btn {
+  background-color: #0f172a;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.book-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #ffffff, #f1f5f9);
+  border-radius: 20px;
+  padding: 22px 26px;
+  font-size: 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.summary-row,
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.summary-total {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 10px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+textarea {
+  min-height: 80px;
+  resize: none;
+}
+
+.notes-count {
+  text-align: right;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ✅ DISCOUNT SECTION */
+.discount-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.discount-type {
+  display: flex;
+  gap: 8px;
+  background-color: #f1f5f9;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.discount-type button {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-weight: 500;
+  color: #334155;
+  transition: all 0.3s ease;
+}
+
+.discount-type button.active {
+  background-color: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.discount-type button:hover {
+  background-color: #e2e8f0;
+}
+
+.date-row {
+  display: flex;
+  gap: 12px;
+}
+
+.date-input input[type="date"] {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+}
+
+.add-item-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+}
+
+/* ✅ Red validation message */
+.error-message {
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 6px;
+  margin-bottom: 8px;
+  padding-left: 4px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* ✅ Product Card Remove Button */
+.product-card {
+  position: relative;
+}
+
+.remove-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-btn:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+/* ✅ Show only image */
+.selected-product-preview.image-only {
+  display: flex;
+  justify-content: flex-end;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.selected-product-preview.image-only img {
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+}
+
+
+.product-name {
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.product-amount {
+  color: #2563eb;
+  font-weight: 500;
+  margin: 0;
+}
+
+.preview-image img {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+}
+
