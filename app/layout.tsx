@@ -46,13 +46,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  const handleLogout = () => {
-    try {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-    } catch {}
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    localStorage.removeItem("user");
     router.push("/sign-in");
   };
+
 
   return (
     <html lang="en">

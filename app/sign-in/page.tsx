@@ -23,7 +23,6 @@ export default function SignInPage() {
     if (res.ok) {
       // Persist token and user for client-side UI
       try {
-        localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
       } catch (e) {
         // ignore storage errors
