@@ -1,0 +1,122 @@
+.container {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.select,
+.search {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.addBtn {
+  background-color: black;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.importBtn {
+  border: 1px solid #ccc;
+  padding: 6px 16px;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: center;
+  border-top: 1px solid #eee;
+}
+
+.table th {
+  background-color: #f9f9f9;
+  font-weight: 600;
+}
+
+.imageCell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.productImage {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.noImage {
+  width: 40px;
+  height: 40px;
+  background-color: #eee;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  border-radius: 4px;
+}
+
+.productLink {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.status {
+  padding: 4px 10px;
+  font-size: 12px;
+  color: green;
+  border: 1px solid green;
+  border-radius: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.edit {
+  color: #555;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.delete {
+  color: red;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.noData {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+}
