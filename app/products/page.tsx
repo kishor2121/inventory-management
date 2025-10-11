@@ -78,7 +78,7 @@ export default function ProductsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <Link href="/products/add" className={styles.addBtn}>
+            <Link href="/products/add-product" className={styles.addBtn}>
               + Add Product
             </Link>
             <button className={styles.importBtn}>Import</button>
