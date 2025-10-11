@@ -120,9 +120,9 @@ export default function ProductsPage() {
                   <span className={styles.status}>{product.status}</span>
                 </td>
                 <td className={styles.actions}>
-                  <button className={styles.edit}>
+                  <Link href={`/products/edit-product/${product.id}`} className={styles.edit}>
                     <Edit2 size={16} />
-                  </button>
+                  </Link>
                   <button onClick={() => openDeleteModal(product.id)} className={styles.delete}>
                     <Trash2 size={16} />
                   </button>
