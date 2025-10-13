@@ -19,6 +19,8 @@ export default function EditProductPage() {
   const [images, setImages] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(''); // ✅ New message state
 
   const menCategories = ['Shirt', 'Sherwani'];
   const womenCategories = ['Gown', 'Saree'];
@@ -51,7 +53,6 @@ export default function EditProductPage() {
     setExistingImages(p.images || []);
   };
 
-  // Image handling
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -66,12 +67,15 @@ export default function EditProductPage() {
       return;
     }
 
+    setLoading(true);
+    setSuccessMessage('');
+
     const formData = new FormData();
     formData.append('name', name);
     formData.append('sku', sku);
     formData.append('category', category);
     formData.append('price', price);
-    formData.append('size', JSON.stringify(size)); // Multi select
+    formData.append('size', JSON.stringify(size));
     formData.append('description', description);
     formData.append('gender', gender);
     formData.append('status', 'available');
@@ -84,9 +88,13 @@ export default function EditProductPage() {
       body: formData,
     });
 
+    setLoading(false);
+
     if (res.ok) {
-      alert('Product updated successfully!');
-      router.push('/products');
+      setSuccessMessage('✅ Product updated successfully!');
+      setTimeout(() => {
+        router.push('/products');
+      }, 1500);
     } else {
       const data = await res.json();
       alert('Error: ' + (data?.message || 'Something went wrong!'));
@@ -98,7 +106,6 @@ export default function EditProductPage() {
 
   return (
     <div className={styles.container}>
-      {/* Breadcrumb */}
       <div className={styles.breadcrumb}>
         <span className={styles.breadcrumbLink} onClick={() => router.push('/products')}>
           Products
@@ -293,10 +300,20 @@ export default function EditProductPage() {
           >
             Cancel
           </button>
-          <button type="submit" className={`${styles.button} ${styles.submitButton}`}>
-            Save Changes
+
+          <button
+            type="submit"
+            className={`${styles.button} ${styles.submitButton}`}
+            disabled={loading}
+          >
+            {loading ? <span className={styles.loader}></span> : 'Save Changes'}
           </button>
         </div>
+
+        {/* ✅ Success message below */}
+        {successMessage && (
+          <p className={styles.successMessage}>{successMessage}</p>
+        )}
       </form>
     </div>
   );

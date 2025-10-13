@@ -13,17 +13,18 @@ export default function AddProductPage() {
   const [sku, setSku] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
-  const [size, setSize] = useState<string[]>([]); 
+  const [size, setSize] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ Loader state
+  const [successMessage, setSuccessMessage] = useState(''); // ✅ Success message
 
   const menCategories = ['Shirt', 'Sherwani'];
   const womenCategories = ['Gown', 'Saree'];
   const menSizes = ['34', '36', '38'];
   const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
-
 
   const sizeOptions =
     gender === 'Men'
@@ -64,21 +65,26 @@ export default function AddProductPage() {
       return;
     }
 
+    setLoading(true);
+    setSuccessMessage('');
+
     const formData = new FormData();
     formData.append('name', name);
     formData.append('sku', sku);
     formData.append('category', category);
     formData.append('price', price);
-    formData.append('size', JSON.stringify(size)); // multi-select sizes
+    formData.append('size', JSON.stringify(size));
     formData.append('description', description);
     formData.append('gender', gender);
     images.forEach((img) => formData.append('images', img));
 
     const res = await fetch('/api/products', { method: 'POST', body: formData });
 
+    setLoading(false);
+
     if (res.ok) {
-      alert('Product added successfully!');
-      router.push('/products');
+      setSuccessMessage('✅ Product added successfully!');
+      setTimeout(() => router.push('/products'), 1500);
     } else {
       const data = await res.json();
       alert('Error: ' + (data?.message || 'Something went wrong!'));
@@ -139,7 +145,6 @@ export default function AddProductPage() {
           </div>
         </div>
 
-     
         <div className={styles.row}>
           <input
             className={styles.input}
@@ -279,10 +284,20 @@ export default function AddProductPage() {
           >
             Cancel
           </button>
-          <button type="submit" className={`${styles.button} ${styles.submitButton}`}>
-            + Add Product
+
+          <button
+            type="submit"
+            className={`${styles.button} ${styles.submitButton}`}
+            disabled={loading}
+          >
+            {loading ? <span className={styles.loader}></span> : '+ Add Product'}
           </button>
         </div>
+
+        {/* ✅ Green message below */}
+        {successMessage && (
+          <p className={styles.successMessage}>{successMessage}</p>
+        )}
       </form>
     </div>
   );

@@ -263,3 +263,29 @@ body, html {
   font-size: 14px;
 }
 
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  border-top: 3px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.successMessage {
+  margin-top: 12px;
+  color: #16a34a;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+}
+
+
+

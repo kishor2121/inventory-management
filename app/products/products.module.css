@@ -1,3 +1,6 @@
+/* products.module.css - full stylesheet */
+
+/* Page container */
 .container {
   padding: 24px 40px;
   background-color: #f9fafb;
@@ -6,6 +9,7 @@
   box-sizing: border-box;
 }
 
+/* Header & controls */
 .header {
   display: flex;
   justify-content: space-between;
@@ -68,6 +72,7 @@
   background-color: #f3f4f6;
 }
 
+/* Table */
 .table {
   width: 100%;
   border-collapse: separate;
@@ -75,7 +80,8 @@
   font-size: 14px;
   background-color: white;
   border-radius: 12px;
-  overflow: hidden;
+  /* allow absolute children to overflow outside table cells */
+  overflow: visible;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
@@ -100,6 +106,7 @@
   background-color: #f9fafb;
 }
 
+/* Image cell */
 .imageCell {
   display: flex;
   justify-content: center;
@@ -132,6 +139,7 @@
   font-weight: 500;
 }
 
+/* Product link styles (if used) */
 .productLink {
   color: #2563eb;
   text-decoration: none;
@@ -144,40 +152,7 @@
   text-decoration: underline;
 }
 
-/* Status dropdown color-coded */
-.statusSelect {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: none;
-  font-size: 13.5px;
-  font-weight: 500;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: capitalize;
-  color: white;
-}
-
-/* 🟢 Available */
-.statusGreen {
-  background-color: #16a34a;
-}
-
-/* 🔵 In Laundry */
-.statusBlue {
-  background-color: #2563eb;
-}
-
-/* ⚪ Archived */
-.statusGray {
-  background-color: #9ca3af;
-  color: #f3f4f6;
-}
-
-.statusSelect:focus {
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
-}
-
+/* Actions column */
 .actions {
   display: flex;
   justify-content: center;
@@ -217,10 +192,10 @@
   font-size: 15px;
 }
 
-
-/* Dropdown container */
+/* Status / dropdown base */
 .dropdownWrapper {
-  position: relative;
+  position: relative; /* keeps dropdownMenu positioned relative to this */
+  z-index: 5; /* base stacking for the trigger */
   padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
@@ -235,23 +210,55 @@
   transition: all 0.2s ease;
 }
 
-/* Dropdown menu */
-.dropdownMenu {
-  position: absolute;
-  top: 110%;
-  left: 0;
-  width: 130px;
-  background: white;
+/* Status pill variant (if used directly as pill) */
+.statusSelect {
+  padding: 6px 10px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  animation: fadeIn 0.2s ease;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: capitalize;
+  color: white;
 }
 
-/* Each dropdown option */
+/* Colored status classes (used both on wrapper and options) */
+.statusGreen {
+  background-color: #16a34a;
+}
+
+.statusBlue {
+  background-color: #2563eb;
+}
+
+.statusGray {
+  background-color: #9ca3af;
+  color: #f3f4f6;
+}
+
+/* Dropdown menu
+   Important: place ABOVE the trigger so it doesn't sit inside the card.
+   We use bottom: 110% so it grows upward. If you prefer it below, change to top: 110%.
+*/
+.dropdownMenu {
+  position: absolute;
+  bottom: 110%;
+  left: 0;
+  width: 140px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  overflow: visible;
+  z-index: 9999; /* ensure top-most */
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.12s ease;
+  transform-origin: bottom left;
+}
+
+/* Each option inside dropdown */
 .dropdownOption {
   padding: 8px 12px;
   cursor: pointer;
@@ -259,34 +266,42 @@
   text-align: center;
   font-weight: 500;
   text-transform: capitalize;
-  transition: all 0.2s ease;
+  transition: all 0.12s ease;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 
+/* Last option border removal */
+.dropdownOption:last-child {
+  border-bottom: none;
+}
+
+/* Hover states for options */
 .dropdownOption:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.06);
+  transform: translateY(-1px);
 }
 
-/* Colored options */
-.statusGreen {
-  background-color: #16a34a;
-}
-.statusBlue {
-  background-color: #2563eb;
-}
-.statusGray {
-  background-color: #9ca3af;
-  color: #f3f4f6;
+/* Make sure color for colored options stays readable */
+.dropdownOption.statusGreen { background-color: #16a34a; }
+.dropdownOption.statusBlue  { background-color: #2563eb; }
+.dropdownOption.statusGray  { background-color: #9ca3af; color: #f3f4f6; }
+
+/* Accessibility focus on trigger */
+.statusSelect:focus,
+.dropdownWrapper:focus {
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+  outline: none;
 }
 
-/* Fade animation */
+/* Small animation for menu */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .controls { flex-wrap: wrap; gap: 8px; }
+  .table th, .table td { padding: 12px 8px; font-size: 13px; }
+  .productImage { width: 48px; height: 48px; }
+}

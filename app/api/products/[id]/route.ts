@@ -1,12 +1,10 @@
-import validate from "../../auth/validate"; 
+import validate from "../../auth/validate";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { uploadImageToCloudinary } from "@/lib/cloudinary";
-import { deleteImageFromCloudinary } from "@/lib/cloudinary";
+import { uploadImageToCloudinary, deleteImageFromCloudinary } from "@/lib/cloudinary";
 
 export async function GET(req: Request, context: any) {
-
-  await validate(); 
+  await validate();
 
   const params = await context.params;
   const id = params.id;
@@ -27,75 +25,115 @@ export async function PUT(req: Request, context: any) {
 
   const params = await context.params;
   const id = params.id;
-
   const contentType = req.headers.get("content-type") || "";
-  const images: string[] = [];
 
-  let name = "", sku = "", description = "", gender = "", category = "";
-  let size: string[] = [];
-  let price = 0, status = "available";
+  const existingProduct = await prisma.product.findUnique({
+    where: { id },
+  });
 
-  if (contentType.includes("application/json")) {
-    const data = await req.json();
-
-    name = data.name || "";
-    sku = data.sku || "";
-    description = data.description || "";
-    price = data.price || 0;
-    gender = data.gender || "";
-    category = data.category || "";
-    size = Array.isArray(data.size)
-    ? data.size
-    : typeof data.size === "string" && data.size.startsWith("[")
-    ? JSON.parse(data.size)
-    : [];
-
-    status = data.status || "available";
-
-    if (Array.isArray(data.size)) {
-      size = data.size;
-    } else if (typeof data.size === "string" && data.size.trim() !== "") {
-      size = [data.size];
-    }
-
-    if (Array.isArray(data.images)) images.push(...data.images);
-  } 
-  
-  else if (contentType.includes("multipart/form-data")) {
-    const formData = await req.formData();
-
-    name = (formData.get("name") as string) || "";
-    sku = (formData.get("sku") as string) || "";
-    description = (formData.get("description") as string) || "";
-    price = parseFloat((formData.get("price") as string) || "0");
-    gender = (formData.get("gender") as string) || "";
-    category = (formData.get("category") as string) || "";
-    const sizeValue = formData.get("size");
-    size = typeof sizeValue === "string" && sizeValue.startsWith("[")
-      ? JSON.parse(sizeValue)
-      : Array.isArray(sizeValue)
-      ? sizeValue
-      : [];
-
-    status = (formData.get("status") as string) || "available";
-
-    const sizes = formData.getAll("size");
-    size = sizes.map((s) => String(s)).filter((s) => s.trim() !== "");
-
-    const files = formData.getAll("images");
-    for (const file of files) {
-      if (file instanceof File) {
-        const url = await uploadImageToCloudinary(file, "inventory-products");
-        images.push(url);
-      }
-    }
-  } 
-  
-  else {
-    return NextResponse.json({ message: "Unsupported Content-Type" }, { status: 400 });
+  if (!existingProduct) {
+    return NextResponse.json({ message: "Product not found" }, { status: 404 });
   }
 
+  let name = existingProduct.name;
+  let sku = existingProduct.sku;
+  let description = existingProduct.description;
+  let price = existingProduct.price;
+  let gender = existingProduct.gender;
+  let category = existingProduct.category;
+  let size = existingProduct.size;
+  let status = existingProduct.status;
+  let images = existingProduct.images || [];
+
   try {
+ 
+    if (contentType.includes("application/json")) {
+      const data = await req.json();
+
+      name = data.name ?? existingProduct.name;
+      sku = data.sku ?? existingProduct.sku;
+      description = data.description ?? existingProduct.description;
+      price = data.price ?? existingProduct.price;
+      gender = data.gender ?? existingProduct.gender;
+      category = data.category ?? existingProduct.category;
+      status = data.status ?? existingProduct.status;
+
+      if (data.size) {
+        if (Array.isArray(data.size)) {
+          size = data.size.map((s: any) => String(s).trim());
+        } else if (typeof data.size === "string") {
+          try {
+            const parsed = JSON.parse(data.size);
+            if (Array.isArray(parsed)) {
+              size = parsed.map((s: any) => String(s).trim());
+            } else {
+              size = [String(parsed).trim()];
+            }
+          } catch {
+            size = [data.size.trim()];
+          }
+        }
+      }
+
+      if (Array.isArray(data.images) && data.images.length > 0) {
+        images = data.images;
+      }
+    }
+
+    else if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const getValue = (key: string, fallback: string) =>
+        (formData.get(key) as string) || fallback;
+
+      name = getValue("name", existingProduct.name);
+      sku = getValue("sku", existingProduct.sku);
+      description = getValue("description", existingProduct.description);
+      gender = getValue("gender", existingProduct.gender);
+      category = getValue("category", existingProduct.category);
+      status = getValue("status", existingProduct.status);
+      price = parseFloat(
+        (formData.get("price") as string) || existingProduct.price.toString()
+      );
+
+      const sizes = formData.getAll("size");
+      if (sizes.length > 0) {
+        size = sizes
+          .map((s) => {
+            try {
+              const parsed = JSON.parse(String(s));
+              if (Array.isArray(parsed)) return parsed.map((v) => String(v).trim());
+              return String(s).trim();
+            } catch {
+              return String(s).trim();
+            }
+          })
+          .flat()
+          .filter((s) => s !== "");
+      }
+
+      const files = formData.getAll("images");
+      const newImages: string[] = [];
+
+      if (files.length > 0 && files.some((f) => f instanceof File)) {
+        for (const file of files) {
+          if (file instanceof File) {
+            const url = await uploadImageToCloudinary(file, "inventory-products");
+            newImages.push(url);
+          }
+        }
+        images = [...images, ...newImages];
+      }
+    } else {
+      return NextResponse.json(
+        { message: "Unsupported Content-Type" },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(size)) size = [String(size)];
+    size = size.filter((s) => typeof s === "string" && s.trim() !== "");
+
+  
     const updatedProduct = await prisma.product.update({
       where: { id },
       data: { name, sku, description, price, gender, category, size, status, images },
@@ -106,13 +144,13 @@ export async function PUT(req: Request, context: any) {
       data: updatedProduct,
     });
   } catch (err: any) {
+    console.error("Error updating product:", err);
     if (err.code === "P2002" && err.meta?.target?.includes("sku")) {
       return NextResponse.json(
         { message: `SKU "${sku}" already exists. Use a different SKU.` },
         { status: 400 }
       );
     }
-    console.error("Error updating product:", err);
     return NextResponse.json(
       { message: "Failed to update product", error: String(err) },
       { status: 500 }
@@ -121,18 +159,16 @@ export async function PUT(req: Request, context: any) {
 }
 
 export async function DELETE(req: Request, context: any) {
-  await validate(); 
+  await validate();
 
   const { id } = await context.params;
 
   const product = await prisma.product.findUnique({ where: { id } });
 
   if (!product || product.isDeleted) {
-    return NextResponse.json(
-      { message: "Product not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ message: "Product not found" }, { status: 404 });
   }
+
 
   if (product.images && product.images.length > 0) {
     for (const imageUrl of product.images) {
@@ -149,7 +185,5 @@ export async function DELETE(req: Request, context: any) {
     data: { isDeleted: true },
   });
 
-  return NextResponse.json({
-    message: "Product deleted successfully",
-  });
+  return NextResponse.json({ message: "Product deleted successfully" });
 }
