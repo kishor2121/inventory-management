@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Select from 'react-select';
 import styles from './addProduct.module.css';
 
 export default function AddProductPage() {
@@ -12,28 +11,19 @@ export default function AddProductPage() {
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
   const [category, setCategory] = useState('');
-  const [price, setPrice] = useState('');
-  const [size, setSize] = useState<string[]>([]); // Multi-select
+  const [price, setPrice] = useState(''); 
+  const [size, setSize] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
-  // category & size options
   const menCategories = ['Shirt', 'Sherwani'];
   const womenCategories = ['Gown', 'Saree'];
   const menSizes = ['34', '36', '38'];
   const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
-  // react-select options
-  const sizeOptions =
-    gender === 'Men'
-      ? menSizes.map((s) => ({ value: s, label: s }))
-      : gender === 'Women'
-      ? womenSizes.map((s) => ({ value: s, label: s }))
-      : [];
-
-  // handle file uploads
+  // handle both file input and drag-drop
   const addImages = (files: FileList | File[]) => {
     const validImages = Array.from(files).filter((f) => f.type.startsWith('image/'));
     if (validImages.length > 0) {
@@ -70,8 +60,8 @@ export default function AddProductPage() {
     formData.append('name', name);
     formData.append('sku', sku);
     formData.append('category', category);
-    formData.append('price', price);
-    formData.append('size', JSON.stringify(size)); // multi-select sizes
+    formData.append('price', price); 
+    formData.append('size', size);
     formData.append('description', description);
     formData.append('gender', gender);
     images.forEach((img) => formData.append('images', img));
@@ -80,7 +70,7 @@ export default function AddProductPage() {
 
     if (res.ok) {
       alert('Product added successfully!');
-      router.push('/products');
+      router.push('/products'); 
     } else {
       const data = await res.json();
       alert('Error: ' + (data?.message || 'Something went wrong!'));
@@ -89,10 +79,11 @@ export default function AddProductPage() {
 
   const categories =
     gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
+  const sizes =
+    gender === 'Men' ? menSizes : gender === 'Women' ? womenSizes : [];
 
   return (
     <div className={styles.container}>
-      {/* Breadcrumb */}
       <div className={styles.breadcrumb}>
         <span className={styles.breadcrumbLink} onClick={() => router.push('/products')}>
           Products
@@ -108,7 +99,6 @@ export default function AddProductPage() {
           handleSubmit();
         }}
       >
-        {/* Gender */}
         <div className={styles.row}>
           <label>Gender Type:</label>
           <div className={styles.radioGroup}>
@@ -118,11 +108,7 @@ export default function AddProductPage() {
                 name="gender"
                 value="Men"
                 checked={gender === 'Men'}
-                onChange={(e) => {
-                  setGender(e.target.value);
-                  setCategory('');
-                  setSize([]);
-                }}
+                onChange={(e) => setGender(e.target.value)}
               />
               Men
             </label>
@@ -132,18 +118,13 @@ export default function AddProductPage() {
                 name="gender"
                 value="Women"
                 checked={gender === 'Women'}
-                onChange={(e) => {
-                  setGender(e.target.value);
-                  setCategory('');
-                  setSize([]);
-                }}
+                onChange={(e) => setGender(e.target.value)}
               />
               Women
             </label>
           </div>
         </div>
 
-        {/* SKU + Name */}
         <div className={styles.row}>
           <input
             className={styles.input}
@@ -161,7 +142,6 @@ export default function AddProductPage() {
           />
         </div>
 
-        {/* Category + Price + Size */}
         <div className={styles.row}>
           <select
             className={styles.select}
@@ -185,33 +165,21 @@ export default function AddProductPage() {
             onChange={(e) => setPrice(e.target.value)}
           />
 
-          <div style={{ flex: 1 }}>
-            <Select
-              isMulti
-              options={sizeOptions}
-              value={sizeOptions.filter((opt) => size.includes(opt.value))}
-              onChange={(selected) => setSize(selected.map((opt) => opt.value))}
-              placeholder="Select size(s)"
-              isDisabled={!gender}
-              classNamePrefix="react-select"
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  borderRadius: '8px',
-                  borderColor: '#d1d5db',
-                  minHeight: '40px',
-                  fontSize: '14px',
-                }),
-                multiValue: (base) => ({
-                  ...base,
-                  backgroundColor: '#e5e7eb',
-                }),
-              }}
-            />
-          </div>
+          <select
+            className={styles.select}
+            value={size}
+            onChange={(e) => setSize(e.target.value)}
+            disabled={!gender}
+          >
+            <option value="">Select size</option>
+            {sizes.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Description + Upload */}
         <div className={styles.gridTwo}>
           <div className={styles.gridItem}>
             <label>Description</label>
@@ -265,8 +233,7 @@ export default function AddProductPage() {
                 </div>
               ) : (
                 <p className={styles.uploadText}>
-                  Drag & Drop images here or{' '}
-                  <span className={styles.uploadLink}>Click to select</span>
+                  Drag & Drop images here or <span className={styles.uploadLink}>Click to select</span>
                   <br />
                   <span className={styles.uploadNote}>
                     Supported: PNG, JPG, JPEG — Max 25MB
@@ -277,7 +244,6 @@ export default function AddProductPage() {
           </div>
         </div>
 
-        {/* Buttons */}
         <div className={styles.actions}>
           <button
             type="button"

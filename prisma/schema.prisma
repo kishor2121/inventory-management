@@ -1,35 +1,58 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Organization {
+  id               String    @id @default(cuid())
+  organizationName String
+  ownerName        String
+  description      String?
+  isActive         Boolean   @default(true)
+  email            String    @unique
+  contactNumber    String?
+  address          String?
+  logo             String?
+  activeTill       DateTime?
+  billingRules     String[]  @default([])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  users    User[]     
+  products Product[] 
+}
+
 model User {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
-  email          String   @unique
+  email          String        @unique
   password       String
-  isActive       Boolean  @default(true)
-  role           String   @default("user")
-  organizationId String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  isActive       Boolean       @default(true)
+  role           String        @default("user")
+  organizationId String?       
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model Product {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
-  sku            String   @unique
+  sku            String        @unique
   description    String?
   price          Float
-  images         String[] @default([])
-  isDeleted      Boolean  @default(false)
+  images         String[]      @default([])
+  isDeleted      Boolean       @default(false)
   gender         String
   category       String
   size           String[]
-  status         String   @default("available")
-  organizationId String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  status         String        @default("available")
+  organizationId String?       
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
