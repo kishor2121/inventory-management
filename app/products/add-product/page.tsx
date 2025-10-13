@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './addProduct.module.css';
 
@@ -17,6 +17,24 @@ export default function AddProductPage() {
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [showSizeDropdown, setShowSizeDropdown] = useState(false);
+
+  const sizeDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sizeDropdownRef.current &&
+        !sizeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowSizeDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const menCategories = ['Blazer', 'Sherwani', 'Shirt', 'Pant'];
   const womenCategories = ['Chaniya-Choli', 'Gown', 'Overcoat'];
@@ -58,7 +76,6 @@ export default function AddProductPage() {
     }
   };
 
-  // Choose categories and sizes based on gender
   const categories =
     gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
   const sizes = gender === 'Men' ? menSizes : gender === 'Women' ? womenSizes : [];
@@ -91,8 +108,8 @@ export default function AddProductPage() {
                 checked={gender === 'Men'}
                 onChange={(e) => {
                   setGender(e.target.value);
-                  setCategory(''); 
-                  setSize('');     
+                  setCategory('');
+                  setSize('');
                 }}
               />
               Men
@@ -155,7 +172,7 @@ export default function AddProductPage() {
           />
 
           {/* MULTI SIZE DROPDOWN */}
-          <div style={{ position: 'relative', minWidth: '200px' }}>
+          <div ref={sizeDropdownRef} style={{ position: 'relative', minWidth: '200px' }}>
             <div
               onClick={() => setShowSizeDropdown(!showSizeDropdown)}
               style={{

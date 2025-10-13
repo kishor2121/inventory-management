@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import styles from '../../add-product/addProduct.module.css';
 
@@ -20,14 +20,32 @@ export default function EditProductPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [showSizeDropdown, setShowSizeDropdown] = useState(false);
 
-  const menCategories = ['Shirt', 'Sherwani'];
-  const womenCategories = ['Gown', 'Saree'];
-  const menSizes = ['34', '36', '38'];
-  const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+  const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sizeDropdownRef.current &&
+        !sizeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowSizeDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const menCategories = ['Shirt', 'Sherwani'];
+  const womenCategories = ['Gown', 'Saree'];
+  const menSizes = ['34', '36', '38'];
+  const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
   const fetchProduct = async () => {
     const res = await fetch(`/api/products/${id}`);
@@ -38,7 +56,6 @@ export default function EditProductPage() {
     setSku(p.sku || '');
     setCategory(p.category || '');
     setPrice(p.price?.toString() || '');
-    // Convert size array to comma separated string if needed
     setSize(Array.isArray(p.size) ? p.size.join(',') : p.size || '');
     setDescription(p.description || '');
     setGender(p.gender || '');
@@ -173,8 +190,8 @@ export default function EditProductPage() {
             onChange={(e) => setPrice(e.target.value)}
           />
 
-          {/* Multi-size dropdown */}
-          <div style={{ position: 'relative', minWidth: '200px' }}>
+          {/* Multi-size dropdown with click-outside-to-close */}
+          <div ref={sizeDropdownRef} style={{ position: 'relative', minWidth: '200px' }}>
             <div
               onClick={() => setShowSizeDropdown(!showSizeDropdown)}
               style={{
