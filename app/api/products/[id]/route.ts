@@ -2,6 +2,7 @@ import validate from "../../auth/validate";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { deleteImageFromCloudinary } from "@/lib/cloudinary";
 
 export async function GET(req: Request, context: any) {
 
@@ -92,11 +93,9 @@ export async function PUT(req: Request, context: any) {
 }
 
 export async function DELETE(req: Request, context: any) {
-
   await validate(); 
 
-  const params = await context.params;
-  const id = params.id;
+  const { id } = await context.params;
 
   const product = await prisma.product.findUnique({ where: { id } });
 
@@ -107,12 +106,22 @@ export async function DELETE(req: Request, context: any) {
     );
   }
 
-  const deletedProduct = await prisma.product.update({
+  if (product.images && product.images.length > 0) {
+    for (const imageUrl of product.images) {
+      try {
+        await deleteImageFromCloudinary(imageUrl);
+      } catch (err) {
+        console.warn("Failed to delete image from Cloudinary:", imageUrl, err);
+      }
+    }
+  }
+
+  await prisma.product.update({
     where: { id },
     data: { isDeleted: true },
   });
 
   return NextResponse.json({
-    message: "Product deleted successfully"
+    message: "Product deleted successfully",
   });
 }
