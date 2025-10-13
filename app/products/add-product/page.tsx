@@ -16,18 +16,39 @@ export default function AddProductPage() {
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const menCategories = ['Blazer', 'Sherwani', 'Shirt', 'Pant'];
-  const womenCategories = ['Chaniya-Choli','Gown', 'Overcoat'];
-  const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
-  const womenSizes = ['Free Size', 'XS','S', 'M', 'L', 'XL', 'XXL'];
+  // category & size options
+  const menCategories = ['Shirt', 'Sherwani'];
+  const womenCategories = ['Gown', 'Saree'];
+  const menSizes = ['34', '36', '38'];
+  const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+
+  // handle both file input and drag-drop
+  const addImages = (files: FileList | File[]) => {
+    const validImages = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    if (validImages.length > 0) {
+      const newImages = [...images, ...validImages];
+      setImages(newImages);
+      setPreviewUrls(newImages.map((f) => URL.createObjectURL(f)));
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setImages(files);
-      setPreviewUrls(files.map((f) => URL.createObjectURL(f)));
-    }
+    if (e.target.files) addImages(e.target.files);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    addImages(e.dataTransfer.files);
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    const newPreviews = previewUrls.filter((_, i) => i !== index);
+    setImages(newImages);
+    setPreviewUrls(newPreviews);
   };
 
   const handleSubmit = async () => {
@@ -64,13 +85,14 @@ export default function AddProductPage() {
 
   return (
     <div className={styles.container}>
+      {/* Breadcrumb */}
       <div className={styles.breadcrumb}>
         <span className={styles.breadcrumbLink} onClick={() => router.push('/products')}>
           Products
         </span>
         <span className={styles.breadcrumbDivider}>›</span>
         <span className={styles.breadcrumbActive}>Add Product</span>
-      </div>
+        </div>
 
       <form
         className={styles.form}
@@ -103,9 +125,10 @@ export default function AddProductPage() {
               Women
             </label>
           </div>
-        </div>
+  </div>
 
-        <div className={styles.row}>
+  {/* SKU + Name */}
+  <div className={styles.row}>
           <input
             className={styles.input}
             type="text"
@@ -120,9 +143,10 @@ export default function AddProductPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-        </div>
+  </div>
 
-        <div className={styles.row}>
+  {/* Category + Amount + Size */}
+  <div className={styles.row}>
           <select
             className={styles.select}
             value={category}
@@ -158,9 +182,10 @@ export default function AddProductPage() {
               </option>
             ))}
           </select>
-        </div>
+  </div>
 
-        <div className={styles.gridTwo}>
+  {/* Description + Upload */}
+  <div className={styles.gridTwo}>
           <div className={styles.gridItem}>
             <label>Description</label>
             <textarea
@@ -177,7 +202,16 @@ export default function AddProductPage() {
 
           <div className={styles.gridItem}>
             <label>Upload Images</label>
-            <div className={styles.uploadBox}>
+            <div
+              className={`${styles.uploadBox} ${isDragging ? styles.dragOver : ''}`}
+              onDrop={handleDrop}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onClick={() => document.getElementById('upload')?.click()}
+            >
               <input
                 id="upload"
                 type="file"
@@ -187,46 +221,36 @@ export default function AddProductPage() {
                 onChange={handleImageUpload}
               />
               {previewUrls.length > 0 ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '10px',
-                    justifyContent: 'center',
-                  }}
-                >
+                <div className={styles.previewContainer}>
                   {previewUrls.map((src, i) => (
-                    <img
-                      key={i}
-                      src={src}
-                      alt={`Preview ${i}`}
-                      style={{
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '8px',
-                        objectFit: 'cover',
-                        border: '1px solid #e5e7eb',
-                      }}
-                    />
+                    <div key={i} className={styles.previewWrapper}>
+                      <img src={src} alt={`Preview ${i}`} className={styles.previewImage} />
+                      <button
+                        type="button"
+                        className={styles.removeButton}
+                        onClick={() => handleRemoveImage(i)}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ))}
+                  <span className={styles.addMoreText}>Click or drop more</span>
                 </div>
               ) : (
                 <p className={styles.uploadText}>
-                  Drag & Drop images here, or{' '}
-                  <label htmlFor="upload" style={{ color: '#000', cursor: 'pointer' }}>
-                    click to select
-                  </label>
+                  Drag & Drop images here or <span className={styles.uploadLink}>Click to select</span>
                   <br />
-                  <span style={{ color: '#9ca3af' }}>
+                  <span className={styles.uploadNote}>
                     Supported: PNG, JPG, JPEG — Max 25MB
                   </span>
                 </p>
               )}
             </div>
           </div>
-        </div>
+  </div>
 
-        <div className={styles.actions}>
+  {/* Buttons */}
+  <div className={styles.actions}>
           <button
             type="button"
             className={`${styles.button} ${styles.cancelButton}`}
