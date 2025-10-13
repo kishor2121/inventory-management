@@ -11,16 +11,17 @@ export default function AddProductPage() {
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
   const [category, setCategory] = useState('');
-  const [price, setPrice] = useState(''); 
+  const [price, setPrice] = useState('');
   const [size, setSize] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [showSizeDropdown, setShowSizeDropdown] = useState(false);
 
   const menCategories = ['Blazer', 'Sherwani', 'Shirt', 'Pant'];
-  const womenCategories = ['Chaniya-Choli','Gown', 'Overcoat'];
+  const womenCategories = ['Chaniya-Choli', 'Gown', 'Overcoat'];
   const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
-  const womenSizes = ['Free Size', 'XS','S', 'M', 'L', 'XL', 'XXL'];
+  const womenSizes = ['Free Size', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -40,7 +41,7 @@ export default function AddProductPage() {
     formData.append('name', name);
     formData.append('sku', sku);
     formData.append('category', category);
-    formData.append('price', price); 
+    formData.append('price', price);
     formData.append('size', size);
     formData.append('description', description);
     formData.append('gender', gender);
@@ -50,17 +51,17 @@ export default function AddProductPage() {
 
     if (res.ok) {
       alert('Product added successfully!');
-      router.push('/products'); 
+      router.push('/products');
     } else {
       const data = await res.json();
       alert('Error: ' + (data?.message || 'Something went wrong!'));
     }
   };
 
+  // Choose categories and sizes based on gender
   const categories =
     gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
-  const sizes =
-    gender === 'Men' ? menSizes : gender === 'Women' ? womenSizes : [];
+  const sizes = gender === 'Men' ? menSizes : gender === 'Women' ? womenSizes : [];
 
   return (
     <div className={styles.container}>
@@ -88,7 +89,11 @@ export default function AddProductPage() {
                 name="gender"
                 value="Men"
                 checked={gender === 'Men'}
-                onChange={(e) => setGender(e.target.value)}
+                onChange={(e) => {
+                  setGender(e.target.value);
+                  setCategory(''); 
+                  setSize('');     
+                }}
               />
               Men
             </label>
@@ -98,7 +103,11 @@ export default function AddProductPage() {
                 name="gender"
                 value="Women"
                 checked={gender === 'Women'}
-                onChange={(e) => setGender(e.target.value)}
+                onChange={(e) => {
+                  setGender(e.target.value);
+                  setCategory('');
+                  setSize('');
+                }}
               />
               Women
             </label>
@@ -145,19 +154,70 @@ export default function AddProductPage() {
             onChange={(e) => setPrice(e.target.value)}
           />
 
-          <select
-            className={styles.select}
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-            disabled={!gender}
-          >
-            <option value="">Select size</option>
-            {sizes.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+          {/* MULTI SIZE DROPDOWN */}
+          <div style={{ position: 'relative', minWidth: '200px' }}>
+            <div
+              onClick={() => setShowSizeDropdown(!showSizeDropdown)}
+              style={{
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                padding: '10px',
+                cursor: 'pointer',
+                background: '#fff',
+                fontSize: '14px',
+                color: size ? '#000' : '#9ca3af',
+                userSelect: 'none',
+              }}
+            >
+              {size ? size : 'Select size'}
+            </div>
+
+            {showSizeDropdown && (
+              <div
+                style={{
+                  position: 'absolute',
+                  zIndex: 10,
+                  background: '#f9f9f9',
+                  border: '1px solid #ccc',
+                  borderRadius: '6px',
+                  marginTop: '4px',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  width: '100%',
+                }}
+              >
+                {sizes.map((s) => (
+                  <label
+                    key={s}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '6px 10px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      userSelect: 'none',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={size.split(',').includes(s)}
+                      onChange={(e) => {
+                        let selected = size ? size.split(',') : [];
+                        if (e.target.checked) {
+                          if (!selected.includes(s)) selected.push(s);
+                        } else {
+                          selected = selected.filter((item) => item !== s);
+                        }
+                        setSize(selected.join(','));
+                      }}
+                      style={{ marginRight: '8px' }}
+                    />
+                    {s}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className={styles.gridTwo}>
