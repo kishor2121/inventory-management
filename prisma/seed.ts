@@ -6,9 +6,8 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Running seed script...');
 
-  // 1️⃣ Create default organization
   const organization = await prisma.organization.upsert({
-    where: { email: 'prewedding.attire.onrent@gmail.com' }, // unique field
+    where: { email: 'prewedding.attire.onrent@gmail.com' },
     update: {},
     create: {
       organizationName: 'Pre Wedding Attire',
@@ -32,7 +31,7 @@ async function main() {
     where: { email },
     update: {},
     create: {
-      name: 'admim',
+      name: 'admin',
       email,
       password: hashedPassword,
       role: 'superAdmin',

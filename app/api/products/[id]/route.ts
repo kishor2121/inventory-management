@@ -2,6 +2,7 @@ import validate from "../../auth/validate";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { deleteImageFromCloudinary } from "@/lib/cloudinary";
 
 export async function GET(req: Request, context: any) {
 
@@ -24,17 +25,19 @@ export async function GET(req: Request, context: any) {
 export async function PUT(req: Request, context: any) {
   await validate();
 
-  const params = await context.params; // ✅ await here
+  const params = await context.params;
   const id = params.id;
 
   const contentType = req.headers.get("content-type") || "";
   const images: string[] = [];
 
-  let name = "", sku = "", description = "", gender = "", category = "", size = "";
+  let name = "", sku = "", description = "", gender = "", category = "";
+  let size: string[] = [];
   let price = 0, status = "available";
 
   if (contentType.includes("application/json")) {
     const data = await req.json();
+
     name = data.name || "";
     sku = data.sku || "";
     description = data.description || "";
@@ -48,9 +51,19 @@ export async function PUT(req: Request, context: any) {
     : [];
 
     status = data.status || "available";
+
+    if (Array.isArray(data.size)) {
+      size = data.size;
+    } else if (typeof data.size === "string" && data.size.trim() !== "") {
+      size = [data.size];
+    }
+
     if (Array.isArray(data.images)) images.push(...data.images);
-  } else if (contentType.includes("multipart/form-data")) {
+  } 
+  
+  else if (contentType.includes("multipart/form-data")) {
     const formData = await req.formData();
+
     name = (formData.get("name") as string) || "";
     sku = (formData.get("sku") as string) || "";
     description = (formData.get("description") as string) || "";
@@ -66,6 +79,9 @@ export async function PUT(req: Request, context: any) {
 
     status = (formData.get("status") as string) || "available";
 
+    const sizes = formData.getAll("size");
+    size = sizes.map((s) => String(s)).filter((s) => s.trim() !== "");
+
     const files = formData.getAll("images");
     for (const file of files) {
       if (file instanceof File) {
@@ -73,7 +89,9 @@ export async function PUT(req: Request, context: any) {
         images.push(url);
       }
     }
-  } else {
+  } 
+  
+  else {
     return NextResponse.json({ message: "Unsupported Content-Type" }, { status: 400 });
   }
 
@@ -103,11 +121,9 @@ export async function PUT(req: Request, context: any) {
 }
 
 export async function DELETE(req: Request, context: any) {
-
   await validate(); 
 
-  const params = await context.params;
-  const id = params.id;
+  const { id } = await context.params;
 
   const product = await prisma.product.findUnique({ where: { id } });
 
@@ -118,12 +134,22 @@ export async function DELETE(req: Request, context: any) {
     );
   }
 
-  const deletedProduct = await prisma.product.update({
+  if (product.images && product.images.length > 0) {
+    for (const imageUrl of product.images) {
+      try {
+        await deleteImageFromCloudinary(imageUrl);
+      } catch (err) {
+        console.warn("Failed to delete image from Cloudinary:", imageUrl, err);
+      }
+    }
+  }
+
+  await prisma.product.update({
     where: { id },
     data: { isDeleted: true },
   });
 
   return NextResponse.json({
-    message: "Product deleted successfully"
+    message: "Product deleted successfully",
   });
 }
