@@ -1,11 +1,10 @@
 import validate from "../auth/validate";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-// import cloudinary from "@/lib/cloudinary";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 export async function GET() {
-  await validate(); 
+  await validate();
 
   try {
     const products = await prisma.product.findMany({
@@ -13,9 +12,12 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return new Response(JSON.stringify({ data: products }), { status: 200 });
+    return NextResponse.json({ data: products }, { status: 200 });
   } catch (error: any) {
-    return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
   }
 }
 
@@ -23,51 +25,73 @@ export async function POST(req: Request) {
   await validate();
 
   try {
+    const contentType = req.headers.get("content-type") || "";
     let name: string;
     let sku: string;
     let description: string;
     let price: number;
     let gender: string;
     let category: string;
-    let size: string;
+    let size: string[] = [];
     let organizationId: string;
     let status: string = "available";
     const images: string[] = [];
 
-    const contentType = req.headers.get("content-type") || "";
-
     if (contentType.includes("application/json")) {
       const data = await req.json();
+
       name = data.name;
       sku = data.sku;
       description = data.description;
       price = data.price;
       gender = data.gender;
       category = data.category;
-      size = data.size;
+      size = Array.isArray(data.size) ? data.size : [data.size];
       organizationId = data.organizationId;
       status = data.status || "available";
-      if (Array.isArray(data.images)) images.push(...data.images);
+      if (Array.isArray(data.images)) {
+        images.push(...data.images);
+      }
+
     } else if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
+
       name = formData.get("name") as string;
       sku = formData.get("sku") as string;
       description = formData.get("description") as string;
       price = parseFloat(formData.get("price") as string);
       gender = formData.get("gender") as string;
       category = formData.get("category") as string;
-      size = formData.get("size") as string;
+
+      const sizeRaw = formData.get("size");
+      if (sizeRaw) {
+        size = sizeRaw.toString().split(",").map((s) => s.trim());
+      }
+
       organizationId = formData.get("organizationId") as string;
-      status = (formData.get("status") as string) || "available";
+      const statusRaw = formData.get("status");
+      if (statusRaw) status = statusRaw.toString();
 
       const files = formData.getAll("images");
       for (const file of files) {
         if (file instanceof File) {
-          // Upload image using optimized Cloudinary upload
           const url = await uploadImageToCloudinary(file, "inventory-products");
           images.push(url);
         }
       }
+
+      const jsonImageList = formData.get("images[]");
+      if (jsonImageList) {
+        try {
+          const parsed = JSON.parse(jsonImageList.toString());
+          if (Array.isArray(parsed)) {
+            images.push(...parsed);
+          }
+        } catch (e) {
+          console.warn("Failed to parse images[] JSON:", e);
+        }
+      }
+
     } else {
       return NextResponse.json(
         { message: "Unsupported Content-Type" },
@@ -75,7 +99,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Save product in DB
     const product = await prisma.product.create({
       data: {
         name,
@@ -103,6 +126,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
     console.error("Error creating product:", err);
     return NextResponse.json(
       { message: "Failed to create product", error: String(err) },
@@ -110,4 +134,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

@@ -17,10 +17,10 @@ export default function AddProductPage() {
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
-  const menCategories = ['Shirt', 'Sherwani'];
-  const womenCategories = ['Gown', 'Saree'];
-  const menSizes = ['34', '36', '38'];
-  const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+  const menCategories = ['Blazer', 'Sherwani', 'Shirt', 'Pant'];
+  const womenCategories = ['Chaniya-Choli','Gown', 'Overcoat'];
+  const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
+  const womenSizes = ['Free Size', 'XS','S', 'M', 'L', 'XL', 'XXL'];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {

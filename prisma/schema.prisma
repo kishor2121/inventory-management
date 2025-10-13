@@ -27,7 +27,7 @@ model Product {
   isDeleted      Boolean  @default(false)
   gender         String
   category       String
-  size           String
+  size           String[]
   status         String   @default("available")
   organizationId String?
   createdAt      DateTime @default(now())
