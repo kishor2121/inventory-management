@@ -41,7 +41,12 @@ export async function PUT(req: Request, context: any) {
     price = data.price || 0;
     gender = data.gender || "";
     category = data.category || "";
-    size = data.size || "";
+    size = Array.isArray(data.size)
+    ? data.size
+    : typeof data.size === "string" && data.size.startsWith("[")
+    ? JSON.parse(data.size)
+    : [];
+
     status = data.status || "available";
     if (Array.isArray(data.images)) images.push(...data.images);
   } else if (contentType.includes("multipart/form-data")) {
@@ -52,7 +57,13 @@ export async function PUT(req: Request, context: any) {
     price = parseFloat((formData.get("price") as string) || "0");
     gender = (formData.get("gender") as string) || "";
     category = (formData.get("category") as string) || "";
-    size = (formData.get("size") as string) || "";
+    const sizeValue = formData.get("size");
+    size = typeof sizeValue === "string" && sizeValue.startsWith("[")
+      ? JSON.parse(sizeValue)
+      : Array.isArray(sizeValue)
+      ? sizeValue
+      : [];
+
     status = (formData.get("status") as string) || "available";
 
     const files = formData.getAll("images");

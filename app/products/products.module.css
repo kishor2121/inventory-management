@@ -6,8 +6,6 @@
   box-sizing: border-box;
 }
 
-/* ---------- Header ---------- */
-
 .header {
   display: flex;
   justify-content: space-between;
@@ -20,8 +18,6 @@
   gap: 12px;
   align-items: center;
 }
-
-/* ---------- Input & Buttons ---------- */
 
 .select,
 .search {
@@ -50,6 +46,7 @@
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;
+  text-decoration: none;
 }
 
 .addBtn:hover {
@@ -70,8 +67,6 @@
 .importBtn:hover {
   background-color: #f3f4f6;
 }
-
-/* ---------- Table ---------- */
 
 .table {
   width: 100%;
@@ -101,15 +96,9 @@
   letter-spacing: 0.5px;
 }
 
-.table tr:first-child th {
-  border-top: none;
-}
-
 .table tr:hover td {
   background-color: #f9fafb;
 }
-
-/* ---------- Image ---------- */
 
 .imageCell {
   display: flex;
@@ -138,8 +127,6 @@
   border: 1px dashed #d1d5db;
 }
 
-/* ---------- Product Info ---------- */
-
 .table td {
   color: #1f2937;
   font-weight: 500;
@@ -157,23 +144,39 @@
   text-decoration: underline;
 }
 
-/* ---------- Status ---------- */
-
-.status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px 14px;
-  font-size: 12.5px;
-  color: #16a34a;
-  border: 1px solid #16a34a;
-  border-radius: 999px;
-  background-color: #dcfce7;
+/* Status dropdown color-coded */
+.statusSelect {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13.5px;
   font-weight: 500;
-  text-transform: lowercase;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: capitalize;
+  color: white;
 }
 
-/* ---------- Actions ---------- */
+/* 🟢 Available */
+.statusGreen {
+  background-color: #16a34a;
+}
+
+/* 🔵 In Laundry */
+.statusBlue {
+  background-color: #2563eb;
+}
+
+/* ⚪ Archived */
+.statusGray {
+  background-color: #9ca3af;
+  color: #f3f4f6;
+}
+
+.statusSelect:focus {
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
 
 .actions {
   display: flex;
@@ -207,11 +210,83 @@
   color: #b91c1c;
 }
 
-/* ---------- No Data ---------- */
-
 .noData {
   text-align: center;
   color: #9ca3af;
   padding: 24px;
   font-size: 15px;
 }
+
+
+/* Dropdown container */
+.dropdownWrapper {
+  position: relative;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-transform: capitalize;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+/* Dropdown menu */
+.dropdownMenu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 130px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Each dropdown option */
+.dropdownOption {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: white;
+  text-align: center;
+  font-weight: 500;
+  text-transform: capitalize;
+  transition: all 0.2s ease;
+}
+
+.dropdownOption:hover {
+  filter: brightness(1.1);
+}
+
+/* Colored options */
+.statusGreen {
+  background-color: #16a34a;
+}
+.statusBlue {
+  background-color: #2563eb;
+}
+.statusGray {
+  background-color: #9ca3af;
+  color: #f3f4f6;
+}
+
+/* Fade animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
