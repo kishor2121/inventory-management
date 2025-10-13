@@ -29,7 +29,7 @@ model Product {
   category       String
   size           String
   status         String   @default("available")
-  organizationId String
+  organizationId String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

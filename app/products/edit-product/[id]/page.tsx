@@ -1,27 +1,47 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import styles from './addProduct.module.css';
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import styles from '../../add-product/addProduct.module.css';
 
-export default function AddProductPage() {
+export default function EditProductPage() {
   const router = useRouter();
+  const { id } = useParams();
 
   const [gender, setGender] = useState('');
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
   const [category, setCategory] = useState('');
-  const [amount, setAmount] = useState('');
+  const [price, setPrice] = useState('');
   const [size, setSize] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
-  // Category & Size options
   const menCategories = ['Shirt', 'Sherwani'];
   const womenCategories = ['Gown', 'Saree'];
   const menSizes = ['34', '36', '38'];
   const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+
+  useEffect(() => {
+    if (id) fetchProduct();
+  }, [id]);
+
+  const fetchProduct = async () => {
+    const res = await fetch(`/api/products/${id}`);
+    const data = await res.json();
+    const p = data.data;
+
+    setName(p.name || '');
+    setSku(p.sku || '');
+    setCategory(p.category || '');
+    setPrice(p.price.toString() || '');
+    setSize(p.size || '');
+    setDescription(p.description || '');
+    setGender(p.gender || '');
+    setExistingImages(p.images || []);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -32,7 +52,7 @@ export default function AddProductPage() {
   };
 
   const handleSubmit = async () => {
-    if (!name || !sku || !category || !amount) {
+    if (!name || !sku || !category || !price) {
       alert('Please fill all required fields');
       return;
     }
@@ -41,31 +61,42 @@ export default function AddProductPage() {
     formData.append('name', name);
     formData.append('sku', sku);
     formData.append('category', category);
-    formData.append('amount', amount);
+    formData.append('price', price);
     formData.append('size', size);
     formData.append('description', description);
     formData.append('gender', gender);
-    images.forEach((img) => formData.append('images', img));
+    formData.append('status', 'available');
 
-    const res = await fetch('/api/products', { method: 'POST', body: formData });
-    alert(res.ok ? 'Product added successfully!' : 'Something went wrong!');
+    images.forEach((img) => formData.append('images', img));
+    existingImages.forEach((url) => formData.append('images', url));
+
+    const res = await fetch(`/api/products/${id}`, {
+      method: 'PUT',
+      body: formData,
+    });
+
+    if (res.ok) {
+      alert('Product updated successfully!');
+      router.push('/products');
+    } else {
+      const data = await res.json();
+      alert('Error: ' + (data?.message || 'Something went wrong!'));
+    }
   };
 
   const categories =
     gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
-
   const sizes =
     gender === 'Men' ? menSizes : gender === 'Women' ? womenSizes : [];
 
   return (
     <div className={styles.container}>
-      {/* ✅ Breadcrumb Section */}
       <div className={styles.breadcrumb}>
         <span className={styles.breadcrumbLink} onClick={() => router.push('/products')}>
           Products
         </span>
         <span className={styles.breadcrumbDivider}>›</span>
-        <span className={styles.breadcrumbActive}>Add Product</span>
+        <span className={styles.breadcrumbActive}>Edit Product</span>
       </div>
 
       <form
@@ -75,7 +106,6 @@ export default function AddProductPage() {
           handleSubmit();
         }}
       >
-        {/* Gender */}
         <div className={styles.row}>
           <label>Gender Type:</label>
           <div className={styles.radioGroup}>
@@ -102,7 +132,6 @@ export default function AddProductPage() {
           </div>
         </div>
 
-        {/* SKU & Name */}
         <div className={styles.row}>
           <input
             className={styles.input}
@@ -120,7 +149,6 @@ export default function AddProductPage() {
           />
         </div>
 
-        {/* Category, Amount & Size */}
         <div className={styles.row}>
           <select
             className={styles.select}
@@ -139,9 +167,9 @@ export default function AddProductPage() {
           <input
             className={styles.input}
             type="number"
-            placeholder="Enter Amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Enter Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
           />
 
           <select
@@ -159,7 +187,6 @@ export default function AddProductPage() {
           </select>
         </div>
 
-        {/* Description + Upload section */}
         <div className={styles.gridTwo}>
           <div className={styles.gridItem}>
             <label>Description</label>
@@ -186,7 +213,7 @@ export default function AddProductPage() {
                 className={styles.uploadInput}
                 onChange={handleImageUpload}
               />
-              {previewUrls.length > 0 ? (
+              {existingImages.length > 0 || previewUrls.length > 0 ? (
                 <div
                   style={{
                     display: 'flex',
@@ -195,7 +222,7 @@ export default function AddProductPage() {
                     justifyContent: 'center',
                   }}
                 >
-                  {previewUrls.map((src, i) => (
+                  {[...existingImages, ...previewUrls].map((src, i) => (
                     <img
                       key={i}
                       src={src}
@@ -226,7 +253,6 @@ export default function AddProductPage() {
           </div>
         </div>
 
-        {/* Action buttons */}
         <div className={styles.actions}>
           <button
             type="button"
@@ -236,7 +262,7 @@ export default function AddProductPage() {
             Cancel
           </button>
           <button type="submit" className={`${styles.button} ${styles.submitButton}`}>
-            + Add Product
+            Save
           </button>
         </div>
       </form>

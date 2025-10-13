@@ -78,7 +78,7 @@ export default function ProductsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <Link href="/products/add" className={styles.addBtn}>
+            <Link href="/products/add-product" className={styles.addBtn}>
               + Add Product
             </Link>
             <button className={styles.importBtn}>Import</button>
@@ -120,9 +120,9 @@ export default function ProductsPage() {
                   <span className={styles.status}>{product.status}</span>
                 </td>
                 <td className={styles.actions}>
-                  <button className={styles.edit}>
+                  <Link href={`/products/edit-product/${product.id}`} className={styles.edit}>
                     <Edit2 size={16} />
-                  </button>
+                  </Link>
                   <button onClick={() => openDeleteModal(product.id)} className={styles.delete}>
                     <Trash2 size={16} />
                   </button>
