@@ -106,9 +106,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                 {showDropdown && (
                   <div className="user-dropdown">
-                    <button className="dropdown-item">
+                    <button
+                      onClick={() => {
+                        setShowDropdown(false);
+                        router.push("/profile");
+                      }}
+                      className="dropdown-item"
+                    >
                       <User className="icon" size={16} /> Profile
                     </button>
+
                     <button
                       onClick={() => {
                         setShowDropdown(false);

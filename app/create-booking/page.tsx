@@ -24,10 +24,23 @@ export default function CreateBooking() {
   const [productCards, setProductCards] = useState<ProductCard[]>([
     { id: 1, product: null, amount: "", deliveryDate: "", returnDate: "" },
   ]);
+
   const [discountType, setDiscountType] = useState<"flat" | "percentage">("flat");
+  const [discountValue, setDiscountValue] = useState<number>(0);
+  const [deposit, setDeposit] = useState<number>(0);
+  const [advance, setAdvance] = useState<number>(0);
+
+  const [sameDate, setSameDate] = useState<boolean>(false);
+  const [globalDeliveryDate, setGlobalDeliveryDate] = useState<string>("");
+  const [globalReturnDate, setGlobalReturnDate] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  // ✅ Fetch product list (with price + image)
+  // ✅ Calculated values
+  const [rentAmount, setRentAmount] = useState<number>(0);
+  const [totalDeposit, setTotalDeposit] = useState<number>(0);
+  const [returnAmount, setReturnAmount] = useState<number>(0);
+
+  // ✅ Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       const res = await fetch("/api/products");
@@ -36,14 +49,14 @@ export default function CreateBooking() {
         value: p.id,
         label: p.name,
         price: p.price,
-        image: p.images?.[0] || "", // optional image
+        image: p.images?.[0] || "",
       }));
       setProducts(formatted);
     };
     fetchProducts();
   }, []);
 
-  // ✅ Filter out already selected products from dropdown options
+  // ✅ Filter out already selected products
   const getAvailableProducts = (currentId: number) => {
     const selectedIds = productCards
       .filter((p) => p.product && p.id !== currentId)
@@ -51,7 +64,7 @@ export default function CreateBooking() {
     return products.filter((p) => !selectedIds.includes(p.value));
   };
 
-  // ✅ Handle input changes
+  // ✅ Handle field changes
   const handleChange = (id: number, field: keyof ProductCard, value: any) => {
     setProductCards((prev) =>
       prev.map((card) => {
@@ -60,7 +73,7 @@ export default function CreateBooking() {
             return {
               ...card,
               product: value,
-              amount: String(value.price || ""), // auto-fill amount
+              amount: String(value.price || ""),
             };
           }
           return { ...card, [field]: value };
@@ -71,32 +84,58 @@ export default function CreateBooking() {
     setErrorMessage("");
   };
 
-  // ✅ Add new product card (only if all required fields are filled)
+  // ✅ Add item
   const handleAddItem = () => {
     const lastCard = productCards[productCards.length - 1];
-
-    if (
-      !lastCard.product ||
-      !lastCard.amount ||
-      !lastCard.deliveryDate ||
-      !lastCard.returnDate
-    ) {
+    if (!lastCard.product || !lastCard.amount || (!sameDate && (!lastCard.deliveryDate || !lastCard.returnDate))) {
       setErrorMessage("⚠️ Please fill in all product details before adding another item.");
       return;
     }
 
-    setErrorMessage(""); // clear error
+    setErrorMessage("");
     setProductCards((prev) => [
       ...prev,
       { id: Date.now(), product: null, amount: "", deliveryDate: "", returnDate: "" },
     ]);
   };
 
-  // ✅ Remove card
+  // ✅ Remove item
   const handleRemoveItem = (id: number) => {
     setProductCards((prev) => prev.filter((card) => card.id !== id));
-    setErrorMessage("");
   };
+
+  // ✅ Sync same delivery/return dates
+  useEffect(() => {
+    if (sameDate) {
+      setProductCards((prev) =>
+        prev.map((card) => ({
+          ...card,
+          deliveryDate: globalDeliveryDate,
+          returnDate: globalReturnDate,
+        }))
+      );
+    }
+  }, [sameDate, globalDeliveryDate, globalReturnDate]);
+
+  // ✅ Calculate totals dynamically
+  useEffect(() => {
+    const totalProductAmount = productCards.reduce(
+      (sum, card) => sum + (parseFloat(card.amount) || 0),
+      0
+    );
+
+    let discount = 0;
+    if (discountType === "flat") discount = discountValue;
+    else discount = (totalProductAmount * discountValue) / 100;
+
+    const rent = Math.max(totalProductAmount - discount, 0);
+    const totalDep = (advance || 0) + (deposit || 0);
+    const retAmt = totalDep - rent;
+
+    setRentAmount(rent);
+    setTotalDeposit(totalDep);
+    setReturnAmount(retAmt);
+  }, [productCards, discountType, discountValue, deposit, advance]);
 
   return (
     <div className="booking-page">
@@ -107,7 +146,7 @@ export default function CreateBooking() {
       <div className="booking-container">
         {/* LEFT SIDE */}
         <div className="booking-left">
-          {/* Customer Info Card */}
+          {/* Customer Info */}
           <div className="card">
             <div className="form-row">
               <div className="form-group">
@@ -137,10 +176,36 @@ export default function CreateBooking() {
 
               <div className="checkbox-right">
                 <label>
-                  <input type="checkbox" /> Same Delivery/Return Date for All
+                  <input
+                    type="checkbox"
+                    checked={sameDate}
+                    onChange={(e) => setSameDate(e.target.checked)}
+                  />{" "}
+                  Same Delivery/Return Date for All
                 </label>
               </div>
             </div>
+
+            {sameDate && (
+              <div className="form-row date-row">
+                <div className="form-group date-input">
+                  <label>Delivery Date</label>
+                  <input
+                    type="date"
+                    value={globalDeliveryDate}
+                    onChange={(e) => setGlobalDeliveryDate(e.target.value)}
+                  />
+                </div>
+                <div className="form-group date-input">
+                  <label>Return Date</label>
+                  <input
+                    type="date"
+                    value={globalReturnDate}
+                    onChange={(e) => setGlobalReturnDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Product Cards */}
@@ -150,7 +215,6 @@ export default function CreateBooking() {
                 <button
                   className="remove-btn"
                   onClick={() => handleRemoveItem(card.id)}
-                  title="Remove item"
                 >
                   ×
                 </button>
@@ -165,15 +229,6 @@ export default function CreateBooking() {
                     onChange={(val) => handleChange(card.id, "product", val)}
                     placeholder="Select a product"
                     isSearchable
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        borderRadius: "6px",
-                        borderColor: "#d1d5db",
-                        boxShadow: "none",
-                        "&:hover": { borderColor: "#2563eb" },
-                      }),
-                    }}
                   />
                 </div>
 
@@ -188,40 +243,39 @@ export default function CreateBooking() {
                 </div>
               </div>
 
-             {card.product?.image && (
+              {card.product?.image && (
                 <div className="selected-product-preview image-only">
-                    <img src={card.product.image} alt={card.product.label} />
+                  <img src={card.product.image} alt={card.product.label} />
                 </div>
-                )}
+              )}
 
-
-              <div className="form-row date-row">
-                <div className="form-group date-input">
-                  <label>Delivery Date</label>
-                  <input
-                    type="date"
-                    value={card.deliveryDate}
-                    onChange={(e) =>
-                      handleChange(card.id, "deliveryDate", e.target.value)
-                    }
-                  />
+              {!sameDate && (
+                <div className="form-row date-row">
+                  <div className="form-group date-input">
+                    <label>Delivery Date</label>
+                    <input
+                      type="date"
+                      value={card.deliveryDate}
+                      onChange={(e) =>
+                        handleChange(card.id, "deliveryDate", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="form-group date-input">
+                    <label>Return Date</label>
+                    <input
+                      type="date"
+                      value={card.returnDate}
+                      onChange={(e) =>
+                        handleChange(card.id, "returnDate", e.target.value)
+                      }
+                    />
+                  </div>
                 </div>
-
-                <div className="form-group date-input">
-                  <label>Return Date</label>
-                  <input
-                    type="date"
-                    value={card.returnDate}
-                    onChange={(e) =>
-                      handleChange(card.id, "returnDate", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
+              )}
             </div>
           ))}
 
-          {/* Error Message */}
           {errorMessage && <div className="error-message">{errorMessage}</div>}
 
           <div className="add-item-row">
@@ -236,12 +290,24 @@ export default function CreateBooking() {
           <div className="card">
             <div className="form-group">
               <label>Deposit (₹)</label>
-              <input type="number" placeholder="Deposit" />
+              <input
+                type="number"
+                placeholder="Deposit"
+                value={deposit}
+                onChange={(e) => setDeposit(parseFloat(e.target.value))}
+              />
             </div>
+
             <div className="form-group">
               <label>Adv. Payment (₹)</label>
-              <input type="number" placeholder="Adv. Payment" />
+              <input
+                type="number"
+                placeholder="Adv. Payment"
+                value={advance}
+                onChange={(e) => setAdvance(parseFloat(e.target.value))}
+              />
             </div>
+
             <div className="form-group">
               <label>Payment Mode</label>
               <select>
@@ -252,7 +318,7 @@ export default function CreateBooking() {
               </select>
             </div>
 
-            {/* Discount Section */}
+            {/* Discount */}
             <div className="form-group">
               <label>Discount</label>
               <div className="discount-section">
@@ -278,6 +344,8 @@ export default function CreateBooking() {
                       ? "Enter discount ₹"
                       : "Enter discount %"
                   }
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(parseFloat(e.target.value))}
                 />
               </div>
             </div>
@@ -289,18 +357,26 @@ export default function CreateBooking() {
             </div>
           </div>
 
+          {/* ✅ Summary Auto Calculation */}
           <div className="summary-card">
             <div className="summary-row">
-              <span>Amount</span>
-              <span>₹ 0</span>
+              <span>Rent Amount</span>
+              <span>₹ {rentAmount.toFixed(2)}</span>
             </div>
             <div className="summary-row">
-              <span>Deposit</span>
-              <span>₹ 0</span>
+              <span>Total Deposit</span>
+              <span>₹ {totalDeposit.toFixed(2)}</span>
             </div>
-            <div className="summary-total">
-              <span>Total</span>
-              <span>₹ 0</span>
+            <div className="summary-row discount-row">
+              <span>Discount</span>
+              <span className="negative">- ₹{discountType === "flat"
+                ? discountValue.toFixed(2)
+                : ((productCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0) * discountValue) / 100).toFixed(2)
+              }</span>
+            </div>
+            <div className="summary-row">
+              <span>Return Amount</span>
+              <span>₹ {returnAmount.toFixed(2)}</span>
             </div>
           </div>
 

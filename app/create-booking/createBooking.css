@@ -340,3 +340,7 @@ textarea {
   border: 1px solid #cbd5e1;
 }
 
+.summary-row.discount-row .negative {
+  color: #e53935; /* red color for negative value */
+  font-weight: 600;
+}

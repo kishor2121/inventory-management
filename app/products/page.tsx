@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, ChevronDown } from 'lucide-react';
 import styles from './products.module.css';
 import Confirmation from '../../components/confirmation';
 
@@ -21,6 +21,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // for custom dropdown
 
   useEffect(() => {
     fetchProducts();
@@ -45,9 +46,22 @@ export default function ProductsPage() {
   const confirmDelete = async () => {
     if (selectedProductId) {
       await fetch(`/api/products/${selectedProductId}`, { method: 'DELETE' });
-      fetchProducts();
+      setProducts((prev) => prev.filter((p) => p.id !== selectedProductId));
       closeDeleteModal();
     }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    await fetch(`/api/products/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
+    );
+    setOpenDropdownId(null);
   };
 
   const filteredProducts = products.filter(
@@ -55,6 +69,19 @@ export default function ProductsPage() {
       p.sku.toLowerCase().includes(search.toLowerCase()) &&
       p.status.toLowerCase() === filter.toLowerCase()
   );
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'available':
+        return styles.statusGreen;
+      case 'in laundry':
+        return styles.statusBlue;
+      case 'archived':
+        return styles.statusGray;
+      default:
+        return '';
+    }
+  };
 
   return (
     <>
@@ -84,6 +111,7 @@ export default function ProductsPage() {
             <button className={styles.importBtn}>Import</button>
           </div>
         </div>
+
         <table className={styles.table}>
           <thead>
             <tr>
@@ -110,20 +138,49 @@ export default function ProductsPage() {
                   )}
                 </td>
                 <td>{product.sku}</td>
-                <td>
-                  <Link href={`/products/${product.id}`} className={styles.productLink}>
-                    {product.name}
-                  </Link>
-                </td>
+                <td className={styles.productName}>{product.name}</td>
                 <td>₹{product.price}</td>
                 <td>
-                  <span className={styles.status}>{product.status}</span>
+                  <div
+                    className={`${styles.dropdownWrapper} ${getStatusColor(product.status)}`}
+                    onClick={() =>
+                      setOpenDropdownId(openDropdownId === product.id ? null : product.id)
+                    }
+                  >
+                    <span className={styles.dropdownText}>{product.status}</span>
+                    <ChevronDown size={14} />
+                    {openDropdownId === product.id && (
+                      <div className={styles.dropdownMenu}>
+                        <div
+                          className={`${styles.dropdownOption} ${styles.statusGreen}`}
+                          onClick={() => handleStatusChange(product.id, 'available')}
+                        >
+                          Available
+                        </div>
+                        <div
+                          className={`${styles.dropdownOption} ${styles.statusBlue}`}
+                          onClick={() => handleStatusChange(product.id, 'in Laundry')}
+                        >
+                          In Laundry
+                        </div>
+                        <div
+                          className={`${styles.dropdownOption} ${styles.statusGray}`}
+                          onClick={() => handleStatusChange(product.id, 'archived')}
+                        >
+                          Archived
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </td>
                 <td className={styles.actions}>
                   <Link href={`/products/edit-product/${product.id}`} className={styles.edit}>
                     <Edit2 size={16} />
                   </Link>
-                  <button onClick={() => openDeleteModal(product.id)} className={styles.delete}>
+                  <button
+                    onClick={() => openDeleteModal(product.id)}
+                    className={styles.delete}
+                  >
                     <Trash2 size={16} />
                   </button>
                 </td>

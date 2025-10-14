@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Select from 'react-select';
 import styles from './addProduct.module.css';
 
 export default function AddProductPage() {
@@ -12,41 +13,50 @@ export default function AddProductPage() {
   const [sku, setSku] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
-  const [size, setSize] = useState('');
+  const [size, setSize] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const [showSizeDropdown, setShowSizeDropdown] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ Loader state
+  const [successMessage, setSuccessMessage] = useState(''); // ✅ Success message
 
-  const sizeDropdownRef = useRef<HTMLDivElement>(null);
+  const menCategories = ['Shirt', 'Sherwani'];
+  const womenCategories = ['Gown', 'Saree'];
+  const menSizes = ['34', '36', '38'];
+  const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        sizeDropdownRef.current &&
-        !sizeDropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowSizeDropdown(false);
-      }
-    };
+  const sizeOptions =
+    gender === 'Men'
+      ? menSizes.map((s) => ({ value: s, label: s }))
+      : gender === 'Women'
+      ? womenSizes.map((s) => ({ value: s, label: s }))
+      : [];
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const menCategories = ['Blazer', 'Sherwani', 'Shirt', 'Pant'];
-  const womenCategories = ['Chaniya-Choli', 'Gown', 'Overcoat'];
-  const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
-  const womenSizes = ['Free Size', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  const addImages = (files: FileList | File[]) => {
+    const validImages = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    if (validImages.length > 0) {
+      const newImages = [...images, ...validImages];
+      setImages(newImages);
+      setPreviewUrls(newImages.map((f) => URL.createObjectURL(f)));
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setImages(files);
-      setPreviewUrls(files.map((f) => URL.createObjectURL(f)));
-    }
+    if (e.target.files) addImages(e.target.files);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    addImages(e.dataTransfer.files);
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    const newPreviews = previewUrls.filter((_, i) => i !== index);
+    setImages(newImages);
+    setPreviewUrls(newPreviews);
   };
 
   const handleSubmit = async () => {
@@ -55,21 +65,26 @@ export default function AddProductPage() {
       return;
     }
 
+    setLoading(true);
+    setSuccessMessage('');
+
     const formData = new FormData();
     formData.append('name', name);
     formData.append('sku', sku);
     formData.append('category', category);
     formData.append('price', price);
-    formData.append('size', size);
+    formData.append('size', JSON.stringify(size));
     formData.append('description', description);
     formData.append('gender', gender);
     images.forEach((img) => formData.append('images', img));
 
     const res = await fetch('/api/products', { method: 'POST', body: formData });
 
+    setLoading(false);
+
     if (res.ok) {
-      alert('Product added successfully!');
-      router.push('/products');
+      setSuccessMessage('✅ Product added successfully!');
+      setTimeout(() => router.push('/products'), 1500);
     } else {
       const data = await res.json();
       alert('Error: ' + (data?.message || 'Something went wrong!'));
@@ -78,7 +93,6 @@ export default function AddProductPage() {
 
   const categories =
     gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
-  const sizes = gender === 'Men' ? menSizes : gender === 'Women' ? womenSizes : [];
 
   return (
     <div className={styles.container}>
@@ -109,7 +123,7 @@ export default function AddProductPage() {
                 onChange={(e) => {
                   setGender(e.target.value);
                   setCategory('');
-                  setSize('');
+                  setSize([]);
                 }}
               />
               Men
@@ -123,7 +137,7 @@ export default function AddProductPage() {
                 onChange={(e) => {
                   setGender(e.target.value);
                   setCategory('');
-                  setSize('');
+                  setSize([]);
                 }}
               />
               Women
@@ -171,69 +185,29 @@ export default function AddProductPage() {
             onChange={(e) => setPrice(e.target.value)}
           />
 
-          {/* MULTI SIZE DROPDOWN */}
-          <div ref={sizeDropdownRef} style={{ position: 'relative', minWidth: '200px' }}>
-            <div
-              onClick={() => setShowSizeDropdown(!showSizeDropdown)}
-              style={{
-                border: '1px solid #ccc',
-                borderRadius: '6px',
-                padding: '10px',
-                cursor: 'pointer',
-                background: '#fff',
-                fontSize: '14px',
-                color: size ? '#000' : '#9ca3af',
-                userSelect: 'none',
+          <div style={{ flex: 1 }}>
+            <Select
+              isMulti
+              options={sizeOptions}
+              value={sizeOptions.filter((opt) => size.includes(opt.value))}
+              onChange={(selected) => setSize(selected.map((opt) => opt.value))}
+              placeholder="Select size(s)"
+              isDisabled={!gender}
+              classNamePrefix="react-select"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  borderRadius: '8px',
+                  borderColor: '#d1d5db',
+                  minHeight: '40px',
+                  fontSize: '14px',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: '#e5e7eb',
+                }),
               }}
-            >
-              {size ? size : 'Select size'}
-            </div>
-
-            {showSizeDropdown && (
-              <div
-                style={{
-                  position: 'absolute',
-                  zIndex: 10,
-                  background: '#f9f9f9',
-                  border: '1px solid #ccc',
-                  borderRadius: '6px',
-                  marginTop: '4px',
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  width: '100%',
-                }}
-              >
-                {sizes.map((s) => (
-                  <label
-                    key={s}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '6px 10px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      userSelect: 'none',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={size.split(',').includes(s)}
-                      onChange={(e) => {
-                        let selected = size ? size.split(',') : [];
-                        if (e.target.checked) {
-                          if (!selected.includes(s)) selected.push(s);
-                        } else {
-                          selected = selected.filter((item) => item !== s);
-                        }
-                        setSize(selected.join(','));
-                      }}
-                      style={{ marginRight: '8px' }}
-                    />
-                    {s}
-                  </label>
-                ))}
-              </div>
-            )}
+            />
           </div>
         </div>
 
@@ -254,7 +228,16 @@ export default function AddProductPage() {
 
           <div className={styles.gridItem}>
             <label>Upload Images</label>
-            <div className={styles.uploadBox}>
+            <div
+              className={`${styles.uploadBox} ${isDragging ? styles.dragOver : ''}`}
+              onDrop={handleDrop}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onClick={() => document.getElementById('upload')?.click()}
+            >
               <input
                 id="upload"
                 type="file"
@@ -264,37 +247,27 @@ export default function AddProductPage() {
                 onChange={handleImageUpload}
               />
               {previewUrls.length > 0 ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '10px',
-                    justifyContent: 'center',
-                  }}
-                >
+                <div className={styles.previewContainer}>
                   {previewUrls.map((src, i) => (
-                    <img
-                      key={i}
-                      src={src}
-                      alt={`Preview ${i}`}
-                      style={{
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '8px',
-                        objectFit: 'cover',
-                        border: '1px solid #e5e7eb',
-                      }}
-                    />
+                    <div key={i} className={styles.previewWrapper}>
+                      <img src={src} alt={`Preview ${i}`} className={styles.previewImage} />
+                      <button
+                        type="button"
+                        className={styles.removeButton}
+                        onClick={() => handleRemoveImage(i)}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ))}
+                  <span className={styles.addMoreText}>Click or drop more</span>
                 </div>
               ) : (
                 <p className={styles.uploadText}>
-                  Drag & Drop images here, or{' '}
-                  <label htmlFor="upload" style={{ color: '#000', cursor: 'pointer' }}>
-                    click to select
-                  </label>
+                  Drag & Drop images here or{' '}
+                  <span className={styles.uploadLink}>Click to select</span>
                   <br />
-                  <span style={{ color: '#9ca3af' }}>
+                  <span className={styles.uploadNote}>
                     Supported: PNG, JPG, JPEG — Max 25MB
                   </span>
                 </p>
@@ -311,10 +284,20 @@ export default function AddProductPage() {
           >
             Cancel
           </button>
-          <button type="submit" className={`${styles.button} ${styles.submitButton}`}>
-            + Add Product
+
+          <button
+            type="submit"
+            className={`${styles.button} ${styles.submitButton}`}
+            disabled={loading}
+          >
+            {loading ? <span className={styles.loader}></span> : '+ Add Product'}
           </button>
         </div>
+
+        {/* ✅ Green message below */}
+        {successMessage && (
+          <p className={styles.successMessage}>{successMessage}</p>
+        )}
       </form>
     </div>
   );
