@@ -126,7 +126,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Create booking
     const booking = await prisma.booking.create({
       data: {
         customerName,
@@ -156,10 +155,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, message: "Booking created successfully", data: booking });
+    return NextResponse.json({ message: "Booking created successfully", data: booking });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
