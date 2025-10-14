@@ -47,9 +47,44 @@ CREATE TABLE "Product" (
     "status" TEXT NOT NULL DEFAULT 'available',
     "organizationId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Booking" (
+    "id" TEXT NOT NULL,
+    "customerName" TEXT NOT NULL,
+    "phoneNumberPrimary" TEXT NOT NULL,
+    "phoneNumberSecondary" TEXT,
+    "notes" TEXT,
+    "rentAmount" DOUBLE PRECISION NOT NULL,
+    "totalDeposit" DOUBLE PRECISION NOT NULL,
+    "returnAmount" DOUBLE PRECISION NOT NULL,
+    "advancePayment" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "discount" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "discountType" TEXT NOT NULL DEFAULT 'flat',
+    "rentalType" TEXT NOT NULL,
+    "invoiceNumber" INTEGER NOT NULL,
+    "advancePaymentMethod" TEXT,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "organizationId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Booking_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProductLock" (
+    "id" TEXT NOT NULL,
+    "bookingId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "deliveryDate" TIMESTAMP(3) NOT NULL,
+    "returnDate" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ProductLock_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -66,3 +101,12 @@ ALTER TABLE "User" ADD CONSTRAINT "User_organizationId_fkey" FOREIGN KEY ("organ
 
 -- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Booking" ADD CONSTRAINT "Booking_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductLock" ADD CONSTRAINT "ProductLock_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductLock" ADD CONSTRAINT "ProductLock_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
