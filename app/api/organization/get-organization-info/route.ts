@@ -1,31 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const orgId = searchParams.get('id');
+    const organizations = await prisma.organization.findMany();
 
-    let organization;
-
-    if (orgId) {
-      organization = await prisma.organization.findUnique({
-        where: { id: orgId },
-      });
-    } else {
-      organization = await prisma.organization.findMany();
+    if (!organizations || organizations.length === 0) {
+      return NextResponse.json(
+        { success: false, message: "No organizations found" },
+        { status: 404 }
+      );
     }
 
-    if (!organization) {
-      return NextResponse.json({ success: false, message: 'Organization not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ success: true, data: organization });
+    return NextResponse.json({ success: true, data: organizations });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
+    console.error("Error fetching organization info:", error);
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   } finally {
     await prisma.$disconnect();
   }
