@@ -21,10 +21,10 @@ export default function AddProductPage() {
   const [loading, setLoading] = useState(false); // ✅ Loader state
   const [successMessage, setSuccessMessage] = useState(''); // ✅ Success message
 
-  const menCategories = ['Shirt', 'Sherwani'];
-  const womenCategories = ['Gown', 'Saree'];
-  const menSizes = ['34', '36', '38'];
-  const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+  const menCategories = ['Blazer','Sherwani','Shirt', 'Pant'];
+  const womenCategories = ['Chaniya-Choli', 'Gown', 'Overcoat'];
+  const menSizes = ['34', '36', '38', '40', '42','44', '46'];
+  const womenSizes = ['Free Size', 'XS','S', 'M', 'L', 'XL', 'XXL'];
 
   const sizeOptions =
     gender === 'Men'
