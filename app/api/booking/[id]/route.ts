@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       return NextResponse.json({ message: "Booking not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: booking });
+    return NextResponse.json({ data: booking });
   } catch (error) {
     console.error("Error fetching booking:", error);
     return NextResponse.json({ message: "Server error" }, { status: 500 });

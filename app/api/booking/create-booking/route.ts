@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
     const discount = parseFloat(formData.get("discount")?.toString() || "0");
     const discountType = formData.get("discountType")?.toString() || "flat";
     const rentalType = formData.get("rentalType")?.toString() || "";
-    const invoiceNumber = parseInt(formData.get("invoiceNumber")?.toString() || "0");
     const advancePaymentMethod = formData.get("advancePaymentMethod")?.toString() || "";
     const productsString = formData.get("products")?.toString() || "[]";
 
@@ -63,6 +62,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const lastBooking = await prisma.booking.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
+    const invoiceNumber = lastBooking ? lastBooking.invoiceNumber + 1 : 1;
+
     const booking = await prisma.booking.create({
       data: {
         customerName,
@@ -77,7 +81,7 @@ export async function POST(req: NextRequest) {
         discount,
         discountType,
         rentalType,
-        invoiceNumber,
+        invoiceNumber, 
         advancePaymentMethod,
         productLocks: {
           create: products.map((p: any) => ({
