@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Products list cannot be empty" }, { status: 400 });
     }
 
+    const overlappingProducts: string[] = [];
+
     for (const p of products) {
       const productExists = await prisma.product.findUnique({
         where: { id: p.productId },
@@ -63,10 +65,14 @@ export async function POST(req: NextRequest) {
       });
 
       if (overlappingLock) {
-        return NextResponse.json({
-          message: `Selected Product is already booked for selected dates. Please select another date or product.`,
-        }, { status: 400 });
+        overlappingProducts.push(productExists.name); 
       }
+    }
+
+    if (overlappingProducts.length > 0) {
+      return NextResponse.json({
+        message: `The following product are already booked. Please select another date: ${overlappingProducts.join(", ")}`,
+      }, { status: 400 });
     }
 
     const lastBooking = await prisma.booking.findFirst({

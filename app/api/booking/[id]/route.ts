@@ -26,12 +26,23 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
   }
 }
 
-export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   await validate();
 
-  const { id } = await context.params; 
+  const { id } = await context.params;
 
   try {
+    const booking = await prisma.booking.findUnique({ where: { id } });
+    if (!booking) {
+      return NextResponse.json(
+        { message: `Booking ID not found` },
+        { status: 404 }
+      );
+    }
+
     await prisma.productLock.deleteMany({ where: { bookingId: id } });
 
     await prisma.booking.delete({ where: { id } });
