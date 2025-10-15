@@ -73,7 +73,7 @@ export default function AddProductPage() {
     formData.append('sku', sku);
     formData.append('category', category);
     formData.append('price', price);
-    formData.append('size', JSON.stringify(size));
+    formData.append('size', size.join(','));
     formData.append('description', description);
     formData.append('gender', gender);
     images.forEach((img) => formData.append('images', img));
