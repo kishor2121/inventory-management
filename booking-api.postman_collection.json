@@ -1,0 +1,519 @@
+{
+	"info": {
+		"_postman_id": "f0dcd10c-6c72-4c62-be1b-44dca1ce63e7",
+		"name": "product",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39945321"
+	},
+	"item": [
+		{
+			"name": "product",
+			"item": [
+				{
+					"name": "product_updated",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/products/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"products",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "product_edit",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v3",
+								"parties",
+								"{{party_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "organization",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v3",
+								"parties",
+								"{{party_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list of products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v3",
+								"parties",
+								"{{party_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n  \"name\": \"BLUE\",\n  \"sku\": \"colours\",\n  \"description\": \"Test product\",\n  \"price\": 250,\n  \"images\": [\n    \"https://d1zj63puuxwt59.cloudfront.net/687b44b825e5a8e58023cfd8/78175e2d-36f8-4c9f-a3b5-8d957641d74b.jpg\"\n  ],\n  \"gender\": \"Women\",\n  \"category\": \"Chaniya-Choli\",\n  \"size\": \"M\",\n  \"organizationId\": \"687b44b825e5a8e58023cfd5\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/products/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"products",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n  \"name\": \"BLUE\",\n  \"sku\": \" style\",\n  \"description\": \"Test product\",\n  \"price\": 250,\n  \"images\": [\n    \"https://www.stylemati.in/cdn/shop/products/mati-shirts-tops-mati-men-s-brown-placket-shirt-29852255715417.jpg?v=1657173529&width=1200\"\n  ],\n  \"gender\": \"Women\",\n  \"category\": \"Chaniya-Choli\",\n  \"size\": \"M\",\n  \"status\": \"Archived\",\n  \"organizationId\": \"687b44b825e5a8e58023cfd5\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/products",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"products"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "create-booking",
+			"item": [
+				{
+					"name": "update-booking",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/products/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"products",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "edit-boocking",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v3",
+								"parties",
+								"{{party_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list bookings/order",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v3",
+								"parties",
+								"{{party_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "product-lock",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v3",
+								"parties",
+								"{{party_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list bookings/return",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v3",
+								"parties",
+								"{{party_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list bookings/delivery",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v3",
+								"parties",
+								"{{party_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete booking",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n  \"name\": \"BLUE\",\n  \"sku\": \"colours\",\n  \"description\": \"Test product\",\n  \"price\": 250,\n  \"images\": [\n    \"https://d1zj63puuxwt59.cloudfront.net/687b44b825e5a8e58023cfd8/78175e2d-36f8-4c9f-a3b5-8d957641d74b.jpg\"\n  ],\n  \"gender\": \"Women\",\n  \"category\": \"Chaniya-Choli\",\n  \"size\": \"M\",\n  \"organizationId\": \"687b44b825e5a8e58023cfd5\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/products/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"products",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create bookings",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "customerName",
+									"value": "john",
+									"type": "text"
+								},
+								{
+									"key": "phoneNumberPrimary",
+									"value": "9876543210",
+									"type": "text"
+								},
+								{
+									"key": "phoneNumberSecondary",
+									"value": "9123456789",
+									"type": "text"
+								},
+								{
+									"key": "notes",
+									"value": "need ",
+									"type": "text"
+								},
+								{
+									"key": "rentAmount",
+									"value": "200",
+									"type": "text"
+								},
+								{
+									"key": "totalDeposit",
+									"value": "300",
+									"type": "text"
+								},
+								{
+									"key": "returnAmount",
+									"value": "100",
+									"type": "text"
+								},
+								{
+									"key": "advancePayment",
+									"value": "2000",
+									"type": "text"
+								},
+								{
+									"key": "rentalType",
+									"value": "dailly",
+									"type": "text"
+								},
+								{
+									"key": "products",
+									"value": "[{\"productId\":\"cmgqt5f9q0001hde6knpiedz5\",\"deliveryDate\":\"2025-10-15\",\"returnDate\":\"2025-10-20\"}]",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/booking/create-booking",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"create-booking"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
