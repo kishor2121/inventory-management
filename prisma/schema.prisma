@@ -61,7 +61,7 @@ model Product {
 }
 
 model Booking {
-  id                   String        @id @default(cuid())
+  id                   String   @id    
   customerName         String
   phoneNumberPrimary   String
   phoneNumberSecondary String?

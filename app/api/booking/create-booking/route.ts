@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import validate from "../../auth/validate";
 
+function generateBookingId(customerName: string) {
+  const prefix = "bk"; 
+  const last4 = customerName.slice(-4).toLowerCase().padStart(4, "x");
+  const randomNum = Math.floor(1000 + Math.random() * 9000); 
+  return `${prefix}${last4}${randomNum}`;
+}
+
 export async function POST(req: NextRequest) {
   await validate();
 
@@ -67,8 +74,11 @@ export async function POST(req: NextRequest) {
     });
     const invoiceNumber = lastBooking ? lastBooking.invoiceNumber + 1 : 1;
 
+    const bookingId = generateBookingId(customerName);
+
     const booking = await prisma.booking.create({
       data: {
+        id: bookingId,
         customerName,
         phoneNumberPrimary,
         phoneNumberSecondary,
@@ -96,7 +106,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ message: "Booking created successfully", data: booking });
+    return NextResponse.json({ message: "Booking created successfully" });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
