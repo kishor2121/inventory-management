@@ -2,67 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import validate from "../../auth/validate";
 
-export async function GET(req: NextRequest) {
-  await validate();
-
-  try {
-    const { searchParams } = new URL(req.url);
-
-    const deliveryDateFilter = searchParams.get("deliveryDate"); 
-    const deliveryStart = searchParams.get("deliveryStart"); 
-    const deliveryEnd = searchParams.get("deliveryEnd");     
-
-    const returnDateFilter = searchParams.get("returnDate"); 
-    const returnStart = searchParams.get("returnStart");    
-    const returnEnd = searchParams.get("returnEnd");        
-
-    const whereClause: any = {};
-
-    const getDateOnly = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const today = getDateOnly(new Date());
-    const tomorrow = getDateOnly(new Date(Date.now() + 24 * 60 * 60 * 1000));
-
-    const productLockFilter: any = {};
-
-    if (deliveryDateFilter) {
-      if (deliveryDateFilter === "today") {
-        productLockFilter.deliveryDate = { gte: today, lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) };
-      } else if (deliveryDateFilter === "tomorrow") {
-        productLockFilter.deliveryDate = { gte: tomorrow, lt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000) };
-      } else if (deliveryDateFilter === "custom" && deliveryStart && deliveryEnd) {
-        productLockFilter.deliveryDate = { gte: new Date(deliveryStart), lte: new Date(deliveryEnd) };
-      }
-    }
-
-    if (returnDateFilter) {
-      if (returnDateFilter === "today") {
-        productLockFilter.returnDate = { gte: today, lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) };
-      } else if (returnDateFilter === "tomorrow") {
-        productLockFilter.returnDate = { gte: tomorrow, lt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000) };
-      } else if (returnDateFilter === "custom" && returnStart && returnEnd) {
-        productLockFilter.returnDate = { gte: new Date(returnStart), lte: new Date(returnEnd) };
-      }
-    }
-
-    if (Object.keys(productLockFilter).length > 0) {
-      whereClause.productLocks = { some: productLockFilter };
-    }
-
-    const bookings = await prisma.booking.findMany({
-      where: whereClause,
-      include: {
-        productLocks: { include: { product: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return NextResponse.json({ success: true, data: bookings });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
-  }
+function generateBookingId(customerName: string) {
+  const prefix = "bk"; 
+  const last4 = customerName.slice(-4).toLowerCase().padStart(4, "x");
+  const randomNum = Math.floor(1000 + Math.random() * 9000); 
+  return `${prefix}${last4}${randomNum}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -83,7 +27,6 @@ export async function POST(req: NextRequest) {
     const discount = parseFloat(formData.get("discount")?.toString() || "0");
     const discountType = formData.get("discountType")?.toString() || "flat";
     const rentalType = formData.get("rentalType")?.toString() || "";
-    const invoiceNumber = parseInt(formData.get("invoiceNumber")?.toString() || "0");
     const advancePaymentMethod = formData.get("advancePaymentMethod")?.toString() || "";
     const productsString = formData.get("products")?.toString() || "[]";
 
@@ -96,6 +39,8 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(products) || products.length === 0) {
       return NextResponse.json({ success: false, message: "Products list cannot be empty" }, { status: 400 });
     }
+
+    const overlappingProducts: string[] = [];
 
     for (const p of products) {
       const productExists = await prisma.product.findUnique({
@@ -120,14 +65,26 @@ export async function POST(req: NextRequest) {
       });
 
       if (overlappingLock) {
-        return NextResponse.json({
-          message: `Selected Product is already booked for selected dates. Please select another date or product.`,
-        }, { status: 400 });
+        overlappingProducts.push(productExists.name); 
       }
     }
 
+    if (overlappingProducts.length > 0) {
+      return NextResponse.json({
+        message: `The following product are already booked. Please select another date: ${overlappingProducts.join(", ")}`,
+      }, { status: 400 });
+    }
+
+    const lastBooking = await prisma.booking.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
+    const invoiceNumber = lastBooking ? lastBooking.invoiceNumber + 1 : 1;
+
+    const bookingId = generateBookingId(customerName);
+
     const booking = await prisma.booking.create({
       data: {
+        id: bookingId,
         customerName,
         phoneNumberPrimary,
         phoneNumberSecondary,
@@ -140,7 +97,7 @@ export async function POST(req: NextRequest) {
         discount,
         discountType,
         rentalType,
-        invoiceNumber,
+        invoiceNumber, 
         advancePaymentMethod,
         productLocks: {
           create: products.map((p: any) => ({
@@ -155,7 +112,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ message: "Booking created successfully", data: booking });
+    return NextResponse.json({ message: "Booking created successfully" });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Server error" }, { status: 500 });

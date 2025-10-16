@@ -3,6 +3,13 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
+function generateProductId(name: string, gender: string) {
+  const prefix = gender.toLowerCase() === "men" ? "pm" : gender.toLowerCase() === "women" ? "pw" : "px";
+  const last4 = name.slice(-4).toLowerCase();
+  const randomDigits = Math.floor(1000 + Math.random() * 9000); 
+  return `${prefix}${last4}${randomDigits}`;
+}
+
 export async function GET() {
   await validate();
 
@@ -74,7 +81,7 @@ export async function POST(req: Request) {
 
       const files = formData.getAll("images");
       for (const file of files) {
-        if (file instanceof File) {
+        if (typeof file === "object" && "arrayBuffer" in file) {
           const url = await uploadImageToCloudinary(file, "inventory-products");
           images.push(url);
         }
@@ -99,8 +106,11 @@ export async function POST(req: Request) {
       );
     }
 
+    const productId = generateProductId(name, gender);
+
     const product = await prisma.product.create({
       data: {
+        id: productId,
         name,
         sku,
         description,
@@ -115,14 +125,13 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
-      message: "Product created successfully",
-      data: product,
+      message: "Product created successfully"
     });
 
   } catch (err: any) {
     if (err.code === "P2002" && err.meta?.target?.includes("sku")) {
       return NextResponse.json(
-        { message: `SKU "${sku}" already exists. Please use a different SKU.` },
+        { message: `SKU already exists. Please use a different SKU.` },
         { status: 400 }
       );
     }

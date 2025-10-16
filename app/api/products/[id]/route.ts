@@ -46,7 +46,6 @@ export async function PUT(req: Request, context: any) {
   let images = existingProduct.images || [];
 
   try {
- 
     if (contentType.includes("application/json")) {
       const data = await req.json();
 
@@ -114,9 +113,9 @@ export async function PUT(req: Request, context: any) {
       const files = formData.getAll("images");
       const newImages: string[] = [];
 
-      if (files.length > 0 && files.some((f) => f instanceof File)) {
+      if (files.length > 0 && files.some((f) => typeof f === "object" && "arrayBuffer" in f)) {
         for (const file of files) {
-          if (file instanceof File) {
+          if (typeof file === "object" && "arrayBuffer" in file) {
             const url = await uploadImageToCloudinary(file, "inventory-products");
             newImages.push(url);
           }
@@ -133,10 +132,19 @@ export async function PUT(req: Request, context: any) {
     if (!Array.isArray(size)) size = [String(size)];
     size = size.filter((s) => typeof s === "string" && s.trim() !== "");
 
-  
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data: { name, sku, description, price, gender, category, size, status, images },
+      data: {
+        name,
+        sku,
+        description,
+        price,
+        gender,
+        category,
+        size,
+        status,
+        images,
+      },
     });
 
     return NextResponse.json({
@@ -157,6 +165,7 @@ export async function PUT(req: Request, context: any) {
     );
   }
 }
+
 
 export async function DELETE(req: Request, context: any) {
   await validate();

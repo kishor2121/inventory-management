@@ -41,7 +41,7 @@ model User {
 }
 
 model Product {
-  id             String        @id @default(cuid())
+  id             String   @id
   name           String
   sku            String        @unique
   description    String?
@@ -61,7 +61,7 @@ model Product {
 }
 
 model Booking {
-  id                   String        @id @default(cuid())
+  id                   String   @id    
   customerName         String
   phoneNumberPrimary   String
   phoneNumberSecondary String?

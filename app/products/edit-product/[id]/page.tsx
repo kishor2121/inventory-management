@@ -20,11 +20,13 @@ export default function EditProductPage() {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(''); // ✅ New message state
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const menCategories = ['Shirt', 'Sherwani'];
+  const [hasMounted, setHasMounted] = useState(false);
+
+  const menCategories = ['Shirt', 'Sherwani', 'Blazer'];
   const womenCategories = ['Gown', 'Saree'];
-  const menSizes = ['34', '36', '38'];
+  const menSizes = ['34', '36', '38', '40', '42'];
   const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
   const sizeOptions =
@@ -33,6 +35,10 @@ export default function EditProductPage() {
       : gender === 'Women'
       ? womenSizes.map((s) => ({ value: s, label: s }))
       : [];
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     if (id) fetchProduct();
@@ -47,7 +53,13 @@ export default function EditProductPage() {
     setSku(p.sku || '');
     setCategory(p.category || '');
     setPrice(p.price?.toString() || '');
-    setSize(Array.isArray(p.size) ? p.size : typeof p.size === 'string' ? p.size.split(',') : []);
+    setSize(
+      Array.isArray(p.size)
+        ? p.size
+        : typeof p.size === 'string'
+        ? p.size.split(',')
+        : []
+    );
     setDescription(p.description || '');
     setGender(p.gender || '');
     setExistingImages(p.images || []);
@@ -102,12 +114,19 @@ export default function EditProductPage() {
   };
 
   const categories =
-    gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
+    gender === 'Men'
+      ? menCategories
+      : gender === 'Women'
+      ? womenCategories
+      : [];
 
   return (
     <div className={styles.container}>
       <div className={styles.breadcrumb}>
-        <span className={styles.breadcrumbLink} onClick={() => router.push('/products')}>
+        <span
+          className={styles.breadcrumbLink}
+          onClick={() => router.push('/products')}
+        >
           Products
         </span>
         <span className={styles.breadcrumbDivider}>›</span>
@@ -199,28 +218,43 @@ export default function EditProductPage() {
           />
 
           <div style={{ flex: 1 }}>
-            <Select
-              isMulti
-              options={sizeOptions}
-              value={sizeOptions.filter((opt) => size.includes(opt.value))}
-              onChange={(selected) => setSize(selected.map((opt) => opt.value))}
-              placeholder="Select size(s)"
-              isDisabled={!gender}
-              classNamePrefix="react-select"
-              styles={{
-                control: (base) => ({
-                  ...base,
+            {/* Render Select only after mount to prevent hydration errors */}
+            {hasMounted ? (
+              <Select
+                isMulti
+                options={sizeOptions}
+                value={sizeOptions.filter((opt) => size.includes(opt.value))}
+                onChange={(selected) =>
+                  setSize(selected.map((opt) => opt.value))
+                }
+                placeholder="Select size(s)"
+                isDisabled={!gender}
+                classNamePrefix="react-select"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    borderRadius: '8px',
+                    borderColor: '#d1d5db',
+                    minHeight: '40px',
+                    fontSize: '14px',
+                  }),
+                  multiValue: (base) => ({
+                    ...base,
+                    backgroundColor: '#e5e7eb',
+                  }),
+                }}
+              />
+            ) : (
+              // Placeholder for SSR to match initial markup
+              <div
+                style={{
+                  height: '40px',
+                  border: '1px solid #d1d5db',
                   borderRadius: '8px',
-                  borderColor: '#d1d5db',
-                  minHeight: '40px',
-                  fontSize: '14px',
-                }),
-                multiValue: (base) => ({
-                  ...base,
-                  backgroundColor: '#e5e7eb',
-                }),
-              }}
-            />
+                  backgroundColor: '#f9fafb',
+                }}
+              />
+            )}
           </div>
         </div>
 
@@ -278,7 +312,10 @@ export default function EditProductPage() {
               ) : (
                 <p className={styles.uploadText}>
                   Drag & Drop images here, or{' '}
-                  <label htmlFor="upload" style={{ color: '#000', cursor: 'pointer' }}>
+                  <label
+                    htmlFor="upload"
+                    style={{ color: '#000', cursor: 'pointer' }}
+                  >
                     click to select
                   </label>
                   <br />
@@ -310,7 +347,7 @@ export default function EditProductPage() {
           </button>
         </div>
 
-        {/* ✅ Success message below */}
+        {/* Success message */}
         {successMessage && (
           <p className={styles.successMessage}>{successMessage}</p>
         )}
