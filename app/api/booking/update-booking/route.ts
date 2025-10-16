@@ -56,6 +56,22 @@ export async function PUT(req: NextRequest) {
 
     if (Array.isArray(products) && products.length > 0) {
       for (const p of products) {
+        const productExists = await prisma.product.findUnique({
+          where: { id: p.productId },
+        });
+
+        if (!productExists) {
+          return NextResponse.json({
+            message: `Product not found: ${p.productId}`,
+          }, { status: 400 });
+        }
+
+        if (productExists.status !== "available") {
+          return NextResponse.json({
+            message: `Product is currently ${productExists.status}. Please wait until it becomes available.`,
+          }, { status: 400 });
+        }
+
         const existingLock = await prisma.productLock.findFirst({
           where: { bookingId, productId: p.productId },
         });
@@ -80,7 +96,7 @@ export async function PUT(req: NextRequest) {
         }
       }
     }
-    
+
     const bookingWithProducts = await prisma.booking.findUnique({
       where: { id: bookingId },
       include: { productLocks: true },
