@@ -344,3 +344,11 @@ textarea {
   color: #e53935; /* red color for negative value */
   font-weight: 600;
 }
+
+.error-text {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Select from "react-select";
+import { useRouter } from "next/navigation";
 import "./createBooking.css";
 
 interface ProductOption {
@@ -9,8 +10,9 @@ interface ProductOption {
   label: string;
   price: number;
   image: string;
-  size?: string[]; 
+  size?: string[];
 }
+
 interface ProductCard {
   id: number;
   product: ProductOption | null;
@@ -21,6 +23,7 @@ interface ProductCard {
 }
 
 export default function CreateBooking() {
+  const router = useRouter();
   const [products, setProducts] = useState<ProductOption[]>([]);
   const [productCards, setProductCards] = useState<ProductCard[]>([
     { id: 1, product: null, size: "", amount: "", deliveryDate: "", returnDate: "" },
@@ -30,29 +33,36 @@ export default function CreateBooking() {
   const [deposit, setDeposit] = useState<number>(0);
   const [advance, setAdvance] = useState<number>(0);
   const [additionalCharges, setAdditionalCharges] = useState<number>(0);
-
   const [sameDate, setSameDate] = useState<boolean>(false);
   const [globalDeliveryDate, setGlobalDeliveryDate] = useState<string>("");
   const [globalReturnDate, setGlobalReturnDate] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
-
   const [rentAmount, setRentAmount] = useState<number>(0);
   const [totalDeposit, setTotalDeposit] = useState<number>(0);
   const [returnAmount, setReturnAmount] = useState<number>(0);
+  const [errors, setErrors] = useState({
+    customerName: "",
+    phoneNumber: "",
+    bookingType: "",
+    product: "",
+    deliveryDate: "",
+    returnDate: "",
+    deposit: "",
+    advance: "",
+    paymentMode: "",
+  });
 
   useEffect(() => {
     const fetchProducts = async () => {
       const res = await fetch("/api/products");
       const data = await res.json();
-
       const formatted = data.data.map((p: any) => ({
         value: p.id,
         label: p.name,
         price: p.price,
         image: p.images?.[0] || "",
-        size: p.size?.length ? p.size : [], 
+        size: p.size?.length ? p.size : [],
       }));
-
       setProducts(formatted);
     };
     fetchProducts();
@@ -73,10 +83,7 @@ export default function CreateBooking() {
             return {
               ...card,
               product: value,
-              size:
-                value.size && value.size.length === 1
-                  ? value.size[0] 
-                  : "",
+              size: value.size && value.size.length === 1 ? value.size[0] : "",
               amount: String(value.price || ""),
             };
           }
@@ -90,20 +97,15 @@ export default function CreateBooking() {
 
   const handleAddItem = () => {
     const lastCard = productCards[productCards.length - 1];
-    if (
-      !lastCard.product ||
-      !lastCard.amount ||
-      (!sameDate && (!lastCard.deliveryDate || !lastCard.returnDate))
-    ) {
+    if (!lastCard.product || !lastCard.amount || (!sameDate && (!lastCard.deliveryDate || !lastCard.returnDate))) {
       setErrorMessage("⚠️ Please fill all product details before adding another item.");
       return;
     }
-
-    setErrorMessage("");
     setProductCards((prev) => [
       ...prev,
       { id: Date.now(), product: null, size: "", amount: "", deliveryDate: "", returnDate: "" },
     ]);
+    setErrorMessage("");
   };
 
   const handleRemoveItem = (id: number) => {
@@ -113,26 +115,17 @@ export default function CreateBooking() {
   useEffect(() => {
     if (sameDate) {
       setProductCards((prev) =>
-        prev.map((card) => ({
-          ...card,
-          deliveryDate: globalDeliveryDate,
-          returnDate: globalReturnDate,
-        }))
+        prev.map((card) => ({ ...card, deliveryDate: globalDeliveryDate, returnDate: globalReturnDate }))
       );
     }
   }, [sameDate, globalDeliveryDate, globalReturnDate]);
 
   useEffect(() => {
-    const totalProductAmount = productCards.reduce(
-      (sum, card) => sum + (parseFloat(card.amount) || 0),
-      0
-    );
-
+    const totalProductAmount = productCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0);
     const discount = discountValue || 0;
     const extras = additionalCharges || 0;
     const baseRent = Math.max(totalProductAmount - discount, 0);
     const rentWithExtras = baseRent + extras;
-
     const totalDep = (advance || 0) + (deposit || 0);
     const retAmt = totalDep - rentWithExtras;
 
@@ -143,12 +136,79 @@ export default function CreateBooking() {
 
   const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
 
+  const handleBooking = async () => {
+    const customerName = (document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]')?.value || "").trim();
+    const phoneNumber = (document.querySelector<HTMLInputElement>('input[placeholder="Enter mobile number"]')?.value || "").trim();
+    const bookingType = (document.querySelector<HTMLSelectElement>('select')?.value || "").trim();
+    const paymentMode = (document.querySelector<HTMLSelectElement>('select:last-of-type')?.value || "").trim();
+
+    let newErrors: any = {};
+
+    if (!customerName) newErrors.customerName = "Customer Name is required.";
+    if (!phoneNumber) newErrors.phoneNumber = "Mobile No. is required.";
+    if (bookingType === "Select Booking Type" || !bookingType) newErrors.bookingType = "Booking Type is required.";
+
+    const firstProduct = productCards[0];
+    if (!firstProduct.product) newErrors.product = "Please select a product.";
+    if (!firstProduct.deliveryDate && !sameDate) newErrors.deliveryDate = "Delivery date is required.";
+    if (!firstProduct.returnDate && !sameDate) newErrors.returnDate = "Return date is required.";
+
+    if (!deposit) newErrors.deposit = "Deposit Amount is required.";
+    if (!advance) newErrors.advance = "Adv. Payment is required.";
+    if (paymentMode === "Select Payment Mode" || !paymentMode) newErrors.paymentMode = "Payment mode is required.";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) return;
+
+    const productsData = productCards.map((card) => ({
+      productId: card.product?.value,
+      deliveryDate: card.deliveryDate,
+      returnDate: card.returnDate,
+    }));
+
+    const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim();
+    const notes = (document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Notes"]')?.value || "").trim();
+
+    const formData = new FormData();
+    formData.append("customerName", customerName);
+    formData.append("phoneNumberPrimary", phoneNumber);
+    formData.append("phoneNumberSecondary", phoneNumberSecondary);
+    formData.append("notes", notes);
+    formData.append("rentAmount", String(rentAmount));
+    formData.append("totalDeposit", String(totalDeposit));
+    formData.append("returnAmount", String(returnAmount));
+    formData.append("advancePayment", String(advance));
+    formData.append("discount", String(discountValue));
+    formData.append("discountType", "flat");
+    formData.append("rentalType", "daily");
+    formData.append("advancePaymentMethod", "");
+    formData.append("products", JSON.stringify(productsData));
+
+    try {
+      const res = await fetch("/api/booking/create-booking", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMessage(data.message || "⚠️ Failed to create booking.");
+        return;
+      }
+
+      setErrorMessage("");
+      alert("✅ Booking created successfully!");
+      router.push(`/orders/${data.data.id}`);
+    } catch (err) {
+      console.error(err);
+      setErrorMessage("⚠️ Something went wrong. Please try again.");
+    }
+  };
+
   return (
     <div className="booking-page">
-      <div className="breadcrumb">
-        Home › <span>Create Booking</span>
-      </div>
-
+      <div className="breadcrumb">Home › <span>Create Booking</span></div>
       <div className="booking-container">
         <div className="booking-left">
           <div className="card">
@@ -156,10 +216,12 @@ export default function CreateBooking() {
               <div className="form-group">
                 <label>Customer Name</label>
                 <input type="text" placeholder="Enter customer name" />
+                {errors.customerName && <span className="error-text">{errors.customerName}</span>}
               </div>
               <div className="form-group">
                 <label>Mobile No.</label>
                 <input type="text" placeholder="Enter mobile number" />
+                {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
               </div>
               <div className="form-group">
                 <label>Alternate No.</label>
@@ -176,16 +238,11 @@ export default function CreateBooking() {
                   <option>Wedding</option>
                   <option>Other</option>
                 </select>
+                {errors.bookingType && <span className="error-text">{errors.bookingType}</span>}
               </div>
-
               <div className="checkbox-right">
                 <label>
-                  <input
-                    type="checkbox"
-                    checked={sameDate}
-                    onChange={(e) => setSameDate(e.target.checked)}
-                  />{" "}
-                  Same Delivery/Return Date for All
+                  <input type="checkbox" checked={sameDate} onChange={(e) => setSameDate(e.target.checked)} /> Same Delivery/Return Date for All
                 </label>
               </div>
             </div>
@@ -194,19 +251,11 @@ export default function CreateBooking() {
               <div className="form-row date-row">
                 <div className="form-group date-input">
                   <label>Delivery Date</label>
-                  <input
-                    type="date"
-                    value={globalDeliveryDate}
-                    onChange={(e) => setGlobalDeliveryDate(e.target.value)}
-                  />
+                  <input type="date" value={globalDeliveryDate} onChange={(e) => setGlobalDeliveryDate(e.target.value)} />
                 </div>
                 <div className="form-group date-input">
                   <label>Return Date</label>
-                  <input
-                    type="date"
-                    value={globalReturnDate}
-                    onChange={(e) => setGlobalReturnDate(e.target.value)}
-                  />
+                  <input type="date" value={globalReturnDate} onChange={(e) => setGlobalReturnDate(e.target.value)} />
                 </div>
               </div>
             )}
@@ -214,96 +263,30 @@ export default function CreateBooking() {
 
           {productCards.map((card) => (
             <div className="card product-card" key={card.id}>
-              {productCards.length > 1 && (
-                <button className="remove-btn" onClick={() => handleRemoveItem(card.id)}>
-                  ×
-                </button>
-              )}
-
+              {productCards.length > 1 && <button className="remove-btn" onClick={() => handleRemoveItem(card.id)}>×</button>}
               <div className="form-row">
                 <div className="form-group" style={{ flex: 2 }}>
                   <label>Product Name</label>
-                  <Select
-                    options={getAvailableProducts(card.id)}
-                    value={card.product}
-                    onChange={(val) => handleChange(card.id, "product", val)}
-                    placeholder="Select a product"
-                    isSearchable
-                  />
+                  <Select options={getAvailableProducts(card.id)} value={card.product} onChange={(val) => handleChange(card.id, "product", val)} placeholder="Select a product" isSearchable />
+                  {errors.product && <span className="error-text">{errors.product}</span>}
                 </div>
-
                 <div className="form-group" style={{ flex: 1 }}>
                   <label>Amount</label>
-                  <input
-                    type="number"
-                    placeholder="Amount"
-                    value={card.amount === "0" ? "" : card.amount}
-                    onChange={(e) => handleChange(card.id, "amount", e.target.value)}
-                  />
+                  <input type="number" placeholder="Amount" value={card.amount === "0" ? "" : card.amount} onChange={(e) => handleChange(card.id, "amount", e.target.value)} />
                 </div>
               </div>
-
-              {card.product && (
-                <div className="form-row">
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label>Size</label>
-                    {card.product.size?.length === 1 ? (
-                      <input
-                        type="text"
-                        value={card.product.size[0]}
-                        readOnly
-                      />
-                    ) : card.product.size?.length > 1 ? (
-                      <select
-                        value={card.size}
-                        onChange={(e) => handleChange(card.id, "size", e.target.value)}
-                      >
-                        <option value="">Select Size</option>
-                        {card.product.size.map((sz) => (
-                          <option key={sz} value={sz}>
-                            {sz}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type="text"
-                        placeholder="Enter size"
-                        value={card.size}
-                        onChange={(e) => handleChange(card.id, "size", e.target.value)}
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {card.product?.image && (
-                <div className="selected-product-preview image-only">
-                  <img src={card.product.image} alt={card.product.label} />
-                </div>
-              )}
 
               {!sameDate && (
                 <div className="form-row date-row">
                   <div className="form-group date-input">
                     <label>Delivery Date</label>
-                    <input
-                      type="date"
-                      value={card.deliveryDate}
-                      onChange={(e) =>
-                        handleChange(card.id, "deliveryDate", e.target.value)
-                      }
-                    />
+                    <input type="date" value={card.deliveryDate} onChange={(e) => handleChange(card.id, "deliveryDate", e.target.value)} />
+                    {errors.deliveryDate && <span className="error-text">{errors.deliveryDate}</span>}
                   </div>
                   <div className="form-group date-input">
                     <label>Return Date</label>
-                    <input
-                      type="date"
-                      value={card.returnDate}
-                      onChange={(e) =>
-                        handleChange(card.id, "returnDate", e.target.value)
-                      }
-                    />
+                    <input type="date" value={card.returnDate} onChange={(e) => handleChange(card.id, "returnDate", e.target.value)} />
+                    {errors.returnDate && <span className="error-text">{errors.returnDate}</span>}
                   </div>
                 </div>
               )}
@@ -313,9 +296,7 @@ export default function CreateBooking() {
           {errorMessage && <div className="error-message">{errorMessage}</div>}
 
           <div className="add-item-row">
-            <button className="add-item-btn" onClick={handleAddItem}>
-              ＋ Add Item
-            </button>
+            <button className="add-item-btn" onClick={handleAddItem}>＋ Add Item</button>
           </div>
         </div>
 
@@ -323,22 +304,14 @@ export default function CreateBooking() {
           <div className="card">
             <div className="form-group">
               <label>Deposit (₹)</label>
-              <input
-                type="number"
-                placeholder="Deposit"
-                value={deposit === 0 ? "" : deposit}
-                onChange={(e) => setDeposit(safeNumber(e.target.value))}
-              />
+              <input type="number" placeholder="Deposit" value={deposit === 0 ? "" : deposit} onChange={(e) => setDeposit(safeNumber(e.target.value))} />
+              {errors.deposit && <span className="error-text">{errors.deposit}</span>}
             </div>
 
             <div className="form-group">
               <label>Adv. Payment (₹)</label>
-              <input
-                type="number"
-                placeholder="Adv. Payment"
-                value={advance === 0 ? "" : advance}
-                onChange={(e) => setAdvance(safeNumber(e.target.value))}
-              />
+              <input type="number" placeholder="Adv. Payment" value={advance === 0 ? "" : advance} onChange={(e) => setAdvance(safeNumber(e.target.value))} />
+              {errors.advance && <span className="error-text">{errors.advance}</span>}
             </div>
 
             <div className="form-group">
@@ -349,26 +322,17 @@ export default function CreateBooking() {
                 <option>Card</option>
                 <option>UPI</option>
               </select>
+              {errors.paymentMode && <span className="error-text">{errors.paymentMode}</span>}
             </div>
 
             <div className="form-group">
               <label>Additional Charges (₹)</label>
-              <input
-                type="number"
-                placeholder="Additional Charges"
-                value={additionalCharges === 0 ? "" : additionalCharges}
-                onChange={(e) => setAdditionalCharges(safeNumber(e.target.value))}
-              />
+              <input type="number" placeholder="Additional Charges" value={additionalCharges === 0 ? "" : additionalCharges} onChange={(e) => setAdditionalCharges(safeNumber(e.target.value))} />
             </div>
 
             <div className="form-group">
               <label>Discount (₹)</label>
-              <input
-                type="number"
-                placeholder="Discount"
-                value={discountValue === 0 ? "" : discountValue}
-                onChange={(e) => setDiscountValue(safeNumber(e.target.value))}
-              />
+              <input type="number" placeholder="Discount" value={discountValue === 0 ? "" : discountValue} onChange={(e) => setDiscountValue(safeNumber(e.target.value))} />
             </div>
 
             <div className="form-group">
@@ -379,27 +343,15 @@ export default function CreateBooking() {
           </div>
 
           <div className="summary-card">
-            <div className="summary-row">
-              <span>Rent Amount</span>
-              <span>₹ {rentAmount.toFixed(2)}</span>
-            </div>
-            <div className="summary-row">
-              <span>Total Deposit</span>
-              <span>₹ {totalDeposit.toFixed(2)}</span>
-            </div>
-            <div className="summary-row discount-row">
-              <span>Discount</span>
-              <span className="negative">- ₹{(discountValue || 0).toFixed(2)}</span>
-            </div>
-            <div className="summary-row">
-              <span>Return Amount</span>
-              <span>₹ {returnAmount.toFixed(2)}</span>
-            </div>
+            <div className="summary-row"><span>Rent Amount</span><span>₹ {rentAmount.toFixed(2)}</span></div>
+            <div className="summary-row"><span>Total Deposit</span><span>₹ {totalDeposit.toFixed(2)}</span></div>
+            <div className="summary-row discount-row"><span>Discount</span><span className="negative">- ₹{(discountValue || 0).toFixed(2)}</span></div>
+            <div className="summary-row"><span>Return Amount</span><span>₹ {returnAmount.toFixed(2)}</span></div>
           </div>
 
           <div className="action-buttons">
             <button className="cancel-btn">Cancel</button>
-            <button className="book-btn">Book Now</button>
+            <button className="book-btn" onClick={handleBooking}>Book Now</button>
           </div>
         </div>
       </div>
