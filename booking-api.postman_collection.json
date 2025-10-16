@@ -3,7 +3,8 @@
 		"_postman_id": "f0dcd10c-6c72-4c62-be1b-44dca1ce63e7",
 		"name": "product",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39945321"
+		"_exporter_id": "39945321",
+		"_collection_link": "https://speeding-space-282304.postman.co/workspace/My-Workspace~38805c68-82ef-48ec-8d68-eb047c59fd50/collection/39945321-f0dcd10c-6c72-4c62-be1b-44dca1ce63e7?action=share&source=collection_link&creator=39945321"
 	},
 	"item": [
 		{
@@ -15,33 +16,41 @@
 						"method": "PUT",
 						"header": [
 							{
-								"key": "key",
-								"value": "{{your-api-key}}",
-								"type": "text"
-							},
-							{
-								"key": "secret",
-								"value": "{{your-api-secret}}",
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ1NzQyOCwiZXhwIjoxNzYwNDYxMDI4fQ.RtxaIpqhrcHdP3_MlOaryCiN-vJ-UPH9hcX6iFWZ1lc; __next_hmr_refresh_hash__=104",
 								"type": "text"
 							}
 						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "size",
+									"value": "36,38",
+									"type": "text"
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": "/home/kishorkumar/Downloads/download.jpeg",
+									"disabled": true
+								}
+							]
+						},
 						"url": {
-							"raw": "http://localhost:3000/api/products/:id",
+							"raw": "http://172.20.10.4:3000/api/products/pmtest3810",
 							"protocol": "http",
 							"host": [
-								"localhost"
+								"172",
+								"20",
+								"10",
+								"4"
 							],
 							"port": "3000",
 							"path": [
 								"api",
 								"products",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
+								"pmtest3810"
 							]
 						}
 					},
@@ -53,25 +62,25 @@
 						"method": "GET",
 						"header": [
 							{
-								"key": "key",
-								"value": "{{your-api-key}}",
-								"type": "text"
-							},
-							{
-								"key": "secret",
-								"value": "{{your-api-secret}}",
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MTExMDIwOCwiZXhwIjoxNzYxMTEzODA4fQ.jdhj-NthWyDzElNlEx3hnkFV2l8Ui7hHdn1LUQdKsd0",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"raw": "http://172.20.10.4:3000/api/products/pmmdat8645",
+							"protocol": "http",
 							"host": [
-								"{{base_url}}"
+								"172",
+								"20",
+								"10",
+								"4"
 							],
+							"port": "3000",
 							"path": [
-								"v3",
-								"parties",
-								"{{party_id}}"
+								"api",
+								"products",
+								"pmmdat8645"
 							]
 						}
 					},
@@ -94,14 +103,19 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"raw": "http://172.20.10.4:3000/api/organization/get-organization-info",
+							"protocol": "http",
 							"host": [
-								"{{base_url}}"
+								"172",
+								"20",
+								"10",
+								"4"
 							],
+							"port": "3000",
 							"path": [
-								"v3",
-								"parties",
-								"{{party_id}}"
+								"api",
+								"organization",
+								"get-organization-info"
 							]
 						}
 					},
@@ -213,18 +227,34 @@
 						"method": "PUT",
 						"header": [
 							{
-								"key": "key",
-								"value": "{{your-api-key}}",
-								"type": "text"
-							},
-							{
-								"key": "secret",
-								"value": "{{your-api-secret}}",
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
 								"type": "text"
 							}
 						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "bookingId",
+									"value": "bkumar8480",
+									"type": "text"
+								},
+								{
+									"key": "products",
+									"value": "[{\"productId\":\"pmduct8536\",\"deliveryDate\":\"2025-10-15\",\"returnDate\":\"2025-10-18\"}]",
+									"type": "text"
+								},
+								{
+									"key": "",
+									"value": " \"deliveryDate\": \"2025-10-15T00:00:00.000Z\",\n                \"returnDate\": \"2025-10-16T00:00:00.000Z\",",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
 						"url": {
-							"raw": "http://localhost:3000/api/products/:id",
+							"raw": "http://localhost:3000/api/booking/update-booking",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -232,14 +262,8 @@
 							"port": "3000",
 							"path": [
 								"api",
-								"products",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
+								"booking",
+								"update-booking"
 							]
 						}
 					},
@@ -251,25 +275,22 @@
 						"method": "GET",
 						"header": [
 							{
-								"key": "key",
-								"value": "{{your-api-key}}",
-								"type": "text"
-							},
-							{
-								"key": "secret",
-								"value": "{{your-api-secret}}",
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MTExMDIwOCwiZXhwIjoxNzYxMTEzODA4fQ.jdhj-NthWyDzElNlEx3hnkFV2l8Ui7hHdn1LUQdKsd0",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"raw": "http://localhost:3000/api/booking/cmgrjl3sj0002hjebkjkqjkqm",
+							"protocol": "http",
 							"host": [
-								"{{base_url}}"
+								"localhost"
 							],
+							"port": "3000",
 							"path": [
-								"v3",
-								"parties",
-								"{{party_id}}"
+								"api",
+								"booking",
+								"cmgrjl3sj0002hjebkjkqjkqm"
 							]
 						}
 					},
@@ -311,25 +332,22 @@
 						"method": "GET",
 						"header": [
 							{
-								"key": "key",
-								"value": "{{your-api-key}}",
-								"type": "text"
-							},
-							{
-								"key": "secret",
-								"value": "{{your-api-secret}}",
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"raw": "http://localhost:3000/api/product-lock/pmduct8536",
+							"protocol": "http",
 							"host": [
-								"{{base_url}}"
+								"localhost"
 							],
+							"port": "3000",
 							"path": [
-								"v3",
-								"parties",
-								"{{party_id}}"
+								"api",
+								"product-lock",
+								"pmduct8536"
 							]
 						}
 					},
@@ -341,25 +359,42 @@
 						"method": "GET",
 						"header": [
 							{
-								"key": "key",
-								"value": "{{your-api-key}}",
-								"type": "text"
-							},
-							{
-								"key": "secret",
-								"value": "{{your-api-secret}}",
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"raw": "http://localhost:3000/api/booking/list-booking/return?filter=custom&start=2025-10-21&end=2025-10-22",
+							"protocol": "http",
 							"host": [
-								"{{base_url}}"
+								"localhost"
 							],
+							"port": "3000",
 							"path": [
-								"v3",
-								"parties",
-								"{{party_id}}"
+								"api",
+								"booking",
+								"list-booking",
+								"return"
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "custom"
+								},
+								{
+									"key": "start",
+									"value": "2025-10-21"
+								},
+								{
+									"key": "end",
+									"value": "2025-10-22"
+								},
+								{
+									"key": "filter",
+									"value": "today",
+									"disabled": true
+								}
 							]
 						}
 					},
@@ -371,25 +406,45 @@
 						"method": "GET",
 						"header": [
 							{
-								"key": "key",
-								"value": "{{your-api-key}}",
-								"type": "text"
-							},
-							{
-								"key": "secret",
-								"value": "{{your-api-secret}}",
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"raw": "http://localhost:3000/api/booking/list-booking/delivery",
+							"protocol": "http",
 							"host": [
-								"{{base_url}}"
+								"localhost"
 							],
+							"port": "3000",
 							"path": [
-								"v3",
-								"parties",
-								"{{party_id}}"
+								"api",
+								"booking",
+								"list-booking",
+								"delivery"
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "custom",
+									"disabled": true
+								},
+								{
+									"key": "start",
+									"value": "2025-10-15",
+									"disabled": true
+								},
+								{
+									"key": "end",
+									"value": "2025-10-20",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": "today",
+									"disabled": true
+								}
 							]
 						}
 					},
@@ -399,7 +454,13 @@
 					"name": "delete booking",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3J2dDc1bjAwMDZqemZqajg0N3I4azYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDU5MTkyMCwiZXhwIjoxNzYwNTk1NTIwfQ.er0ryff18CMaDGdjG-f3cHnzoXnYDQ3dH04M3a4n1x8",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "\n{\n  \"name\": \"BLUE\",\n  \"sku\": \"colours\",\n  \"description\": \"Test product\",\n  \"price\": 250,\n  \"images\": [\n    \"https://d1zj63puuxwt59.cloudfront.net/687b44b825e5a8e58023cfd8/78175e2d-36f8-4c9f-a3b5-8d957641d74b.jpg\"\n  ],\n  \"gender\": \"Women\",\n  \"category\": \"Chaniya-Choli\",\n  \"size\": \"M\",\n  \"organizationId\": \"687b44b825e5a8e58023cfd5\"\n}\n\n",
@@ -410,7 +471,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/products/:id",
+							"raw": "http://localhost:3000/api/booking/bkarhy1629",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -418,14 +479,8 @@
 							"port": "3000",
 							"path": [
 								"api",
-								"products",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
+								"booking",
+								"bkarhy1629"
 							]
 						}
 					},
