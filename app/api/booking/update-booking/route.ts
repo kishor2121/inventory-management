@@ -35,8 +35,6 @@ export async function PUT(req: NextRequest) {
 
     const products = JSON.parse(productsString);
 
-    await prisma.productLock.deleteMany({ where: { bookingId } });
-
     const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -53,18 +51,46 @@ export async function PUT(req: NextRequest) {
         rentalType,
         invoiceNumber,
         advancePaymentMethod,
-        productLocks: {
-          create: products.map((p: any) => ({
-            productId: p.productId,
-            deliveryDate: new Date(p.deliveryDate),
-            returnDate: new Date(p.returnDate),
-          })),
-        },
       },
+    });
+
+    if (Array.isArray(products) && products.length > 0) {
+      for (const p of products) {
+        const existingLock = await prisma.productLock.findFirst({
+          where: { bookingId, productId: p.productId },
+        });
+
+        if (existingLock) {
+          await prisma.productLock.update({
+            where: { id: existingLock.id },
+            data: {
+              deliveryDate: new Date(p.deliveryDate),
+              returnDate: new Date(p.returnDate),
+            },
+          });
+        } else {
+          await prisma.productLock.create({
+            data: {
+              bookingId,
+              productId: p.productId,
+              deliveryDate: new Date(p.deliveryDate),
+              returnDate: new Date(p.returnDate),
+            },
+          });
+        }
+      }
+    }
+    
+    const bookingWithProducts = await prisma.booking.findUnique({
+      where: { id: bookingId },
       include: { productLocks: true },
     });
 
-    return NextResponse.json({ success: true, message: "Booking updated successfully", data: updatedBooking });
+    return NextResponse.json({
+      success: true,
+      message: "Booking updated successfully",
+      data: bookingWithProducts,
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });

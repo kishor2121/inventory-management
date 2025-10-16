@@ -101,7 +101,7 @@ export async function POST(req: Request) {
         const status = formData.get("status")?.toString() || "available";
 
         const created: string[] = [];
-        const skipped: string[] = [];
+        const skipped: { sku: string, reason: string }[] = [];
 
         for (const item of products) {
           const name = item.name;
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
           } catch (err: any) {
             if (err.code === "P2002" && err.meta?.target?.includes("sku")) {
               console.warn(`SKU already exists: ${sku}`);
-              skipped.push(sku);
+              skipped.push({ sku, reason: "SKU already exists" });
               continue;
             }
             console.error("Error importing product:", err);
@@ -142,7 +142,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
           message: `CSV import finished.`,
           imported: created.length,
-          skipped,
+          skipped: skipped,
         });
       }
 
