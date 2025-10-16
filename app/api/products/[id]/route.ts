@@ -166,7 +166,6 @@ export async function PUT(req: Request, context: any) {
   }
 }
 
-
 export async function DELETE(req: Request, context: any) {
   await validate();
 
@@ -178,6 +177,16 @@ export async function DELETE(req: Request, context: any) {
     return NextResponse.json({ message: "Product not found" }, { status: 404 });
   }
 
+  const isBooked = await prisma.productLock.findFirst({
+    where: { productId: id },
+  });
+
+  if (isBooked) {
+    return NextResponse.json(
+      { message: "This product is currently booked or has future bookings and cannot be deleted." },
+      { status: 400 }
+    );
+  }
 
   if (product.images && product.images.length > 0) {
     for (const imageUrl of product.images) {
