@@ -52,6 +52,9 @@ export default function UpdateBooking() {
     paymentMode: "",
   });
 
+  const [selectedBookingType, setSelectedBookingType] = useState<string>("");
+  const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>("");
+
   // Fetch products list
   useEffect(() => {
     const fetchProducts = async () => {
@@ -104,7 +107,6 @@ export default function UpdateBooking() {
         }));
         setProductCards(cards);
 
-        // Check if all delivery/return dates are same
         const firstDelivery = cards[0].deliveryDate;
         const firstReturn = cards[0].returnDate;
         const allSame = cards.every(c => c.deliveryDate === firstDelivery && c.returnDate === firstReturn);
@@ -124,6 +126,10 @@ export default function UpdateBooking() {
       if (altInput) altInput.value = booking.phoneNumberSecondary || "";
       const notesInput = document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Notes"]');
       if (notesInput) notesInput.value = booking.notes || "";
+
+      // Prefill booking type & payment mode
+      setSelectedBookingType(booking.rentalType || "");
+      setSelectedPaymentMode(booking.advancePaymentMethod || "");
     };
     fetchBooking();
   }, [bookingId]);
@@ -199,23 +205,19 @@ export default function UpdateBooking() {
   const handleBooking = async () => {
     const customerName = (document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]')?.value || "").trim();
     const phoneNumber = (document.querySelector<HTMLInputElement>('input[placeholder="Enter mobile number"]')?.value || "").trim();
-    const bookingType = (document.querySelector<HTMLSelectElement>('select')?.value || "").trim();
-    const paymentMode = (document.querySelector<HTMLSelectElement>('select:last-of-type')?.value || "").trim();
 
     let newErrors: any = {};
-
     if (!customerName) newErrors.customerName = "Customer Name is required.";
     if (!phoneNumber) newErrors.phoneNumber = "Mobile No. is required.";
-    if (bookingType === "Select Booking Type" || !bookingType) newErrors.bookingType = "Booking Type is required.";
+    if (!selectedBookingType) newErrors.bookingType = "Booking Type is required.";
 
     const firstProduct = productCards[0];
     if (!firstProduct.product) newErrors.product = "Please select a product.";
     if (!firstProduct.deliveryDate && !sameDate) newErrors.deliveryDate = "Delivery date is required.";
     if (!firstProduct.returnDate && !sameDate) newErrors.returnDate = "Return date is required.";
-
     if (!deposit) newErrors.deposit = "Deposit Amount is required.";
     if (!advance) newErrors.advance = "Adv. Payment is required.";
-    if (paymentMode === "Select Payment Mode" || !paymentMode) newErrors.paymentMode = "Payment mode is required.";
+    if (!selectedPaymentMode) newErrors.paymentMode = "Payment mode is required.";
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
@@ -241,10 +243,10 @@ export default function UpdateBooking() {
     formData.append("advancePayment", String(advance));
     formData.append("discount", String(discountValue));
     formData.append("discountType", "flat");
-    formData.append("rentalType", "daily");
-    formData.append("advancePaymentMethod", "");
+    formData.append("rentalType", selectedBookingType); // Updated key
+    formData.append("advancePaymentMethod", selectedPaymentMode); // Updated key
     formData.append("products", JSON.stringify(productsData));
-    formData.append("bookingId", bookingId); 
+    formData.append("bookingId", bookingId);
 
     try {
       const res = await fetch("/api/booking/update-booking", {
@@ -293,11 +295,11 @@ export default function UpdateBooking() {
             <div className="form-row align-center">
               <div className="form-group booking-type">
                 <label>Booking Type</label>
-                <select>
-                  <option>Select Booking Type</option>
-                  <option>Engagement</option>
-                  <option>Wedding</option>
-                  <option>Other</option>
+                <select value={selectedBookingType} onChange={(e) => setSelectedBookingType(e.target.value)}>
+                  <option value="">Select Booking Type</option>
+                  <option value="Engagement">Engagement</option>
+                  <option value="Wedding">Wedding</option>
+                  <option value="Other">Other</option>
                 </select>
                 {errors.bookingType && <span className="error-text">{errors.bookingType}</span>}
               </div>
@@ -377,11 +379,11 @@ export default function UpdateBooking() {
 
             <div className="form-group">
               <label>Payment Mode</label>
-              <select>
-                <option>Select Payment Mode</option>
-                <option>Cash</option>
-                <option>Card</option>
-                <option>UPI</option>
+              <select value={selectedPaymentMode} onChange={(e) => setSelectedPaymentMode(e.target.value)}>
+                <option value="">Select Payment Mode</option>
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+                <option value="UPI">UPI</option>
               </select>
               {errors.paymentMode && <span className="error-text">{errors.paymentMode}</span>}
             </div>

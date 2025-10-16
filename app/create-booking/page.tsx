@@ -139,14 +139,14 @@ export default function CreateBooking() {
   const handleBooking = async () => {
     const customerName = (document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]')?.value || "").trim();
     const phoneNumber = (document.querySelector<HTMLInputElement>('input[placeholder="Enter mobile number"]')?.value || "").trim();
-    const bookingType = (document.querySelector<HTMLSelectElement>('select')?.value || "").trim();
-    const paymentMode = (document.querySelector<HTMLSelectElement>('select:last-of-type')?.value || "").trim();
+    const bookingType = (document.querySelector<HTMLSelectElement>('select.booking-type')?.value || "").trim();
+    const paymentMode = (document.querySelector<HTMLSelectElement>('select.payment-mode')?.value || "").trim();
 
     let newErrors: any = {};
 
     if (!customerName) newErrors.customerName = "Customer Name is required.";
     if (!phoneNumber) newErrors.phoneNumber = "Mobile No. is required.";
-    if (bookingType === "Select Booking Type" || !bookingType) newErrors.bookingType = "Booking Type is required.";
+    if (!bookingType || bookingType === "Select Booking Type") newErrors.bookingType = "Booking Type is required.";
 
     const firstProduct = productCards[0];
     if (!firstProduct.product) newErrors.product = "Please select a product.";
@@ -155,10 +155,9 @@ export default function CreateBooking() {
 
     if (!deposit) newErrors.deposit = "Deposit Amount is required.";
     if (!advance) newErrors.advance = "Adv. Payment is required.";
-    if (paymentMode === "Select Payment Mode" || !paymentMode) newErrors.paymentMode = "Payment mode is required.";
+    if (!paymentMode || paymentMode === "Select Payment Mode") newErrors.paymentMode = "Payment mode is required.";
 
     setErrors(newErrors);
-
     if (Object.keys(newErrors).length > 0) return;
 
     const productsData = productCards.map((card) => ({
@@ -181,8 +180,8 @@ export default function CreateBooking() {
     formData.append("advancePayment", String(advance));
     formData.append("discount", String(discountValue));
     formData.append("discountType", "flat");
-    formData.append("rentalType", "daily");
-    formData.append("advancePaymentMethod", "");
+    formData.append("rentalType", bookingType); // <-- Booking Type sent as rentalType
+    formData.append("advancePaymentMethod", paymentMode); // <-- Payment Mode sent as advancePaymentMethod
     formData.append("products", JSON.stringify(productsData));
 
     try {
@@ -232,7 +231,7 @@ export default function CreateBooking() {
             <div className="form-row align-center">
               <div className="form-group booking-type">
                 <label>Booking Type</label>
-                <select>
+                <select className="booking-type">
                   <option>Select Booking Type</option>
                   <option>Engagement</option>
                   <option>Wedding</option>
@@ -316,7 +315,7 @@ export default function CreateBooking() {
 
             <div className="form-group">
               <label>Payment Mode</label>
-              <select>
+              <select className="payment-mode">
                 <option>Select Payment Mode</option>
                 <option>Cash</option>
                 <option>Card</option>
