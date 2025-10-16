@@ -1,6 +1,7 @@
 import validate from "../auth/validate";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import Papa from "papaparse";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 function generateProductId(name: string, gender: string) {
@@ -42,49 +43,118 @@ export async function POST(req: Request) {
 
   try {
     const contentType = req.headers.get("content-type") || "";
-    let name: string;
-    let sku: string;
-    let description: string;
-    let price: number;
-    let gender: string;
-    let category: string;
-    let size: string[] = [];
-    let organizationId: string;
-    let status: string = "available";
     const images: string[] = [];
+    let status: string = "available";
 
     if (contentType.includes("application/json")) {
       const data = await req.json();
+      const {
+        name,
+        sku,
+        description,
+        price,
+        gender,
+        category,
+        size,
+        organizationId,
+        status = "available",
+        images: dataImages = [],
+      } = data;
 
-      name = data.name;
-      sku = data.sku;
-      description = data.description;
-      price = data.price;
-      gender = data.gender;
-      category = data.category;
-      size = Array.isArray(data.size) ? data.size : [data.size];
-      organizationId = data.organizationId;
-      status = data.status || "available";
-      if (Array.isArray(data.images)) {
-        images.push(...data.images);
-      }
+      const productId = generateProductId(name, gender);
 
-    } else if (contentType.includes("multipart/form-data")) {
+      await prisma.product.create({
+        data: {
+          id: productId,
+          name,
+          sku,
+          description,
+          price,
+          gender,
+          category,
+          size: Array.isArray(size) ? size : [size],
+          status,
+          images: dataImages,
+          organizationId,
+        },
+      });
+
+      return NextResponse.json({ message: "Product created successfully" });
+    }
+
+    if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
 
-      name = formData.get("name") as string;
-      sku = formData.get("sku") as string;
-      description = formData.get("description") as string;
-      price = parseFloat(formData.get("price") as string);
-      gender = formData.get("gender") as string;
-      category = formData.get("category") as string;
+      const csvFile = formData.get("csv") as File;
+      if (csvFile && csvFile.name.endsWith(".csv")) {
+        const csvText = await csvFile.text();
+        const parsed = Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+        });
 
-      const sizeRaw = formData.get("size");
-      if (sizeRaw) {
-        size = sizeRaw.toString().split(",").map((s) => s.trim());
+        const products = parsed.data as any[];
+
+        const organizationId = formData.get("organizationId") as string;
+        const category = formData.get("category") as string || "default";
+        const gender = formData.get("gender") as string || "unisex";
+        const status = formData.get("status")?.toString() || "available";
+
+        const created: string[] = [];
+        const skipped: string[] = [];
+
+        for (const item of products) {
+          const name = item.name;
+          const description = item.description;
+          const price = parseFloat(item.price);
+          const sku = item.sku;
+          const size = item.size ? item.size.split(",").map((s: string) => s.trim()) : [];
+
+          const productId = generateProductId(name, gender);
+
+          try {
+            await prisma.product.create({
+              data: {
+                id: productId,
+                name,
+                sku,
+                description,
+                price,
+                gender,
+                category,
+                size,
+                status,
+                images: [],
+                organizationId,
+              },
+            });
+            created.push(sku);
+          } catch (err: any) {
+            if (err.code === "P2002" && err.meta?.target?.includes("sku")) {
+              console.warn(`SKU already exists: ${sku}`);
+              skipped.push(sku);
+              continue;
+            }
+            console.error("Error importing product:", err);
+          }
+        }
+
+        return NextResponse.json({
+          message: `CSV import finished.`,
+          imported: created.length,
+          skipped,
+        });
       }
 
-      organizationId = formData.get("organizationId") as string;
+      const name = formData.get("name") as string;
+      const sku = formData.get("sku") as string;
+      const description = formData.get("description") as string;
+      const price = parseFloat(formData.get("price") as string);
+      const gender = formData.get("gender") as string;
+      const category = formData.get("category") as string;
+      const sizeRaw = formData.get("size");
+      const size = sizeRaw ? sizeRaw.toString().split(",").map((s) => s.trim()) : [];
+      const organizationId = formData.get("organizationId") as string;
       const statusRaw = formData.get("status");
       if (statusRaw) status = statusRaw.toString();
 
@@ -108,47 +178,34 @@ export async function POST(req: Request) {
         }
       }
 
-    } else {
-      return NextResponse.json(
-        { message: "Unsupported Content-Type" },
-        { status: 400 }
-      );
+      const productId = generateProductId(name, gender);
+
+      await prisma.product.create({
+        data: {
+          id: productId,
+          name,
+          sku,
+          description,
+          price,
+          images,
+          gender,
+          category,
+          size,
+          status,
+          organizationId,
+        },
+      });
+
+      return NextResponse.json({ message: "Product created successfully" });
     }
 
-    const productId = generateProductId(name, gender);
-
-    const product = await prisma.product.create({
-      data: {
-        id: productId,
-        name,
-        sku,
-        description,
-        price,
-        images,
-        gender,
-        category,
-        size,
-        status,
-        organizationId,
-      },
-    });
-
-    return NextResponse.json({
-      message: "Product created successfully"
-    });
-
+    return NextResponse.json({ message: "Unsupported Content-Type" }, { status: 400 });
   } catch (err: any) {
     if (err.code === "P2002" && err.meta?.target?.includes("sku")) {
-      return NextResponse.json(
-        { message: `SKU already exists. Please use a different SKU.` },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: `SKU already exists.` }, { status: 400 });
     }
 
-    console.error("Error creating product:", err);
-    return NextResponse.json(
-      { message: "Failed to create product", error: String(err) },
-      { status: 500 }
-    );
+    console.error("Server error:", err);
+    return NextResponse.json({ message: "Failed to create product", error: String(err) }, { status: 500 });
   }
 }
