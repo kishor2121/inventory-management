@@ -10,12 +10,21 @@ function generateProductId(name: string, gender: string) {
   return `${prefix}${last4}${randomDigits}`;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   await validate();
 
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get("status"); 
+
   try {
+    const whereClause: any = { isDeleted: false };
+
+    if (status) {
+      whereClause.status = status; 
+    }
+
     const products = await prisma.product.findMany({
-      where: { isDeleted: false },
+      where: whereClause,
       orderBy: { createdAt: "desc" },
     });
 
