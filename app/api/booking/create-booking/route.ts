@@ -46,9 +46,16 @@ export async function POST(req: NextRequest) {
       const productExists = await prisma.product.findUnique({
         where: { id: p.productId },
       });
+
       if (!productExists) {
         return NextResponse.json({
           message: `Product not found: ${p.productId}`,
+        }, { status: 400 });
+      }
+
+      if (productExists.status !== "available") {
+        return NextResponse.json({
+          message: `Product is currently ${productExists.status}. Please wait until it becomes available.`,
         }, { status: 400 });
       }
 
@@ -112,7 +119,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ message: "Booking created successfully" });
+    return NextResponse.json({ message: "Booking created successfully", data: booking });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
