@@ -166,7 +166,6 @@ export async function PUT(req: Request, context: any) {
   }
 }
 
-
 export async function DELETE(req: Request, context: any) {
   await validate();
 
@@ -184,7 +183,7 @@ export async function DELETE(req: Request, context: any) {
 
   if (isBooked) {
     return NextResponse.json(
-      { message: "Product cannot be deleted as it is currently booked" },
+      { message: "This product is currently booked or has future bookings and cannot be deleted." },
       { status: 400 }
     );
   }
