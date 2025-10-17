@@ -20,6 +20,7 @@ interface ProductCard {
   amount: string;
   deliveryDate: string;
   returnDate: string;
+  productLockId?: string;
 }
 
 export default function UpdateBooking() {
@@ -94,6 +95,7 @@ export default function UpdateBooking() {
       if (booking.productLocks && booking.productLocks.length) {
         const cards: ProductCard[] = booking.productLocks.map((lock: any, idx: number) => ({
           id: idx + 1,
+          productLockId: lock.id,
           product: lock.product
             ? {
                 value: lock.product.id,
@@ -170,36 +172,27 @@ export default function UpdateBooking() {
     setErrorMessage("");
   };
 
-  // ✅ Remove product & call API
-  const handleRemoveItem = async (id: number) => {
-    const cardToRemove = productCards.find(card => card.id === id);
-    if (!cardToRemove || !cardToRemove.product) {
-      setProductCards(prev => prev.filter(card => card.id !== id));
-      return;
-    }
+    const handleRemoveItem = async (cardId: number) => {
+      const card = productCards.find((c) => c.id === cardId);
+      if (!card || !card.productLockId) return;
 
-    const productId = cardToRemove.product.value;
+      try {
+        const res = await fetch(`/api/product-lock/${card.productLockId}`, {
+          method: "DELETE",
+        });
 
-    try {
-      const res = await fetch(`/api/product-lock/${productId}`, {
-        method: "DELETE",
-      });
+        if (!res.ok) {
+          console.error("Failed to delete product lock");
+          return;
+        }
 
-      if (!res.ok) {
-        const data = await res.json();
-        setErrorMessage(data.message || "⚠️ Failed to remove product from booking.");
-        return;
+        setProductCards(prev => prev.filter((c) => c.id !== cardId));
+      } catch (err) {
+        console.error("Error deleting product lock:", err);
       }
+    };
 
-      setProductCards(prev => prev.filter(card => card.id !== id));
-      setErrorMessage("");
-    } catch (err) {
-      console.error(err);
-      setErrorMessage("⚠️ Something went wrong while removing product.");
-    }
-  };
 
-  // Sync dates if sameDate
   useEffect(() => {
     if (sameDate) {
       setProductCards((prev) =>
