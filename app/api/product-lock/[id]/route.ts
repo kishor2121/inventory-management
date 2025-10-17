@@ -41,3 +41,30 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
     await prisma.$disconnect();
   }
 }
+
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+  await validate();
+
+  const { id } = await context.params;
+
+  if (!id) {
+    return NextResponse.json({ success: false, message: "Please check Product ID" }, { status: 400 });
+  }
+
+  try {
+    const existingLock = await prisma.productLock.findUnique({ where: { id } });
+
+    if (!existingLock) {
+      return NextResponse.json({ success: false, message: "Booked product not found" }, { status: 404 });
+    }
+
+    await prisma.productLock.delete({ where: { id } });
+
+    return NextResponse.json({ message: "Product removed from booking successfully" });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
