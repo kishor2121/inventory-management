@@ -70,12 +70,13 @@ model Booking {
   totalDeposit         Float
   returnAmount         Float
   advancePayment       Float         @default(0)
+  securityDeposit      Float         @default(0)
   discount             Float         @default(0)
   discountType         String        @default("flat")
   rentalType           String
   invoiceNumber        Int
   advancePaymentMethod String?
-  deliverypaymnetMethod String?   
+  deliverypaymnetMethod String?    
   returnpaymnetMethod   String? 
   isDeleted            Boolean       @default(false)
   organizationId       String?

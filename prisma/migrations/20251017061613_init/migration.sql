@@ -63,6 +63,7 @@ CREATE TABLE "Booking" (
     "totalDeposit" DOUBLE PRECISION NOT NULL,
     "returnAmount" DOUBLE PRECISION NOT NULL,
     "advancePayment" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "securityDeposit" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "discount" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "discountType" TEXT NOT NULL DEFAULT 'flat',
     "rentalType" TEXT NOT NULL,

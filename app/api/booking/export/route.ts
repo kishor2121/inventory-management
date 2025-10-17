@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import validate from "../../auth/validate";
 import ExcelJS from "exceljs";
-import path from "path";
-import fs from "fs/promises";
 
 export async function GET(req: NextRequest) {
   await validate();
@@ -18,9 +16,7 @@ export async function GET(req: NextRequest) {
 
     const bookings = await prisma.booking.findMany({
       include: {
-        productLocks: {
-          include: { product: true },
-        },
+        productLocks: { include: { product: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -45,6 +41,7 @@ export async function GET(req: NextRequest) {
       "Deposit",
     ];
     sheet.addRow(headers);
+
     const headerRow = sheet.getRow(1);
     headerRow.font = { bold: true };
     headerRow.alignment = { horizontal: "center" };
@@ -56,7 +53,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    const rows = [];
+    const rows: any[] = [];
     filtered.forEach((b) => {
       b.productLocks.forEach((pl) => {
         rows.push({
@@ -73,17 +70,17 @@ export async function GET(req: NextRequest) {
 
     rows.sort((a, b) => a.deliveryDate.getTime() - b.deliveryDate.getTime());
 
-    rows.forEach((row) => {
+    rows.forEach((r) =>
       sheet.addRow([
-        row.invoiceNumber,
-        row.deliveryDate.toLocaleDateString(),
-        row.customerName,
-        row.phoneNumberPrimary,
-        row.phoneNumberSecondary,
-        row.amount,
-        row.deposit,
-      ]);
-    });
+        r.invoiceNumber,
+        r.deliveryDate.toLocaleDateString(),
+        r.customerName,
+        r.phoneNumberPrimary,
+        r.phoneNumberSecondary,
+        r.amount,
+        r.deposit,
+      ])
+    );
 
     sheet.getColumn(6).numFmt = '"₹"#,##0.00';
     sheet.getColumn(7).numFmt = '"₹"#,##0.00';
@@ -110,28 +107,15 @@ export async function GET(req: NextRequest) {
 
     const buffer = await workbook.xlsx.writeBuffer();
 
-    const formatDateForFile = (dateStr: string | null) => {
-      if (!dateStr) return "all";
-      const d = new Date(dateStr);
-      return isNaN(d.getTime()) ? "all" : d.toISOString().split("T")[0];
-    };
+    const formatDate = (d: string | null) => d ?? "all";
+    const fileName = `bookings_export_${formatDate(fromDate)}_to_${formatDate(toDate)}.xlsx`;
 
-    const cleanFrom = formatDateForFile(fromDate);
-    const cleanTo = formatDateForFile(toDate);
-
-    const fileName = `bookings_export_${cleanFrom}_to_${cleanTo}.xlsx`;
-    const exportDir = path.join(process.cwd(), "public", "exports");
-
-    await fs.mkdir(exportDir, { recursive: true });
-
-    await fs.writeFile(path.join(exportDir, fileName), buffer);
-
-    const baseUrl = new URL(req.url).origin;
-    const fileUrl = `${baseUrl}/exports/${fileName}`;
-
-    return NextResponse.json({
-      message: "File generated successfully",
-      downloadUrl: fileUrl,
+    return new NextResponse(buffer, {
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+      },
     });
   } catch (error) {
     console.error("Error exporting bookings:", error);
