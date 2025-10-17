@@ -1,4 +1,3 @@
-/* home.css */
 body, html {
   margin: 0;
   padding: 0;
@@ -7,19 +6,17 @@ body, html {
   height: 100%;
 }
 
-/* ✅ Full-page layout */
 .home-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   background-color: #f3f6fa;
-  height: 100vh; /* fill full screen */
+  height: 100vh;
   padding: 20px 0;
   box-sizing: border-box;
 }
 
-/* ✅ Toolbar just above the calendar */
 .calendar-toolbar {
   width: 95%;
   max-width: 1200px;
@@ -29,35 +26,19 @@ body, html {
   margin-bottom: 10px;
 }
 
-.calendar-toolbar .toolbar-left {
+.toolbar-left {
   font-size: 1.1rem;
   font-weight: 600;
   color: #111827;
 }
 
-.calendar-toolbar .toolbar-right {
+.toolbar-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.calendar-toolbar select {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  background-color: white;
-  color: #111827;
-  cursor: pointer;
-}
-
-.calendar-toolbar select:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-}
-
-.calendar-toolbar .create-btn {
+.create-btn {
   background-color: #111827;
   color: white;
   border: none;
@@ -69,11 +50,10 @@ body, html {
   transition: background-color 0.2s ease;
 }
 
-.calendar-toolbar .create-btn:hover {
+.create-btn:hover {
   background-color: #1f2937;
 }
 
-/* ✅ Calendar takes up remaining height neatly */
 .calendar {
   background: #ffffff;
   border-radius: 12px;
@@ -81,18 +61,12 @@ body, html {
   overflow: hidden;
   width: 95%;
   max-width: 1200px;
-  flex-grow: 1; /* fill remaining vertical space */
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease;
-}
-
-.calendar:hover {
-  transform: scale(1.002);
 }
 
 .calendar-header {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -141,15 +115,18 @@ th {
 }
 
 td {
-  text-align: right;
-  padding: 14px;
+  text-align: left;
+  padding: 6px 8px;
   vertical-align: top;
   border: 1px solid #f1f5f9;
   color: #1f2937;
-  font-size: 14px;
+  font-size: 13px;
   background-color: #ffffff;
+  width: calc(100% / 7);
+  height: 90px; /* fixed height for all cells */
+  overflow: hidden;
+  position: relative;
   transition: background-color 0.2s ease;
-  height: calc((100% - 50px) / 6); /* evenly divide table height */
 }
 
 td.day:hover {
@@ -161,4 +138,33 @@ td.day:hover {
 .empty {
   background-color: #f9fafb;
   color: transparent;
+}
+
+td.booked {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  font-weight: 600;
+}
+
+td.booked:hover {
+  background-color: #fecaca !important;
+  color: #7f1d1d !important;
+}
+
+/* Date number and product name styles */
+.date-num {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.product-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #020816;
+  margin-top: 4px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -55,7 +55,12 @@ export default function UpdateBooking() {
   const [selectedBookingType, setSelectedBookingType] = useState<string>("");
   const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>("");
 
-  // Fetch products list
+  const [customerName, setCustomerName] = useState("");
+  const [phoneNumberPrimary, setPhoneNumberPrimary] = useState("");
+  const [phoneNumberSecondary, setPhoneNumberSecondary] = useState("");
+  const [notes, setNotes] = useState("");
+
+  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       const res = await fetch("/api/products");
@@ -72,14 +77,13 @@ export default function UpdateBooking() {
     fetchProducts();
   }, []);
 
-  // Fetch existing booking
+  // Fetch booking
   useEffect(() => {
     const fetchBooking = async () => {
       const res = await fetch(`/api/booking/${bookingId}`);
       const data = await res.json();
       const booking = data.data;
 
-      // Prefill amounts
       setDiscountValue(booking.discount || 0);
       setAdvance(booking.advancePayment || 0);
       setDeposit((booking.totalDeposit || 0) - (booking.advancePayment || 0));
@@ -87,7 +91,6 @@ export default function UpdateBooking() {
       setTotalDeposit(booking.totalDeposit || 0);
       setReturnAmount(booking.returnAmount || 0);
 
-      // Prefill product cards
       if (booking.productLocks && booking.productLocks.length) {
         const cards: ProductCard[] = booking.productLocks.map((lock: any, idx: number) => ({
           id: idx + 1,
@@ -117,19 +120,12 @@ export default function UpdateBooking() {
         }
       }
 
-      // Prefill customer info
-      const customerInput = document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]');
-      if (customerInput) customerInput.value = booking.customerName || "";
-      const phoneInput = document.querySelector<HTMLInputElement>('input[placeholder="Enter mobile number"]');
-      if (phoneInput) phoneInput.value = booking.phoneNumberPrimary || "";
-      const altInput = document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]');
-      if (altInput) altInput.value = booking.phoneNumberSecondary || "";
-      const notesInput = document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Notes"]');
-      if (notesInput) notesInput.value = booking.notes || "";
-
-      // Prefill booking type & payment mode
       setSelectedBookingType(booking.rentalType || "");
       setSelectedPaymentMode(booking.advancePaymentMethod || "");
+      setCustomerName(booking.customerName || "");
+      setPhoneNumberPrimary(booking.phoneNumberPrimary || "");
+      setPhoneNumberSecondary(booking.phoneNumberSecondary || "");
+      setNotes(booking.notes || "");
     };
     fetchBooking();
   }, [bookingId]);
@@ -174,10 +170,36 @@ export default function UpdateBooking() {
     setErrorMessage("");
   };
 
-  const handleRemoveItem = (id: number) => {
-    setProductCards((prev) => prev.filter((card) => card.id !== id));
+  // ✅ Remove product & call API
+  const handleRemoveItem = async (id: number) => {
+    const cardToRemove = productCards.find(card => card.id === id);
+    if (!cardToRemove || !cardToRemove.product) {
+      setProductCards(prev => prev.filter(card => card.id !== id));
+      return;
+    }
+
+    const productId = cardToRemove.product.value;
+
+    try {
+      const res = await fetch(`/api/product-lock/${productId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setErrorMessage(data.message || "⚠️ Failed to remove product from booking.");
+        return;
+      }
+
+      setProductCards(prev => prev.filter(card => card.id !== id));
+      setErrorMessage("");
+    } catch (err) {
+      console.error(err);
+      setErrorMessage("⚠️ Something went wrong while removing product.");
+    }
   };
 
+  // Sync dates if sameDate
   useEffect(() => {
     if (sameDate) {
       setProductCards((prev) =>
@@ -186,6 +208,7 @@ export default function UpdateBooking() {
     }
   }, [sameDate, globalDeliveryDate, globalReturnDate]);
 
+  // Update totals
   useEffect(() => {
     const totalProductAmount = productCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0);
     const discount = discountValue || 0;
@@ -203,12 +226,9 @@ export default function UpdateBooking() {
   const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
 
   const handleBooking = async () => {
-    const customerName = (document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]')?.value || "").trim();
-    const phoneNumber = (document.querySelector<HTMLInputElement>('input[placeholder="Enter mobile number"]')?.value || "").trim();
-
     let newErrors: any = {};
-    if (!customerName) newErrors.customerName = "Customer Name is required.";
-    if (!phoneNumber) newErrors.phoneNumber = "Mobile No. is required.";
+    if (!customerName.trim()) newErrors.customerName = "Customer Name is required.";
+    if (!phoneNumberPrimary.trim()) newErrors.phoneNumber = "Mobile No. is required.";
     if (!selectedBookingType) newErrors.bookingType = "Booking Type is required.";
 
     const firstProduct = productCards[0];
@@ -224,17 +244,14 @@ export default function UpdateBooking() {
 
     const productsData = productCards.map((card) => ({
       productId: card.product?.value,
-      deliveryDate: card.deliveryDate,
-      returnDate: card.returnDate,
+      deliveryDate: sameDate ? globalDeliveryDate : card.deliveryDate,
+      returnDate: sameDate ? globalReturnDate : card.returnDate,
     }));
-
-    const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim();
-    const notes = (document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Notes"]')?.value || "").trim();
 
     const formData = new FormData();
     formData.append("id", bookingId);
     formData.append("customerName", customerName);
-    formData.append("phoneNumberPrimary", phoneNumber);
+    formData.append("phoneNumberPrimary", phoneNumberPrimary);
     formData.append("phoneNumberSecondary", phoneNumberSecondary);
     formData.append("notes", notes);
     formData.append("rentAmount", String(rentAmount));
@@ -243,8 +260,8 @@ export default function UpdateBooking() {
     formData.append("advancePayment", String(advance));
     formData.append("discount", String(discountValue));
     formData.append("discountType", "flat");
-    formData.append("rentalType", selectedBookingType); // Updated key
-    formData.append("advancePaymentMethod", selectedPaymentMode); // Updated key
+    formData.append("rentalType", selectedBookingType);
+    formData.append("advancePaymentMethod", selectedPaymentMode);
     formData.append("products", JSON.stringify(productsData));
     formData.append("securityDeposit", String(securityDeposit));
     formData.append("bookingId", bookingId);
@@ -279,17 +296,17 @@ export default function UpdateBooking() {
             <div className="form-row">
               <div className="form-group">
                 <label>Customer Name</label>
-                <input type="text" placeholder="Enter customer name" />
+                <input type="text" placeholder="Enter customer name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
                 {errors.customerName && <span className="error-text">{errors.customerName}</span>}
               </div>
               <div className="form-group">
                 <label>Mobile No.</label>
-                <input type="text" placeholder="Enter mobile number" />
+                <input type="text" placeholder="Enter mobile number" value={phoneNumberPrimary} onChange={(e) => setPhoneNumberPrimary(e.target.value)} />
                 {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
               </div>
               <div className="form-group">
                 <label>Alternate No.</label>
-                <input type="text" placeholder="Enter alternate number" />
+                <input type="text" placeholder="Enter alternate number" value={phoneNumberSecondary} onChange={(e) => setPhoneNumberSecondary(e.target.value)} />
               </div>
             </div>
 
@@ -400,8 +417,8 @@ export default function UpdateBooking() {
 
             <div className="form-group">
               <label>Notes</label>
-              <textarea placeholder="Notes" maxLength={500}></textarea>
-              <div className="notes-count">0 / 500</div>
+              <textarea placeholder="Notes" maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)}></textarea>
+              <div className="notes-count">{notes.length} / 500</div>
             </div>
           </div>
 
