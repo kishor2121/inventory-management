@@ -15,6 +15,7 @@ export async function PUT(req: NextRequest) {
     const notes = formData.get("notes")?.toString() || "";
     const rentAmount = parseFloat(formData.get("rentAmount")?.toString() || "0");
     const totalDeposit = parseFloat(formData.get("totalDeposit")?.toString() || "0");
+    const securityDeposit = parseFloat(formData.get("securityDeposit")?.toString() || "0");
     const returnAmount = parseFloat(formData.get("returnAmount")?.toString() || "0");
     const advancePayment = parseFloat(formData.get("advancePayment")?.toString() || "0");
     const discount = parseFloat(formData.get("discount")?.toString() || "0");
@@ -23,6 +24,8 @@ export async function PUT(req: NextRequest) {
     const invoiceNumber = parseInt(formData.get("invoiceNumber")?.toString() || "0");
     const advancePaymentMethod = formData.get("advancePaymentMethod")?.toString() || "";
     const productsString = formData.get("products")?.toString() || "[]";
+    const deliverypaymnetMethod = formData.get("deliverypaymnetMethod")?.toString() || "" ;
+    const returnpaymnetMethod = formData.get("returnpaymnetMethod")?.toString() || "" ;
 
     if (!bookingId) {
       return NextResponse.json({ success: false, message: "Missing bookingId" }, { status: 400 });
@@ -51,6 +54,9 @@ export async function PUT(req: NextRequest) {
         rentalType,
         invoiceNumber,
         advancePaymentMethod,
+        securityDeposit,
+        deliverypaymnetMethod,   
+        returnpaymnetMethod,
       },
     });
 

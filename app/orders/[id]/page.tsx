@@ -25,7 +25,7 @@ interface OrderDetails {
   phoneNumberSecondary: string;
   notes?: string;
   rentAmount: number;
-  totalDeposit: number;
+  securityDeposit: number;
   returnAmount: number;
   advancePayment: number;
   discount: number;
@@ -57,7 +57,23 @@ export default function ViewOrderPage() {
 
   if (!order) return <div>Loading...</div>;
 
-  const remainingPayment = order.rentAmount - order.totalDeposit;
+  // Product amount
+  const productAmount = order.productLocks.reduce(
+    (sum, lock) => sum + (lock.product?.price || 0),
+    0
+  );
+
+  // Security deposit
+  const securityDeposit = order.securityDeposit;
+
+  // Discount
+  const discount = order.discount;
+
+  // Total = productAmount + securityDeposit - discount
+  const total = productAmount + securityDeposit - discount;
+
+  // Remaining payment = total - advancePayment
+  const remainingPayment = total - order.advancePayment;
 
   return (
     <div className="view-order-container">
@@ -120,13 +136,36 @@ export default function ViewOrderPage() {
             <strong>Notes:</strong> {order.notes || "N/A"}
           </div>
 
-          <div className="totals">
-            <div>Adv. Payment: <span className="amount">₹{order.advancePayment}</span></div>
-            <div>Rem. Payment: <span className="remaining">₹{remainingPayment}</span></div>
-            <div>Amount: <span>₹{order.rentAmount}</span></div>
-            <div>Deposit: <span>₹{order.totalDeposit}</span></div>
-            <div>Discount: <span className="discount">-₹{order.discount}</span></div>
-            <div className="total">Total: <span>₹{order.rentAmount}</span></div>
+          <div className="payment-summary">
+            <div className="payment-box">
+              <div>
+                <span>Adv. Payment:</span>
+                <span className="amount">₹{order.advancePayment}</span>
+              </div>
+              <div>
+                <span>Rem. Payment:</span>
+                <span className="remaining">₹{remainingPayment}</span>
+              </div>
+            </div>
+
+            <div className="totals">
+              <div>
+                <span>Amount:</span>
+                <span>₹{productAmount}</span>
+              </div>
+              <div>
+                <span>Deposit:</span>
+                <span>₹{securityDeposit}</span>
+              </div>
+              <div>
+                <span>Discount:</span>
+                <span className="discount">-₹{discount}</span>
+              </div>
+              <div className="total">
+                <span>Total:</span>
+                <span>₹{total}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

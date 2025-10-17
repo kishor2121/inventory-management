@@ -195,3 +195,35 @@
     padding: 16px;
   }
 }
+
+
+.payment-summary {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.payment-box {
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 6px;
+  min-width: 160px;
+  font-size: 13px;
+}
+
+.payment-box div {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.payment-box .amount {
+  color: #111827;
+  font-weight: 500;
+}
+
+.payment-box .remaining {
+  color: #dc2626;
+  font-weight: 600;
+}

@@ -24,9 +24,7 @@ interface Order {
   customerName: string;
   phoneNumberPrimary: string;
   phoneNumberSecondary: string;
-  rentAmount: number;
-  totalDeposit: number;
-  returnAmount: number;
+  securityDeposit: number; // replaced totalDeposit
   invoiceNumber: number;
   createdAt: string;
   productLocks: ProductLock[];
@@ -150,40 +148,46 @@ export default function OrdersPage() {
           </thead>
           <tbody>
             {filteredOrders.length > 0 ? (
-              filteredOrders.map((o) => (
-                <tr key={o.id}>
-                  <td>{o.invoiceNumber}</td>
-                  <td>{new Date(o.createdAt).toLocaleDateString("en-GB")}</td>
-                  <td>{o.customerName}</td>
-                  <td>{o.phoneNumberPrimary}</td>
-                  <td>{o.phoneNumberSecondary}</td>
-                  <td>₹{o.rentAmount}</td>
-                  <td>₹{o.totalDeposit}</td>
-                  <td className="actions">
-                    <Eye
-                      className="action-icon view"
-                      size={16}
-                      title="View"
-                      onClick={() => router.push(`/orders/${o.id}`)}
-                    />
-                    <Edit
-                      className="action-icon edit"
-                      size={16}
-                      title="Edit"
-                      onClick={() => router.push(`/create-booking/${o.id}/updatebooking`)}
-                    />
+              filteredOrders.map((o) => {
+                const productAmount = o.productLocks.reduce(
+                  (sum, lock) => sum + lock.product.price,
+                  0
+                );
 
-                                                          
-
-                    <Trash2
-                      className="action-icon delete"
-                      size={16}
-                      title="Delete"
-                      onClick={() => setDeleteId(o.id)}
-                    />
-                  </td>
-                </tr>
-              ))
+                return (
+                  <tr key={o.id}>
+                    <td>{o.invoiceNumber}</td>
+                    <td>{new Date(o.createdAt).toLocaleDateString("en-GB")}</td>
+                    <td>{o.customerName}</td>
+                    <td>{o.phoneNumberPrimary}</td>
+                    <td>{o.phoneNumberSecondary}</td>
+                    <td>₹{productAmount}</td>
+                    <td>₹{o.securityDeposit}</td>
+                    <td className="actions">
+                      <Eye
+                        className="action-icon view"
+                        size={16}
+                        title="View"
+                        onClick={() => router.push(`/orders/${o.id}`)}
+                      />
+                      <Edit
+                        className="action-icon edit"
+                        size={16}
+                        title="Edit"
+                        onClick={() =>
+                          router.push(`/create-booking/${o.id}/updatebooking`)
+                        }
+                      />
+                      <Trash2
+                        className="action-icon delete"
+                        size={16}
+                        title="Delete"
+                        onClick={() => setDeleteId(o.id)}
+                      />
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan={8} className="no-data">

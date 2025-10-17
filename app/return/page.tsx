@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import React from "react";
 import DatePicker from "react-datepicker";
 import { Search } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
@@ -20,25 +21,29 @@ interface Booking {
   discountType: string;
   rentalType: string;
   invoiceNumber: number;
-  advancePaymentMethod: "Cash" | "Bank";
+  returnpaymnetMethod: "Cash" | "Bank" | "";
 }
 
 interface Product {
   id: string;
   name: string;
   price: number;
+  sku: string;
   images: string[];
   size: string[];
 }
 
-interface ReturnRecord {
+interface ProductLock {
   id: string;
   bookingId: string;
   productId: string;
   deliveryDate: string;
   returnDate: string;
-  booking: Booking;
   product: Product;
+}
+
+interface ReturnRecord extends Booking {
+  productLocks: ProductLock[];
 }
 
 export default function ReturnPage() {
@@ -48,9 +53,18 @@ export default function ReturnPage() {
   const [search, setSearch] = useState<string>("");
   const [data, setData] = useState<ReturnRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null); // disable dropdown while updating
+  const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
   const formatDate = (date: Date) => date.toISOString().split("T")[0];
+
+  const toggleRow = (bookingId: string) => {
+    setExpandedRows((prev) =>
+      prev.includes(bookingId)
+        ? prev.filter((id) => id !== bookingId)
+        : [...prev, bookingId]
+    );
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -65,9 +79,7 @@ export default function ReturnPage() {
         return;
       }
 
-      let url = `/api/booking/list-booking/return?filter=${encodeURIComponent(
-        filterValue
-      )}`;
+      let url = `/api/booking/list-booking/return?filter=${encodeURIComponent(filterValue)}`;
 
       if (filterValue === "custom" && fromDate && toDate) {
         url += `&start=${formatDate(fromDate)}&end=${formatDate(toDate)}`;
@@ -91,7 +103,7 @@ export default function ReturnPage() {
   }, [filterType, fromDate, toDate]);
 
   const filteredData = data.filter((item) =>
-    item.booking.phoneNumberPrimary.includes(search.trim())
+    item.phoneNumberPrimary.includes(search.trim())
   );
 
   const handleFilterChange = (value: string) => {
@@ -102,19 +114,18 @@ export default function ReturnPage() {
     }
   };
 
-  // Handle advancePaymentMethod change using FormData
   const handlePaymentMethodChange = async (
     bookingId: string,
     newMethod: "Cash" | "Bank"
   ) => {
-    setUpdatingBookingId(bookingId); // disable dropdown while updating
+    setUpdatingBookingId(bookingId);
     try {
       const formData = new FormData();
       formData.append("bookingId", bookingId);
-      formData.append("advancePaymentMethod", newMethod);
+      formData.append("returnpaymnetMethod", newMethod);
 
       const res = await fetch("/api/booking/update-booking", {
-        method: "PUT", // must match your backend expecting form-data
+        method: "PUT",
         body: formData,
       });
 
@@ -123,11 +134,10 @@ export default function ReturnPage() {
         return;
       }
 
-      // Optimistically update local state
       setData((prevData) =>
         prevData.map((item) =>
-          item.booking.id === bookingId
-            ? { ...item, booking: { ...item.booking, advancePaymentMethod: newMethod } }
+          item.id === bookingId
+            ? { ...item, returnpaymnetMethod: newMethod }
             : item
         )
       );
@@ -197,40 +207,108 @@ export default function ReturnPage() {
                 <th>Customer Name</th>
                 <th>Mobile No.</th>
                 <th>Alternate No.</th>
-                <th>Product</th>
-                <th>Deposit</th>
+                <th>Return Amount</th>
                 <th>Return Mode</th>
               </tr>
             </thead>
             <tbody>
               {filteredData.length > 0 ? (
-                filteredData.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.booking.customerName}</td>
-                    <td>{item.booking.phoneNumberPrimary}</td>
-                    <td>{item.booking.phoneNumberSecondary}</td>
-                    <td>{item.product.name}</td>
-                    <td>₹{item.booking.totalDeposit.toLocaleString()}</td>
-                    <td>
-                      <select
-                        value={item.booking.advancePaymentMethod}
-                        disabled={updatingBookingId === item.booking.id} // disable while updating
-                        onChange={(e) =>
-                          handlePaymentMethodChange(
-                            item.booking.id,
-                            e.target.value as "Cash" | "Bank"
-                          )
-                        }
-                      >
-                        <option value="Cash">Cash</option>
-                        <option value="Bank">Bank</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))
+                filteredData.map((booking) => {
+                  const returnAmount = Math.max(
+                    0,
+                    booking.totalDeposit - booking.rentAmount
+                  );
+                  const isExpanded = expandedRows.includes(booking.id);
+
+                  return (
+                    <React.Fragment key={booking.id}>
+                      {/* Main Row */}
+                      <tr>
+                        <td>{booking.customerName}</td>
+                        <td>{booking.phoneNumberPrimary}</td>
+                        <td>{booking.phoneNumberSecondary}</td>
+                        <td>₹{returnAmount.toLocaleString()}</td>
+                        <td style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                          <select
+                            value={booking.returnpaymnetMethod || "Cash"}
+                            disabled={updatingBookingId === booking.id}
+                            onChange={(e) =>
+                              handlePaymentMethodChange(
+                                booking.id,
+                                e.target.value as "Cash" | "Bank"
+                              )
+                            }
+                          >
+                            <option value="Cash">Cash</option>
+                            <option value="Bank">Bank</option>
+                          </select>
+
+                          <span
+                            onClick={() => toggleRow(booking.id)}
+                            style={{
+                              cursor: "pointer",
+                              fontSize: "14px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {isExpanded ? "▲" : "▼"}
+                          </span>
+                        </td>
+                      </tr>
+
+                      {/* Expanded Product Details Row */}
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={6} style={{ background: "#f9fafb" }}>
+                            {booking.productLocks.map((lock) => (
+                              <div key={lock.id} className="expanded-details">
+                                <div className="expanded-item">
+                                  <div className="label">SKU:</div>
+                                  <div className="value">{lock.product.sku}</div>
+                                </div>
+                                <div className="expanded-item">
+                                  <div className="label">Product Name:</div>
+                                  <div className="value">{lock.product.name}</div>
+                                </div>
+                                <div className="expanded-item">
+                                  <div className="label">Delivery Date:</div>
+                                  <div className="value">
+                                    {new Date(lock.deliveryDate).toLocaleDateString()}
+                                  </div>
+                                </div>
+                                <div className="expanded-item">
+                                  <div className="label">Return Date:</div>
+                                  <div className="value">
+                                    {new Date(lock.returnDate).toLocaleDateString()}
+                                  </div>
+                                </div>
+                                {lock.product.images.length > 0 && (
+                                  <div className="expanded-item">
+                                    <div className="label">Image:</div>
+                                    <img
+                                      src={lock.product.images[0]}
+                                      alt={lock.product.name}
+                                      style={{ maxWidth: "100px" }}
+                                    />
+                                  </div>
+                                )}
+                                <div className="expanded-item">
+                                  <div className="label">Price:</div>
+                                  <div className="value">₹{lock.product.price}</div>
+                                </div>
+                                <hr style={{ margin: "8px 0" }} />
+                              </div>
+                            ))}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan={7} className="no-data">
+                  <td colSpan={6} className="no-data">
                     No Data Found
                   </td>
                 </tr>
