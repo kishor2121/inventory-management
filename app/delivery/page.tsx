@@ -5,7 +5,7 @@ import React from "react";
 import DatePicker from "react-datepicker";
 import { Search } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
-import "./Delivery.css"; // Make sure your CSS supports new table layout
+import "./Delivery.css";
 
 interface Booking {
   id: string;
@@ -13,7 +13,7 @@ interface Booking {
   phoneNumberPrimary: string;
   phoneNumberSecondary: string;
   notes: string;
-  securityDeposit: number; // security deposit
+  securityDeposit: number;
   advancePayment: number;
   discount: number;
   deliverypaymnetMethod: "Cash" | "Bank" | "";
@@ -204,6 +204,7 @@ export default function DeliveryPage() {
                 <th>Deposit</th>
                 <th>Rem. Payment</th>
                 <th>Rem. Payment Mode</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -211,7 +212,6 @@ export default function DeliveryPage() {
                 filteredData.map((booking) => {
                   const isExpanded = expandedRows.includes(booking.id);
 
-                  // Total product amount
                   const totalAmount = booking.productLocks.reduce(
                     (sum, lock) => sum + lock.product.price,
                     0
@@ -223,7 +223,6 @@ export default function DeliveryPage() {
 
                   return (
                     <React.Fragment key={booking.id}>
-                      {/* Main Row */}
                       <tr>
                         <td>{booking.customerName}</td>
                         <td>{booking.phoneNumberPrimary}</td>
@@ -231,7 +230,7 @@ export default function DeliveryPage() {
                         <td>₹{totalAmount.toLocaleString()}</td>
                         <td>₹{deposit.toLocaleString()}</td>
                         <td>₹{remPayment.toLocaleString()}</td>
-                        <td style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <td>
                           <select
                             value={booking.deliverypaymnetMethod || "Cash"}
                             disabled={updatingBookingId === booking.id}
@@ -245,64 +244,52 @@ export default function DeliveryPage() {
                             <option value="Cash">Cash</option>
                             <option value="Bank">Bank</option>
                           </select>
-
-                          <span
-                            onClick={() => toggleRow(booking.id)}
-                            style={{
-                              cursor: "pointer",
-                              fontSize: "14px",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            {isExpanded ? "▲" : "▼"}
-                          </span>
+                        </td>
+                        <td
+                          className="arrow-cell"
+                          onClick={() => toggleRow(booking.id)}
+                          aria-label={isExpanded ? "Collapse" : "Expand"}
+                        >
+                          {isExpanded ? "▲" : "▼"}
                         </td>
                       </tr>
 
-                      {/* Expanded Product Details Row */}
                       {isExpanded && (
                         <tr>
-                          <td colSpan={7} style={{ background: "#f9fafb" }}>
-                            {booking.productLocks.map((lock) => (
-                              <div key={lock.id} className="expanded-details">
-                                <div className="expanded-item">
-                                  <div className="label">SKU:</div>
-                                  <div className="value">{lock.product.sku}</div>
-                                </div>
-                                <div className="expanded-item">
-                                  <div className="label">Product Name:</div>
-                                  <div className="value">{lock.product.name}</div>
-                                </div>
-                                <div className="expanded-item">
-                                  <div className="label">Delivery Date:</div>
-                                  <div className="value">
-                                    {new Date(lock.deliveryDate).toLocaleDateString()}
-                                  </div>
-                                </div>
-                                <div className="expanded-item">
-                                  <div className="label">Return Date:</div>
-                                  <div className="value">
-                                    {new Date(lock.returnDate).toLocaleDateString()}
-                                  </div>
-                                </div>
-                                {lock.product.images.length > 0 && (
-                                  <div className="expanded-item">
-                                    <div className="label">Image:</div>
-                                    <img
-                                      src={lock.product.images[0]}
-                                      alt={lock.product.name}
-                                      style={{ maxWidth: "100px" }}
-                                    />
-                                  </div>
-                                )}
-                                <div className="expanded-item">
-                                  <div className="label">Price:</div>
-                                  <div className="value">₹{lock.product.price}</div>
-                                </div>
-                                <hr style={{ margin: "8px 0" }} />
-                              </div>
-                            ))}
+                          <td colSpan={8} style={{ padding: 0 }}>
+                            <table className="product-details-table">
+                              <thead>
+                                <tr>
+                                  <th>Image</th>
+                                  <th>SKU</th>
+                                  <th>Product Name</th>
+                                  <th>Delivery Date</th>
+                                  <th>Return Date</th>
+                                  <th>Amount</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {booking.productLocks.map((lock) => (
+                                  <tr key={lock.id}>
+                                    <td>
+                                      <img
+                                        src={lock.product.images[0] || "/no_image.jpg"}
+                                        alt={lock.product.name}
+                                        className="product-image"
+                                        onError={(e) => {
+                                          (e.target as HTMLImageElement).src = "/no_image.jpg";
+                                        }}
+                                      />
+                                    </td>
+                                    <td>{lock.product.sku}</td>
+                                    <td>{lock.product.name}</td>
+                                    <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
+                                    <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
+                                    <td>₹{lock.product.price.toLocaleString()}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                           </td>
                         </tr>
                       )}
@@ -311,8 +298,8 @@ export default function DeliveryPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="no-data">
-                    No Data Found
+                  <td colSpan={8} className="no-data">
+                    No deliveries found.
                   </td>
                 </tr>
               )}

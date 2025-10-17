@@ -7,8 +7,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-
-    let filter = searchParams.get("filter") || "tomorrow";
+    const filter = searchParams.get("filter") || "tomorrow";
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
@@ -18,22 +17,24 @@ export async function GET(req: NextRequest) {
 
     let productLockWhere: any = {};
 
-    if (filter) {
-      if (filter === "today") {
-        productLockWhere = { deliveryDate: { gte: today, lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) } };
-      } else if (filter === "tomorrow") {
-        productLockWhere = { deliveryDate: { gte: tomorrow, lt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000) } };
-      } else if (filter === "custom" && start && end) {
-        productLockWhere = { deliveryDate: { gte: new Date(start), lte: new Date(end) } };
-      }
+    if (filter === "today") {
+      productLockWhere = { deliveryDate: { gte: today, lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) } };
+    } else if (filter === "tomorrow") {
+      productLockWhere = { deliveryDate: { gte: tomorrow, lt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000) } };
+    } else if (filter === "custom" && start && end) {
+      productLockWhere = { deliveryDate: { gte: new Date(start), lte: new Date(end) } };
     }
 
+    // Fetch only bookings that have at least one matching productLock
     const bookings = await prisma.booking.findMany({
       where: {
-        productLocks: { some: productLockWhere },
+        productLocks: {
+          some: productLockWhere,
+        },
       },
       include: {
         productLocks: {
+          where: productLockWhere, // include only matching locks
           include: { product: true },
         },
       },
