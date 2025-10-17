@@ -30,7 +30,7 @@ export default function CreateBooking() {
   ]);
 
   const [discountValue, setDiscountValue] = useState<number>(0);
-  const [deposit, setDeposit] = useState<number>(0);
+  const [securityDeposit, setSecurityDeposit] = useState<number>(0);
   const [advance, setAdvance] = useState<number>(0);
   const [additionalCharges, setAdditionalCharges] = useState<number>(0);
   const [sameDate, setSameDate] = useState<boolean>(false);
@@ -47,7 +47,7 @@ export default function CreateBooking() {
     product: "",
     deliveryDate: "",
     returnDate: "",
-    deposit: "",
+    securityDeposit: "",
     advance: "",
     paymentMode: "",
   });
@@ -126,13 +126,13 @@ export default function CreateBooking() {
     const extras = additionalCharges || 0;
     const baseRent = Math.max(totalProductAmount - discount, 0);
     const rentWithExtras = baseRent + extras;
-    const totalDep = (advance || 0) + (deposit || 0);
+    const totalDep = (advance || 0) + (securityDeposit || 0);
     const retAmt = totalDep - rentWithExtras;
 
     setRentAmount(rentWithExtras);
     setTotalDeposit(totalDep);
     setReturnAmount(retAmt);
-  }, [productCards, discountValue, deposit, advance, additionalCharges]);
+  }, [productCards, discountValue, securityDeposit, advance, additionalCharges]);
 
   const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
 
@@ -153,7 +153,7 @@ export default function CreateBooking() {
     if (!firstProduct.deliveryDate && !sameDate) newErrors.deliveryDate = "Delivery date is required.";
     if (!firstProduct.returnDate && !sameDate) newErrors.returnDate = "Return date is required.";
 
-    if (!deposit) newErrors.deposit = "Deposit Amount is required.";
+    if (!securityDeposit) newErrors.securityDeposit = "Deposit Amount is required.";
     if (!advance) newErrors.advance = "Adv. Payment is required.";
     if (!paymentMode || paymentMode === "Select Payment Mode") newErrors.paymentMode = "Payment mode is required.";
 
@@ -178,10 +178,11 @@ export default function CreateBooking() {
     formData.append("totalDeposit", String(totalDeposit));
     formData.append("returnAmount", String(returnAmount));
     formData.append("advancePayment", String(advance));
+    formData.append("securityDeposit", String(securityDeposit)); // updated field
     formData.append("discount", String(discountValue));
     formData.append("discountType", "flat");
-    formData.append("rentalType", bookingType); // <-- Booking Type sent as rentalType
-    formData.append("advancePaymentMethod", paymentMode); // <-- Payment Mode sent as advancePaymentMethod
+    formData.append("rentalType", bookingType);
+    formData.append("advancePaymentMethod", paymentMode);
     formData.append("products", JSON.stringify(productsData));
 
     try {
@@ -233,8 +234,9 @@ export default function CreateBooking() {
                 <label>Booking Type</label>
                 <select className="booking-type">
                   <option>Select Booking Type</option>
-                  <option>Engagement</option>
-                  <option>Wedding</option>
+                  <option>Pre Wedding</option>
+                  <option>Maternity</option>
+                  <option>Reception</option>
                   <option>Other</option>
                 </select>
                 {errors.bookingType && <span className="error-text">{errors.bookingType}</span>}
@@ -303,8 +305,13 @@ export default function CreateBooking() {
           <div className="card">
             <div className="form-group">
               <label>Deposit (₹)</label>
-              <input type="number" placeholder="Deposit" value={deposit === 0 ? "" : deposit} onChange={(e) => setDeposit(safeNumber(e.target.value))} />
-              {errors.deposit && <span className="error-text">{errors.deposit}</span>}
+              <input
+                type="number"
+                placeholder="Deposit"
+                value={securityDeposit === 0 ? "" : securityDeposit}
+                onChange={(e) => setSecurityDeposit(safeNumber(e.target.value))}
+              />
+              {errors.securityDeposit && <span className="error-text">{errors.securityDeposit}</span>}
             </div>
 
             <div className="form-group">
@@ -318,8 +325,7 @@ export default function CreateBooking() {
               <select className="payment-mode">
                 <option>Select Payment Mode</option>
                 <option>Cash</option>
-                <option>Card</option>
-                <option>UPI</option>
+                <option>Bank</option>
               </select>
               {errors.paymentMode && <span className="error-text">{errors.paymentMode}</span>}
             </div>

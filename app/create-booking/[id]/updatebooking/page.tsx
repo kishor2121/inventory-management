@@ -30,7 +30,7 @@ export default function UpdateBooking() {
   const [products, setProducts] = useState<ProductOption[]>([]);
   const [productCards, setProductCards] = useState<ProductCard[]>([]);
   const [discountValue, setDiscountValue] = useState<number>(0);
-  const [deposit, setDeposit] = useState<number>(0);
+  const [securityDeposit, setDeposit] = useState<number>(0);
   const [advance, setAdvance] = useState<number>(0);
   const [additionalCharges, setAdditionalCharges] = useState<number>(0);
   const [sameDate, setSameDate] = useState<boolean>(false);
@@ -47,7 +47,7 @@ export default function UpdateBooking() {
     product: "",
     deliveryDate: "",
     returnDate: "",
-    deposit: "",
+    securityDeposit: "",
     advance: "",
     paymentMode: "",
   });
@@ -192,13 +192,13 @@ export default function UpdateBooking() {
     const extras = additionalCharges || 0;
     const baseRent = Math.max(totalProductAmount - discount, 0);
     const rentWithExtras = baseRent + extras;
-    const totalDep = (advance || 0) + (deposit || 0);
+    const totalDep = (advance || 0) + (securityDeposit || 0);
     const retAmt = totalDep - rentWithExtras;
 
     setRentAmount(rentWithExtras);
     setTotalDeposit(totalDep);
     setReturnAmount(retAmt);
-  }, [productCards, discountValue, deposit, advance, additionalCharges]);
+  }, [productCards, discountValue, securityDeposit, advance, additionalCharges]);
 
   const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
 
@@ -215,7 +215,7 @@ export default function UpdateBooking() {
     if (!firstProduct.product) newErrors.product = "Please select a product.";
     if (!firstProduct.deliveryDate && !sameDate) newErrors.deliveryDate = "Delivery date is required.";
     if (!firstProduct.returnDate && !sameDate) newErrors.returnDate = "Return date is required.";
-    if (!deposit) newErrors.deposit = "Deposit Amount is required.";
+    if (!securityDeposit) newErrors.securityDeposit = "Deposit Amount is required.";
     if (!advance) newErrors.advance = "Adv. Payment is required.";
     if (!selectedPaymentMode) newErrors.paymentMode = "Payment mode is required.";
 
@@ -246,6 +246,7 @@ export default function UpdateBooking() {
     formData.append("rentalType", selectedBookingType); // Updated key
     formData.append("advancePaymentMethod", selectedPaymentMode); // Updated key
     formData.append("products", JSON.stringify(productsData));
+    formData.append("securityDeposit", String(securityDeposit));
     formData.append("bookingId", bookingId);
 
     try {
@@ -367,8 +368,8 @@ export default function UpdateBooking() {
           <div className="card">
             <div className="form-group">
               <label>Deposit (₹)</label>
-              <input type="number" placeholder="Deposit" value={deposit === 0 ? "" : deposit} onChange={(e) => setDeposit(safeNumber(e.target.value))} />
-              {errors.deposit && <span className="error-text">{errors.deposit}</span>}
+              <input type="number" placeholder="Deposit" value={securityDeposit === 0 ? "" : securityDeposit} onChange={(e) => setDeposit(safeNumber(e.target.value))} />
+              {errors.securityDeposit && <span className="error-text">{errors.securityDeposit}</span>}
             </div>
 
             <div className="form-group">
@@ -382,8 +383,7 @@ export default function UpdateBooking() {
               <select value={selectedPaymentMode} onChange={(e) => setSelectedPaymentMode(e.target.value)}>
                 <option value="">Select Payment Mode</option>
                 <option value="Cash">Cash</option>
-                <option value="Card">Card</option>
-                <option value="UPI">UPI</option>
+                <option value="Card">Bank</option>
               </select>
               {errors.paymentMode && <span className="error-text">{errors.paymentMode}</span>}
             </div>

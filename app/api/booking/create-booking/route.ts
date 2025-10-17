@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
     const notes = formData.get("notes")?.toString() || "";
     const rentAmount = parseFloat(formData.get("rentAmount")?.toString() || "0");
     const totalDeposit = parseFloat(formData.get("totalDeposit")?.toString() || "0");
+    const securityDeposit = parseFloat(formData.get("securityDeposit")?.toString() || "0");
     const returnAmount = parseFloat(formData.get("returnAmount")?.toString() || "0");
     const advancePayment = parseFloat(formData.get("advancePayment")?.toString() || "0");
     const discount = parseFloat(formData.get("discount")?.toString() || "0");
@@ -99,6 +100,7 @@ export async function POST(req: NextRequest) {
         notes,
         rentAmount,
         totalDeposit,
+        securityDeposit,
         returnAmount,
         advancePayment,
         discount,
