@@ -68,6 +68,8 @@ CREATE TABLE "Booking" (
     "rentalType" TEXT NOT NULL,
     "invoiceNumber" INTEGER NOT NULL,
     "advancePaymentMethod" TEXT,
+    "deliverypaymnetMethod" TEXT,
+    "returnpaymnetMethod" TEXT,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "organizationId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

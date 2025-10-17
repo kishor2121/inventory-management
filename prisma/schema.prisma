@@ -75,6 +75,8 @@ model Booking {
   rentalType           String
   invoiceNumber        Int
   advancePaymentMethod String?
+  deliverypaymnetMethod String?   
+  returnpaymnetMethod   String? 
   isDeleted            Boolean       @default(false)
   organizationId       String?
   organization         Organization? @relation(fields: [organizationId], references: [id])

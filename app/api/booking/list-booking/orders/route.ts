@@ -6,12 +6,24 @@ export async function GET(req: NextRequest) {
   await validate();
 
   try {
-    const bookings = await prisma.booking.findMany({
-      include: { productLocks: { include: { product: true } } },
-      orderBy: { createdAt: "desc" },
-    });
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const perPage = parseInt(searchParams.get("per_page") || "5");
+    const skip = (page - 1) * perPage;
 
-    return NextResponse.json({ data: bookings });
+    const [bookings, total] = await Promise.all([
+      prisma.booking.findMany({
+        skip,
+        take: perPage,
+        include: { productLocks: { include: { product: true } } },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.booking.count(),
+    ]);
+
+    return NextResponse.json({
+      data: bookings
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
