@@ -115,7 +115,11 @@ export default function CreateBooking() {
   useEffect(() => {
     if (sameDate) {
       setProductCards((prev) =>
-        prev.map((card) => ({ ...card, deliveryDate: globalDeliveryDate, returnDate: globalReturnDate }))
+        prev.map((card) => ({
+          ...card,
+          deliveryDate: globalDeliveryDate,
+          returnDate: globalReturnDate,
+        }))
       );
     }
   }, [sameDate, globalDeliveryDate, globalReturnDate]);
@@ -150,8 +154,16 @@ export default function CreateBooking() {
 
     const firstProduct = productCards[0];
     if (!firstProduct.product) newErrors.product = "Please select a product.";
-    if (!firstProduct.deliveryDate && !sameDate) newErrors.deliveryDate = "Delivery date is required.";
-    if (!firstProduct.returnDate && !sameDate) newErrors.returnDate = "Return date is required.";
+
+    // ✅ Add proper validation for sameDate
+    if (sameDate) {
+      if (!globalDeliveryDate || !globalReturnDate) {
+        newErrors.deliveryDate = "Global Delivery and Return dates are required.";
+      }
+    } else {
+      if (!firstProduct.deliveryDate) newErrors.deliveryDate = "Delivery date is required.";
+      if (!firstProduct.returnDate) newErrors.returnDate = "Return date is required.";
+    }
 
     if (!securityDeposit) newErrors.securityDeposit = "Deposit Amount is required.";
     if (!advance) newErrors.advance = "Adv. Payment is required.";
@@ -160,10 +172,11 @@ export default function CreateBooking() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
+    // ✅ FIXED: Use sameDate condition for products payload
     const productsData = productCards.map((card) => ({
       productId: card.product?.value,
-      deliveryDate: card.deliveryDate,
-      returnDate: card.returnDate,
+      deliveryDate: sameDate ? globalDeliveryDate : card.deliveryDate,
+      returnDate: sameDate ? globalReturnDate : card.returnDate,
     }));
 
     const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim();
@@ -178,7 +191,7 @@ export default function CreateBooking() {
     formData.append("totalDeposit", String(totalDeposit));
     formData.append("returnAmount", String(returnAmount));
     formData.append("advancePayment", String(advance));
-    formData.append("securityDeposit", String(securityDeposit)); // updated field
+    formData.append("securityDeposit", String(securityDeposit));
     formData.append("discount", String(discountValue));
     formData.append("discountType", "flat");
     formData.append("rentalType", bookingType);
