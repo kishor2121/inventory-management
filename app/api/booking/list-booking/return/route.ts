@@ -16,21 +16,27 @@ export async function GET(req: NextRequest) {
     const today = getDateOnly(new Date());
     const tomorrow = getDateOnly(new Date(Date.now() + 24*60*60*1000));
 
-    let whereClause: any = {};
+    let productLockWhere: any = {};
     if (filter) {
       if (filter === "today") {
-        whereClause = { returnDate: { gte: today, lt: new Date(today.getTime()+24*60*60*1000) } };
+        productLockWhere = { returnDate: { gte: today, lt: new Date(today.getTime() + 24*60*60*1000) } };
       } else if (filter === "tomorrow") {
-        whereClause = { returnDate: { gte: tomorrow, lt: new Date(tomorrow.getTime()+24*60*60*1000) } };
+        productLockWhere = { returnDate: { gte: tomorrow, lt: new Date(tomorrow.getTime() + 24*60*60*1000) } };
       } else if (filter === "custom" && start && end) {
-        whereClause = { returnDate: { gte: new Date(start), lte: new Date(end) } };
+        productLockWhere = { returnDate: { gte: new Date(start), lte: new Date(end) } };
       }
     }
 
-    const bookings = await prisma.productLock.findMany({
-      where: whereClause,
-      include: { booking: true, product: true },
-      orderBy: { returnDate: "asc" },
+    const bookings = await prisma.booking.findMany({
+      where: {
+        productLocks: { some: productLockWhere },
+      },
+      include: {
+        productLocks: {
+          include: { product: true },
+        },
+      },
+      orderBy: { createdAt: "asc" },
     });
 
     return NextResponse.json({ data: bookings });
