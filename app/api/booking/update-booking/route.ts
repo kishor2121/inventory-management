@@ -9,24 +9,6 @@ export async function PUT(req: NextRequest) {
     const formData = await req.formData();
 
     const bookingId = formData.get("bookingId")?.toString();
-    const customerName = formData.get("customerName")?.toString();
-    const phoneNumberPrimary = formData.get("phoneNumberPrimary")?.toString();
-    const phoneNumberSecondary = formData.get("phoneNumberSecondary")?.toString() || "";
-    const notes = formData.get("notes")?.toString() || "";
-    const rentAmount = parseFloat(formData.get("rentAmount")?.toString() || "0");
-    const totalDeposit = parseFloat(formData.get("totalDeposit")?.toString() || "0");
-    const securityDeposit = parseFloat(formData.get("securityDeposit")?.toString() || "0");
-    const returnAmount = parseFloat(formData.get("returnAmount")?.toString() || "0");
-    const advancePayment = parseFloat(formData.get("advancePayment")?.toString() || "0");
-    const discount = parseFloat(formData.get("discount")?.toString() || "0");
-    const discountType = formData.get("discountType")?.toString() || "flat";
-    const rentalType = formData.get("rentalType")?.toString() || "";
-    const invoiceNumber = parseInt(formData.get("invoiceNumber")?.toString() || "0");
-    const advancePaymentMethod = formData.get("advancePaymentMethod")?.toString() || "";
-    const productsString = formData.get("products")?.toString() || "[]";
-    const deliverypaymnetMethod = formData.get("deliverypaymnetMethod")?.toString() || "" ;
-    const returnpaymnetMethod = formData.get("returnpaymnetMethod")?.toString() || "" ;
-
     if (!bookingId) {
       return NextResponse.json({ success: false, message: "Missing bookingId" }, { status: 400 });
     }
@@ -36,58 +18,69 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Booking not found" }, { status: 404 });
     }
 
-    const products = JSON.parse(productsString);
+    // Parse all fields
+    const customerName = formData.get("customerName")?.toString();
+    const phoneNumberPrimary = formData.get("phoneNumberPrimary")?.toString();
+    const phoneNumberSecondary = formData.get("phoneNumberSecondary")?.toString();
+    const notes = formData.get("notes")?.toString();
+    const rentAmount = formData.get("rentAmount") ? parseFloat(formData.get("rentAmount")!.toString()) : undefined;
+    const totalDeposit = formData.get("totalDeposit") ? parseFloat(formData.get("totalDeposit")!.toString()) : undefined;
+    const securityDeposit = formData.get("securityDeposit") ? parseFloat(formData.get("securityDeposit")!.toString()) : undefined;
+    const returnAmount = formData.get("returnAmount") ? parseFloat(formData.get("returnAmount")!.toString()) : undefined;
+    const advancePayment = formData.get("advancePayment") ? parseFloat(formData.get("advancePayment")!.toString()) : undefined;
+    const discount = formData.get("discount") ? parseFloat(formData.get("discount")!.toString()) : undefined;
+    const discountType = formData.get("discountType")?.toString();
+    const rentalType = formData.get("rentalType")?.toString();
+    const invoiceNumber = formData.get("invoiceNumber") ? parseInt(formData.get("invoiceNumber")!.toString()) : undefined;
+    const advancePaymentMethod = formData.get("advancePaymentMethod")?.toString();
+    const deliverypaymnetMethod = formData.get("deliverypaymnetMethod")?.toString();
+    const returnpaymnetMethod = formData.get("returnpaymnetMethod")?.toString();
+    const productsString = formData.get("products")?.toString() || "[]";
+
+    const updateData: any = {};
+    if (customerName) updateData.customerName = customerName;
+    if (phoneNumberPrimary) updateData.phoneNumberPrimary = phoneNumberPrimary;
+    if (phoneNumberSecondary) updateData.phoneNumberSecondary = phoneNumberSecondary;
+    if (notes) updateData.notes = notes;
+    if (rentAmount !== undefined) updateData.rentAmount = rentAmount;
+    if (totalDeposit !== undefined) updateData.totalDeposit = totalDeposit;
+    if (securityDeposit !== undefined) updateData.securityDeposit = securityDeposit;
+    if (returnAmount !== undefined) updateData.returnAmount = returnAmount;
+    if (advancePayment !== undefined) updateData.advancePayment = advancePayment;
+    if (discount !== undefined) updateData.discount = discount;
+    if (discountType) updateData.discountType = discountType;
+    if (rentalType) updateData.rentalType = rentalType;
+    if (invoiceNumber !== undefined) updateData.invoiceNumber = invoiceNumber;
+    if (advancePaymentMethod) updateData.advancePaymentMethod = advancePaymentMethod;
+    if (deliverypaymnetMethod) updateData.deliverypaymnetMethod = deliverypaymnetMethod;
+    if (returnpaymnetMethod) updateData.returnpaymnetMethod = returnpaymnetMethod;
 
     const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
-      data: {
-        customerName,
-        phoneNumberPrimary,
-        phoneNumberSecondary,
-        notes,
-        rentAmount,
-        totalDeposit,
-        returnAmount,
-        advancePayment,
-        discount,
-        discountType,
-        rentalType,
-        invoiceNumber,
-        advancePaymentMethod,
-        securityDeposit,
-        deliverypaymnetMethod,   
-        returnpaymnetMethod,
-      },
+      data: updateData,
     });
 
+    const products = JSON.parse(productsString);
     if (Array.isArray(products) && products.length > 0) {
       for (const p of products) {
-        const productExists = await prisma.product.findUnique({
-          where: { id: p.productId },
-        });
-
+        const productExists = await prisma.product.findUnique({ where: { id: p.productId } });
         if (!productExists) {
-          return NextResponse.json({
-            message: `Product not found: ${p.productId}`,
-          }, { status: 400 });
+          return NextResponse.json({ message: `Product not found: ${p.productId}` }, { status: 400 });
         }
-
         if (productExists.status !== "available") {
           return NextResponse.json({
             message: `Product is currently ${productExists.status}. Please wait until it becomes available.`,
           }, { status: 400 });
         }
 
-        const existingLock = await prisma.productLock.findFirst({
-          where: { bookingId, productId: p.productId },
-        });
+        const existingLock = await prisma.productLock.findFirst({ where: { bookingId, productId: p.productId } });
 
         if (existingLock) {
           await prisma.productLock.update({
             where: { id: existingLock.id },
             data: {
-              deliveryDate: new Date(p.deliveryDate),
-              returnDate: new Date(p.returnDate),
+              deliveryDate: p.deliveryDate ? new Date(p.deliveryDate) : existingLock.deliveryDate,
+              returnDate: p.returnDate ? new Date(p.returnDate) : existingLock.returnDate,
             },
           });
         } else {

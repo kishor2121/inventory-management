@@ -60,7 +60,7 @@
   color: #6b7280;
 }
 
-/* TABLE STYLING */
+/* MAIN TABLE STYLING */
 .table-container {
   background-color: white;
   border-radius: 12px;
@@ -173,68 +173,55 @@
   font-weight: 600;
 }
 
-/* EXPANDED DETAILS */
-.expanded-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  padding: 16px;
-  background-color: #fefefe;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  margin-top: 8px;
-  transition: all 0.2s ease;
-}
-
-.expanded-details:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.expanded-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 120px;
-}
-
-.expanded-item .label {
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.expanded-item .value {
+/* PRODUCT DETAILS TABLE (EXPANDED) */
+.product-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
   font-size: 14px;
-  color: #111827;
-  font-weight: 600;
 }
 
-.expanded-item img {
-  border-radius: 12px;
+.product-details-table th,
+.product-details-table td {
+  padding: 12px;
+  text-align: center;
   border: 1px solid #e5e7eb;
-  width: 80px;
-  height: 80px;
+}
+
+.product-details-table th {
+  background-color: #f3f4f6;
+  color: #374151;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+.product-details-table td {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+/* Optional Notes Box */
+.notes-box {
+  margin-top: 10px;
+  padding: 8px;
+  background: #fff7ed;
+  color: #92400e;
+  font-style: italic;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Image in Product Table */
+.product-details-table img {
+  width: 60px;
+  height: 60px;
   object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
   transition: transform 0.2s ease;
 }
 
-.expanded-item img:hover {
+.product-details-table img:hover {
   transform: scale(1.05);
-}
-
-@media (max-width: 768px) {
-  .expanded-details {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .expanded-item img {
-    width: 100%;
-    height: auto;
-    max-width: 200px;
-  }
-
-  .expanded-item {
-    min-width: auto;
-  }
 }

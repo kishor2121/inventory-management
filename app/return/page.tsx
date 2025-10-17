@@ -257,49 +257,64 @@ export default function ReturnPage() {
                         </td>
                       </tr>
 
-                      {/* Expanded Product Details Row */}
+                      {/* Expanded Table Row */}
                       {isExpanded && (
                         <tr>
                           <td colSpan={6} style={{ background: "#f9fafb" }}>
-                            {booking.productLocks.map((lock) => (
-                              <div key={lock.id} className="expanded-details">
-                                <div className="expanded-item">
-                                  <div className="label">SKU:</div>
-                                  <div className="value">{lock.product.sku}</div>
-                                </div>
-                                <div className="expanded-item">
-                                  <div className="label">Product Name:</div>
-                                  <div className="value">{lock.product.name}</div>
-                                </div>
-                                <div className="expanded-item">
-                                  <div className="label">Delivery Date:</div>
-                                  <div className="value">
-                                    {new Date(lock.deliveryDate).toLocaleDateString()}
-                                  </div>
-                                </div>
-                                <div className="expanded-item">
-                                  <div className="label">Return Date:</div>
-                                  <div className="value">
-                                    {new Date(lock.returnDate).toLocaleDateString()}
-                                  </div>
-                                </div>
-                                {lock.product.images.length > 0 && (
-                                  <div className="expanded-item">
-                                    <div className="label">Image:</div>
-                                    <img
-                                      src={lock.product.images[0]}
-                                      alt={lock.product.name}
-                                      style={{ maxWidth: "100px" }}
-                                    />
-                                  </div>
-                                )}
-                                <div className="expanded-item">
-                                  <div className="label">Price:</div>
-                                  <div className="value">₹{lock.product.price}</div>
-                                </div>
-                                <hr style={{ margin: "8px 0" }} />
+                            <table className="product-details-table">
+                              <thead>
+                                <tr>
+                                  <th>Image</th>
+                                  <th>SKU</th>
+                                  <th>Product Name</th>
+                                  <th>Delivery Date</th>
+                                  <th>Return Date</th>
+                                  <th>Amount</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {booking.productLocks.map((lock) => (
+                                  <tr key={lock.id}>
+                                    <td>
+                                      {lock.product.images.length > 0 ? (
+                                        <img
+                                          src={lock.product.images[0]}
+                                          alt={lock.product.name}
+                                          style={{
+                                            width: "60px",
+                                            height: "60px",
+                                            objectFit: "cover",
+                                            borderRadius: "8px",
+                                          }}
+                                        />
+                                      ) : (
+                                        <span>No image</span>
+                                      )}
+                                    </td>
+                                    <td>{lock.product.sku}</td>
+                                    <td>{lock.product.name}</td>
+                                    <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
+                                    <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
+                                    <td>₹{lock.product.price.toLocaleString()}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            {/* Notes row (optional, remove if not needed) */}
+                            {booking.notes && (
+                              <div
+                                style={{
+                                  marginTop: "10px",
+                                  padding: "8px",
+                                  background: "#fff7ed",
+                                  color: "#afa199ff",
+                                  fontStyle: "italic",
+                                  borderRadius: "4px",
+                                }}
+                              >
+                                <strong>Notes:</strong> {booking.notes}
                               </div>
-                            ))}
+                            )}
                           </td>
                         </tr>
                       )}
@@ -309,7 +324,7 @@ export default function ReturnPage() {
               ) : (
                 <tr>
                   <td colSpan={6} className="no-data">
-                    No Data Found
+                    No bookings found.
                   </td>
                 </tr>
               )}
