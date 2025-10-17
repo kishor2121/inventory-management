@@ -1,0 +1,240 @@
+.orders-container {
+  padding: 24px 40px;
+  background-color: #f9fafb;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+/* HEADER */
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.orders-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* FILTERS ON RIGHT SIDE */
+.filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.search-wrapper,
+.date-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.search-wrapper input,
+.date-wrapper input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background: transparent;
+}
+
+.search-wrapper:hover,
+.date-wrapper:hover {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.icon {
+  margin-right: 6px;
+  color: #6b7280;
+}
+
+/* TABLE STYLING */
+.table-container {
+  background-color: white;
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 16px 12px;
+  text-align: center;
+  vertical-align: middle;
+  border-top: 1px solid #f1f5f9;
+}
+
+.orders-table thead th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  font-size: 13.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.orders-table tr:hover td {
+  background-color: #f9fafb;
+}
+
+.orders-table td {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.no-data {
+  text-align: center;
+  padding: 24px;
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+@media (max-width: 768px) {
+  .orders-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .filters {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .orders-table th,
+  .orders-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+}
+
+/* DROPDOWN STYLING */
+.orders-table select {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1.5px solid #ccc;
+  background-color: #fff;
+  font-size: 16px;
+  color: #333;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  appearance: none;
+  min-width: 120px;
+  height: 40px;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D'12'%20height%3D'7'%20viewBox%3D'0%200%2012%207'%20xmlns%3D'http%3A//www.w3.org/2000/svg'%3E%3Cpath%20d%3D'M0%200l6%207%206-7z'%20fill%3D'%23333'%2F%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 7px;
+}
+
+.orders-table select:hover {
+  border-color: #888;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.orders-table select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+  outline: none;
+}
+
+.orders-table select:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.orders-table select option[value="Cash"] {
+  color: #2a9d8f;
+  font-weight: 600;
+}
+
+.orders-table select option[value="Bank"] {
+  color: #e76f51;
+  font-weight: 600;
+}
+
+/* EXPANDED DETAILS */
+.expanded-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 16px;
+  background-color: #fefefe;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  margin-top: 8px;
+  transition: all 0.2s ease;
+}
+
+.expanded-details:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.expanded-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.expanded-item .label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.expanded-item .value {
+  font-size: 14px;
+  color: #111827;
+  font-weight: 600;
+}
+
+.expanded-item img {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.expanded-item img:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .expanded-details {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .expanded-item img {
+    width: 100%;
+    height: auto;
+    max-width: 200px;
+  }
+
+  .expanded-item {
+    min-width: auto;
+  }
+}
