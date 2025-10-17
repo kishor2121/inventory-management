@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import { Search } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
@@ -21,7 +20,7 @@ interface Booking {
   discountType: string;
   rentalType: string;
   invoiceNumber: number;
-  returnpaymnetMethod: "Cash" | "Bank" | "";
+  returnPaymentMethod: "Cash" | "Bank" | "";
 }
 
 interface Product {
@@ -69,10 +68,8 @@ export default function ReturnPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      let filterValue = filterType;
+      let filterValue = filterType.toLowerCase();
       if (filterType === "Custom Date") filterValue = "custom";
-      else if (filterType === "Today") filterValue = "today";
-      else if (filterType === "Tomorrow") filterValue = "tomorrow";
 
       if (filterValue === "custom" && (!fromDate || !toDate)) {
         setLoading(false);
@@ -122,7 +119,7 @@ export default function ReturnPage() {
     try {
       const formData = new FormData();
       formData.append("bookingId", bookingId);
-      formData.append("returnpaymnetMethod", newMethod);
+      formData.append("returnPaymentMethod", newMethod);
 
       const res = await fetch("/api/booking/update-booking", {
         method: "PUT",
@@ -137,7 +134,7 @@ export default function ReturnPage() {
       setData((prevData) =>
         prevData.map((item) =>
           item.id === bookingId
-            ? { ...item, returnpaymnetMethod: newMethod }
+            ? { ...item, returnPaymentMethod: newMethod }
             : item
         )
       );
@@ -159,9 +156,9 @@ export default function ReturnPage() {
             onChange={(e) => handleFilterChange(e.target.value)}
             className="date-wrapper"
           >
-            <option>Today</option>
-            <option>Tomorrow</option>
-            <option>Custom Date</option>
+            <option value="Today">Today</option>
+            <option value="Tomorrow">Tomorrow</option>
+            <option value="Custom Date">Custom Date</option>
           </select>
 
           {filterType === "Custom Date" && (
@@ -228,9 +225,16 @@ export default function ReturnPage() {
                         <td>{booking.phoneNumberPrimary}</td>
                         <td>{booking.phoneNumberSecondary}</td>
                         <td>₹{returnAmount.toLocaleString()}</td>
-                        <td style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <td
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            justifyContent: "center",
+                          }}
+                        >
                           <select
-                            value={booking.returnpaymnetMethod || "Cash"}
+                            value={booking.returnPaymentMethod || "Cash"}
                             disabled={updatingBookingId === booking.id}
                             onChange={(e) =>
                               handlePaymentMethodChange(
@@ -248,16 +252,16 @@ export default function ReturnPage() {
                             style={{
                               cursor: "pointer",
                               fontSize: "14px",
-                              display: "inline-flex",
-                              alignItems: "center",
+                              userSelect: "none",
                             }}
+                            aria-label={isExpanded ? "Collapse details" : "Expand details"}
                           >
                             {isExpanded ? "▲" : "▼"}
                           </span>
                         </td>
                       </tr>
 
-                      {/* Expanded Table Row */}
+                      {/* Expanded Row */}
                       {isExpanded && (
                         <tr>
                           <td colSpan={6} style={{ background: "#f9fafb" }}>
@@ -276,20 +280,15 @@ export default function ReturnPage() {
                                 {booking.productLocks.map((lock) => (
                                   <tr key={lock.id}>
                                     <td>
-                                      {lock.product.images.length > 0 ? (
-                                        <img
-                                          src={lock.product.images[0]}
-                                          alt={lock.product.name}
-                                          style={{
-                                            width: "60px",
-                                            height: "60px",
-                                            objectFit: "cover",
-                                            borderRadius: "8px",
-                                          }}
-                                        />
-                                      ) : (
-                                        <span>No image</span>
-                                      )}
+                                      <img
+                                        src={
+                                          lock.product.images && lock.product.images.length > 0
+                                            ? lock.product.images[0]
+                                            : "/no_image.jpg"
+                                        }
+                                        alt={lock.product.name}
+                                        className="product-image"
+                                      />
                                     </td>
                                     <td>{lock.product.sku}</td>
                                     <td>{lock.product.name}</td>
@@ -300,18 +299,8 @@ export default function ReturnPage() {
                                 ))}
                               </tbody>
                             </table>
-                            {/* Notes row (optional, remove if not needed) */}
                             {booking.notes && (
-                              <div
-                                style={{
-                                  marginTop: "10px",
-                                  padding: "8px",
-                                  background: "#fff7ed",
-                                  color: "#afa199ff",
-                                  fontStyle: "italic",
-                                  borderRadius: "4px",
-                                }}
-                              >
+                              <div className="notes-box">
                                 <strong>Notes:</strong> {booking.notes}
                               </div>
                             )}

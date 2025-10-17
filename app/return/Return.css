@@ -108,6 +108,7 @@
   font-size: 15px;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .orders-header {
     flex-direction: column;
@@ -213,15 +214,18 @@
 }
 
 /* Image in Product Table */
-.product-details-table img {
+.product-details-table img,
+.product-image {
   width: 60px;
   height: 60px;
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid #d1d5db;
+  background-color: #f3f4f6;
   transition: transform 0.2s ease;
 }
 
-.product-details-table img:hover {
+.product-details-table img:hover,
+.product-image:hover {
   transform: scale(1.05);
 }
