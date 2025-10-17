@@ -56,6 +56,21 @@
   color: #6b7280;
 }
 
+.export-btn {
+  padding: 8px 14px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.export-btn:hover {
+  background-color: #1d4ed8;
+}
+
 /* Table */
 .table-container {
   background-color: white;
@@ -216,4 +231,19 @@
 @media (max-width: 768px) {
   .filters { flex-wrap: wrap; gap: 8px; }
   .orders-table th, .orders-table td { padding: 12px 8px; font-size: 13px; }
+}
+
+.export-btn {
+  padding: 8px 14px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.export-btn:hover {
+  background-color: #1d4ed8;
 }

@@ -83,13 +83,50 @@ export default function OrdersPage() {
       });
 
       if (!res.ok) throw new Error("Failed to delete order");
-      await fetchOrders(); 
+      await fetchOrders();
       setDeleteId(null);
     } catch (err) {
       console.error(err);
       alert("Error deleting order");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleExport() {
+    try {
+      const url = `/api/booking/export?from_date=${fromDate || ""}&to_date=${toDate || ""}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch file");
+        alert("Failed to export file");
+        return;
+      }
+
+      let fileName = "bookings.xlsx";
+      const contentDisposition = response.headers.get("Content-Disposition");
+      if (contentDisposition && contentDisposition.includes("filename=")) {
+        fileName = contentDisposition.split("filename=")[1].replace(/"/g, "");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error("Error downloading file:", err);
+      alert("Export failed. Check console for details.");
     }
   }
 
@@ -129,6 +166,10 @@ export default function OrdersPage() {
               className="date-input"
             />
           </div>
+
+          <button className="export-btn" onClick={handleExport}>
+            Export
+          </button>
         </div>
       </div>
 
