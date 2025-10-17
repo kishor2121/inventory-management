@@ -144,7 +144,7 @@ export default function DeliveryPage() {
   return (
     <div className="orders-container">
       <div className="orders-header">
-        <h2 className="orders-title">Deliveries</h2>
+        <h2 className="orders-title">Delivery</h2>
 
         <div className="filters">
           <select

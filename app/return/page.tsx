@@ -148,7 +148,7 @@ export default function ReturnPage() {
   return (
     <div className="orders-container">
       <div className="orders-header">
-        <h2 className="orders-title">Returns</h2>
+        <h2 className="orders-title">Return</h2>
 
         <div className="filters">
           <select
