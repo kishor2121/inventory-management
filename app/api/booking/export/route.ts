@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
         phoneNumberPrimary: b.phoneNumberPrimary || "",
         phoneNumberSecondary: b.phoneNumberSecondary || "",
         amount: totalAmount,
-        deposit: b.advancePayment || 0,
+        deposit: b.securityDeposit || 0,
       });
     });
 
