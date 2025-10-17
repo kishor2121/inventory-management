@@ -55,16 +55,23 @@ export async function GET(req: NextRequest) {
 
     const rows: any[] = [];
     filtered.forEach((b) => {
-      b.productLocks.forEach((pl) => {
-        rows.push({
-          invoiceNumber: b.invoiceNumber || "",
-          deliveryDate: new Date(pl.deliveryDate),
-          customerName: b.customerName || "",
-          phoneNumberPrimary: b.phoneNumberPrimary || "",
-          phoneNumberSecondary: b.phoneNumberSecondary || "",
-          amount: pl.product?.price || 0,
-          deposit: b.advancePayment || 0,
-        });
+      const totalAmount = b.productLocks.reduce(
+        (sum, pl) => sum + (pl.product?.price || 0),
+        0
+      );
+
+      const bookingDate = b.productLocks
+        .map((pl) => new Date(pl.deliveryDate))
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+
+      rows.push({
+        invoiceNumber: b.invoiceNumber || "",
+        deliveryDate: bookingDate,
+        customerName: b.customerName || "",
+        phoneNumberPrimary: b.phoneNumberPrimary || "",
+        phoneNumberSecondary: b.phoneNumberSecondary || "",
+        amount: totalAmount,
+        deposit: b.advancePayment || 0,
       });
     });
 
@@ -106,7 +113,6 @@ export async function GET(req: NextRequest) {
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
-
     const formatDate = (d: string | null) => d ?? "all";
     const fileName = `bookings_export_${formatDate(fromDate)}_to_${formatDate(toDate)}.xlsx`;
 
