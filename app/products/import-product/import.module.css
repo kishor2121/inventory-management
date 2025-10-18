@@ -52,6 +52,13 @@
   background-color: #e5e7eb;
   border-radius: 8px;
   cursor: pointer;
+  color: #111827;
+}
+
+.disabledLabel {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
 }
 
 .actions {
@@ -87,45 +94,33 @@
   background: #f3f4f6;
 }
 
-.fileLabel {
-  display: inline-block;
-  padding: 8px 16px;
-  background-color: #e5e7eb;
-  border-radius: 8px;
-  cursor: pointer;
-  color: #111827;
-}
-
-.disabledLabel {
-  background-color: #e5e7eb;
-  color: #9ca3af;
-  cursor: not-allowed;
-}
-
 .disabledBtn {
   background-color: #d1d5db !important;
   color: #9ca3af !important;
   cursor: not-allowed !important;
 }
 
-
-.fileLabel {
-  display: inline-block;
-  padding: 8px 16px;
-  background-color: #e5e7eb;
+.errorMessage {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  padding: 12px;
+  margin-bottom: 20px;
   border-radius: 8px;
-  cursor: pointer;
-  color: #111827;
+  font-size: 14px;
+  text-align: left;
 }
 
-.disabledLabel {
-  background-color: #e5e7eb;
-  color: #9ca3af;
-  cursor: not-allowed;
+.skippedBox {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #92400e;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  text-align: left;
 }
 
-.disabledBtn {
-  background-color: #d1d5db !important;
-  color: #9ca3af !important;
-  cursor: not-allowed !important;
+.skippedBox ul {
+  margin: 0;
+  padding-left: 18px;
 }

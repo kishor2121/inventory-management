@@ -3,12 +3,17 @@
 import styles from './import.module.css';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function ImportProductPage() {
+  const router = useRouter();
+
   const [file, setFile] = useState<File | null>(null);
   const [gender, setGender] = useState<string>('');
   const [category, setCategory] = useState<string>('');
   const [isImporting, setIsImporting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [skippedProducts, setSkippedProducts] = useState<Array<{ sku: string, reason: string }>>([]);
 
   const menCategories = ['Blazer', 'Sherwani', 'Shirt', 'Pant'];
   const womenCategories = ['Chaniya-Choli', 'Gown', 'Overcoat'];
@@ -22,23 +27,24 @@ export default function ImportProductPage() {
   const handleGenderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGender(e.target.value);
     setCategory('');
-    setFile(null); // reset
+    setFile(null);
+    setSkippedProducts([]);
+    setErrorMessage(null);
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCategory(e.target.value);
-    setFile(null); // reset
+    setFile(null);
+    setSkippedProducts([]);
+    setErrorMessage(null);
   };
 
-  const categories = gender === 'Men' ? menCategories :
-                     gender === 'Women' ? womenCategories : [];
-
-  const isFileInputEnabled = gender !== '' && category !== '';
-  const isImportEnabled = isFileInputEnabled && file !== null;
-
   const handleImport = async () => {
+    setErrorMessage(null);
+    setSkippedProducts([]);
+
     if (!file || !gender || !category) {
-      alert('Please select gender, category, and a CSV file.');
+      setErrorMessage('⚠️ Please select gender, category, and a CSV file.');
       return;
     }
 
@@ -57,22 +63,41 @@ export default function ImportProductPage() {
 
       const data = await res.json();
 
-      if (res.ok) {
-        alert(`✅ Import Success: ${data.message || 'CSV imported.'}`);
-        // Reset form
-        setGender('');
-        setCategory('');
-        setFile(null);
-      } else {
-        alert(`❌ Import Failed: ${data.message || 'Something went wrong.'}`);
+      if (!res.ok) {
+        setErrorMessage(data.message || '❌ Failed to import products.');
+        return;
       }
+
+      if (data.imported > 0) {
+        alert(`✅ ${data.imported} product(s) imported.`);
+
+        if (data.skipped && data.skipped.length > 0) {
+          setSkippedProducts(data.skipped);
+        }
+
+        router.push('/products');
+      } else if (data.skipped && data.skipped.length > 0) {
+        setSkippedProducts(data.skipped);
+        setErrorMessage('❌ No products were imported.');
+      } else {
+        setErrorMessage('❌ Import failed. No products processed.');
+      }
+
     } catch (error) {
       console.error('Import error:', error);
-      alert('❌ Error importing file.');
+      setErrorMessage('❌ Something went wrong. Please try again.');
     } finally {
       setIsImporting(false);
     }
   };
+
+  const categories =
+    gender === 'Men' ? menCategories :
+    gender === 'Women' ? womenCategories :
+    [];
+
+  const isFileInputEnabled = gender !== '' && category !== '';
+  const isImportEnabled = isFileInputEnabled && file !== null;
 
   return (
     <div className={styles.importContainer}>
@@ -133,6 +158,25 @@ export default function ImportProductPage() {
           <p>Select a CSV file to import<br />(Max: 1MB)</p>
         </div>
 
+        {errorMessage && (
+          <div className={styles.errorMessage}>
+            {errorMessage}
+          </div>
+        )}
+
+        {skippedProducts.length > 0 && (
+          <div className={styles.skippedBox}>
+            <h4>⚠️ Skipped Products:</h4>
+            <ul>
+              {skippedProducts.map((item, index) => (
+                <li key={index}>
+                  <strong>{item.sku}</strong>: {item.reason}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className={styles.actions}>
           <button
             className={styles.discardBtn}
@@ -140,6 +184,8 @@ export default function ImportProductPage() {
               setGender('');
               setCategory('');
               setFile(null);
+              setSkippedProducts([]);
+              setErrorMessage(null);
             }}
           >
             Discard
