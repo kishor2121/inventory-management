@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Printer, Copy, Download, MessageCircle } from "lucide-react";
 import "./viewOrder.css";
 
-// ✅ PDF libraries
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -57,9 +56,7 @@ export default function ViewOrderPage() {
       try {
         const resOrder = await fetch(`/api/booking/${id}`);
         const dataOrder = await resOrder.json();
-        if (dataOrder?.data) {
-          setOrder(dataOrder.data);
-        }
+        if (dataOrder?.data) setOrder(dataOrder.data);
 
         const resOrganization = await fetch("/api/organization/get-organization-info");
         const dataOrganization = await resOrganization.json();
@@ -73,7 +70,6 @@ export default function ViewOrderPage() {
 
   if (!order || !organizationInfo) return <div>Loading...</div>;
 
-  // Calculations
   const productAmount = order.productLocks.reduce(
     (sum, lock) => sum + (lock.product?.price || 0),
     0
@@ -83,144 +79,163 @@ export default function ViewOrderPage() {
   const total = productAmount + securityDeposit - discount;
   const remainingPayment = total - order.advancePayment;
 
-  // ✅ PDF DOWNLOAD - UPDATED WITH FORMATTING AND LAYOUT
+  // ✅ Shared PDF Generator
+const generatePDF = () => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 15;
+  let currentY = 20;
+
+  const formatCurrency = (amount: number) =>
+    `₹${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+
+  // === 1. Header ===
+  doc.setFont("helvetica", "bold").setFontSize(16).setTextColor(0);
+  doc.text(organizationInfo.organizationName, margin, currentY);
+
+  doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(100);
+  doc.text(organizationInfo.address, margin, currentY + 6);
+  doc.text(`Email: ${organizationInfo.email}`, margin, currentY + 12);
+  doc.text(`Phone: ${organizationInfo.contactNumber}`, margin, currentY + 18);
+
+  // Invoice info
+  doc.setTextColor(0).setFontSize(12);
+  const invoiceY = currentY;
+  doc.text(`Invoice #: ${order.invoiceNumber}`, pageWidth - margin, invoiceY, { align: "right" });
+  doc.text(
+    `Date: ${new Date(order.createdAt).toLocaleDateString("en-GB")}`,
+    pageWidth - margin,
+    invoiceY + 6,
+    { align: "right" }
+  );
+
+  currentY += 28;
+
+  // === 2. Billed To ===
+  doc.setFillColor(240, 240, 240);
+  doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 18, 3, 3, "F");
+  doc.setTextColor(0).setFont("helvetica", "bold").setFontSize(11);
+  doc.text("Billed To", margin + 4, currentY + 6);
+
+  doc.setFont("helvetica", "normal").setFontSize(10);
+  doc.text(order.customerName, margin + 4, currentY + 12);
+  doc.text(
+    `${order.phoneNumberPrimary} | ${order.phoneNumberSecondary}`,
+    margin + 4,
+    currentY + 18
+  );
+  currentY += 28;
+
+  // === 3. Product Table ===
+  autoTable(doc, {
+    startY: currentY,
+    head: [["#", "Product", "Delivery", "Return", "Amount"]],
+    body: order.productLocks.map((lock, i) => [
+      i + 1,
+      lock.product.name,
+      new Date(lock.deliveryDate).toLocaleDateString("en-GB"),
+      new Date(lock.returnDate).toLocaleDateString("en-GB"),
+      formatCurrency(lock.product.price),
+    ]),
+    theme: "plain",
+    headStyles: {
+      fillColor: [240, 240, 240],
+      textColor: 0,
+      fontStyle: "bold",
+      halign: "center",
+    },
+    bodyStyles: {
+      textColor: 50,
+      fontSize: 11,
+      halign: "center",
+    },
+    columnStyles: {
+      1: { halign: "left" },
+      4: { halign: "right" },
+    },
+  });
+
+  // === 4. Two-column layout for payment summary ===
+  let y = (doc as any).lastAutoTable.finalY + 10;
+
+  const leftX = margin;
+  const rightX = pageWidth / 2 + 10;
+  let leftY = y;
+  let rightY = y;
+
+  const printLeft = (label: string, amount: number, color?: "green" | "red") => {
+    doc.setFont("helvetica", "normal").setFontSize(10);
+    if (color === "green") doc.setTextColor(34, 197, 94);
+    else if (color === "red") doc.setTextColor(220, 38, 38);
+    else doc.setTextColor(0);
+    doc.text(label, leftX, leftY);
+    doc.text(formatCurrency(amount), leftX + 50, leftY, { align: "right" });
+    leftY += 8;
+  };
+
+  const printRight = (label: string, amount: number, bold = false, color?: "green") => {
+    doc.setFont("helvetica", bold ? "bold" : "normal").setFontSize(10);
+    if (color === "green") doc.setTextColor(34, 197, 94);
+    else doc.setTextColor(0);
+    doc.text(label, rightX, rightY);
+    doc.text(formatCurrency(amount), rightX + 50, rightY, { align: "right" });
+    rightY += 8;
+  };
+
+  const productAmount = order.productLocks.reduce(
+    (sum, lock) => sum + (lock.product?.price || 0),
+    0
+  );
+  const securityDeposit = order.securityDeposit;
+  const discount = order.discount;
+  const total = productAmount + securityDeposit - discount;
+  const remainingPayment = total - order.advancePayment;
+
+  // Left column
+  printLeft("Adv. Payment:", order.advancePayment, "green");
+  printLeft("Rem. Payment:", remainingPayment, "red");
+
+  // Right column
+  printRight("Amount:", productAmount);
+  printRight("Deposit:", securityDeposit);
+  printRight("Discount:", discount, false, "green");
+  doc.setDrawColor(220);
+  doc.line(rightX, rightY, rightX + 60, rightY); // separator above total
+  rightY += 6;
+  printRight("Total:", total, true);
+
+  // === 5. Notes ===
+  y = Math.max(leftY, rightY) + 10;
+  if (order.notes) {
+    doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(0);
+    doc.text("Notes:", margin, y);
+    doc.setFont("helvetica", "italic").setFontSize(10).setTextColor(100);
+    const notes = doc.splitTextToSize(order.notes, pageWidth - margin * 2);
+    doc.text(notes, margin, y + 6);
+  }
+
+  // === 6. Footer ===
+  const footerY = doc.internal.pageSize.getHeight() - 15;
+  doc.setDrawColor(220);
+  doc.line(margin, footerY - 6, pageWidth - margin, footerY - 6);
+  doc.setFont("helvetica", "italic").setFontSize(10).setTextColor(120);
+  doc.text("Thank you! Please visit again.", pageWidth / 2, footerY, { align: "center" });
+
+  return doc;
+};
+
+
+  // ✅ Download PDF
   const handleDownload = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    // Header - Organization Info Left, Invoice + Date Right
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text(organizationInfo.organizationName, 14, 20);
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    const orgLines = [
-      organizationInfo.email,
-      `📞 ${organizationInfo.contactNumber}`,
-      organizationInfo.address,
-    ];
-    let cursorY = 26;
-    orgLines.forEach(line => {
-      doc.text(line, 14, cursorY);
-      cursorY += 6;
-    });
-
-    // Invoice info (right side)
-    const rightX = pageWidth - 60;
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Invoice #${order.invoiceNumber}`, rightX, 20);
-    doc.text(`Date`, rightX, 26);
-    doc.text(new Date(order.createdAt).toLocaleDateString("en-GB"), rightX, 32);
-
-    // Billed To section
-    let startY = cursorY + 10;
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text("Billed To", 14, startY);
-    doc.setFont("helvetica", "bold");
-    doc.text(order.customerName, 14, startY + 7);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${order.phoneNumberPrimary} | ${order.phoneNumberSecondary}`, 14, startY + 14);
-
-    // Table of products
-    autoTable(doc, {
-      startY: startY + 25,
-      head: [["#", "Product Name", "Del. Date", "Return Date", "Amount"]],
-      body: order.productLocks.map((lock, index) => [
-        index + 1,
-        lock.product.name,
-        new Date(lock.deliveryDate).toLocaleDateString("en-GB"),
-        new Date(lock.returnDate).toLocaleDateString("en-GB"),
-        `₹${lock.product.price.toLocaleString()}`,
-      ]),
-      theme: "grid",
-      styles: { fontSize: 11 },
-      headStyles: { fillColor: [230, 230, 230], halign: "center" },
-      bodyStyles: { halign: "center" },
-      columnStyles: {
-        1: { halign: "left" },
-        4: { halign: "right" },
-      },
-    });
-
-    const finalY = (doc as any).lastAutoTable.finalY || startY + 25 + 50;
-
-    // Payment summary boxes side by side
-    const boxWidth = (pageWidth - 42) / 2;
-    const boxHeight = 40;
-    const boxY = finalY + 10;
-
-    // Left box - Advance and Remaining Payment
-    doc.setDrawColor(180);
-    doc.rect(14, boxY, boxWidth, boxHeight);
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(0, 0, 0);
-    doc.text("Adv. Payment:", 18, boxY + 12);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(200, 0, 0);
-    doc.text(`₹${order.advancePayment.toLocaleString()}`, 18 + 45, boxY + 12);
-
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(255, 0, 0);
-    doc.text("Rem. Payment:", 18, boxY + 26);
-    doc.setFont("helvetica", "bold");
-    doc.text(`₹${remainingPayment.toLocaleString()}`, 18 + 45, boxY + 26);
-
-    // Right box - Amount, Deposit, Discount, Total
-    doc.setDrawColor(180);
-    doc.rect(14 + boxWidth + 14, boxY, boxWidth, boxHeight);
-
-    const rightBoxX = 14 + boxWidth + 14;
-    const labelX = rightBoxX + boxWidth - 55;
-    let labelY = boxY + 12;
-
-    const paymentLines = [
-      { label: "Amount:", value: productAmount, color: "black", bold: false },
-      { label: "Deposit:", value: securityDeposit, color: "black", bold: false },
-      { label: "Discount:", value: discount, color: "green", bold: false },
-      { label: "Total:", value: total, color: "black", bold: true },
-    ];
-
-    paymentLines.forEach(({ label, value, color, bold }) => {
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(0, 0, 0);
-      doc.text(label, labelX, labelY);
-      doc.setFont("helvetica", bold ? "bold" : "normal");
-      doc.setTextColor(color === "green" ? "green" : "black");
-      doc.text(`₹${value.toLocaleString()}`, labelX + 45, labelY);
-      labelY += 14;
-    });
-
-    // Special Notes (if any)
-    if (order.notes) {
-      const notesY = boxY + boxHeight + 15;
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(0, 0, 0);
-      doc.text("Special Notes", 14, notesY);
-
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "italic");
-
-      // Wrap long notes
-      const splitNotes = doc.splitTextToSize(order.notes, pageWidth - 28);
-      splitNotes.forEach((line, idx) => {
-        doc.text(`• ${line}`, 18, notesY + 8 + idx * 7);
-      });
-    }
-
-    // Footer - centered at bottom
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    const footerText = "Thanks You Visit Again!";
-    const footerX = pageWidth / 2 - doc.getTextWidth(footerText) / 2;
-    const footerY = doc.internal.pageSize.getHeight() - 10;
-    doc.text(footerText, footerX, footerY);
-
+    const doc = generatePDF();
     doc.save(`invoice_${order.invoiceNumber}.pdf`);
+  };
+
+  // ✅ Print PDF in new tab
+  const handlePrint = () => {
+    const doc = generatePDF();
+    const blobUrl = doc.output("bloburl");
+    window.open(blobUrl, "_blank");
   };
 
   return (
@@ -230,17 +245,18 @@ export default function ViewOrderPage() {
           <ArrowLeft size={18} /> Orders
         </button>
         <div className="action-buttons">
-          <button className="whatsapp">
-            <MessageCircle size={16} /> Share on Whatsapp
-          </button>
+          <button className="whatsapp"><MessageCircle size={16} /> Share on Whatsapp</button>
           <button className="copy"><Copy size={16} /> Copy</button>
-          <button className="print"><Printer size={16} /> Print Invoice</button>
+          <button className="print" onClick={handlePrint}>
+            <Printer size={16} /> Print Invoice
+          </button>
           <button className="download" onClick={handleDownload}>
             <Download size={16} /> Download
           </button>
         </div>
       </div>
 
+      {/* Display invoice */}
       <div className="invoice-card">
         <div className="invoice-header">
           <h4>Invoice # {order.invoiceNumber}</h4>
