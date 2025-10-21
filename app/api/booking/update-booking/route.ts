@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import validate from "../../auth/validate";
 
-export async function POST(req: NextRequest) {
+export async function PUT(req: NextRequest) {
   await validate();
 
   try {
     const formData = await req.formData();
 
+    const bookingId = formData.get("bookingId")?.toString();
     const customerName = formData.get("customerName")?.toString();
     const phoneNumberPrimary = formData.get("phoneNumberPrimary")?.toString();
     const phoneNumberSecondary = formData.get("phoneNumberSecondary")?.toString() || "";
-    const organizationId = formData.get("organizationId")?.toString();
     const notes = formData.get("notes")?.toString() || "";
     const rentAmount = parseFloat(formData.get("rentAmount")?.toString() || "0");
     const totalDeposit = parseFloat(formData.get("totalDeposit")?.toString() || "0");
@@ -24,51 +24,25 @@ export async function POST(req: NextRequest) {
     const advancePaymentMethod = formData.get("advancePaymentMethod")?.toString() || "";
     const productsString = formData.get("products")?.toString() || "[]";
 
-    if (!customerName || !phoneNumberPrimary || !productsString) {
-      return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 });
+    if (!bookingId) {
+      return NextResponse.json({ success: false, message: "Missing bookingId" }, { status: 400 });
+    }
+
+    const bookingExists = await prisma.booking.findUnique({ where: { id: bookingId } });
+    if (!bookingExists) {
+      return NextResponse.json({ success: false, message: "Booking not found" }, { status: 404 });
     }
 
     const products = JSON.parse(productsString);
 
-    if (!Array.isArray(products) || products.length === 0) {
-      return NextResponse.json({ success: false, message: "Products list cannot be empty" }, { status: 400 });
-    }
+    await prisma.productLock.deleteMany({ where: { bookingId } });
 
-    for (const p of products) {
-      const productExists = await prisma.product.findUnique({
-        where: { id: p.productId },
-      });
-      if (!productExists) {
-        return NextResponse.json({
-          message: `Product not found: ${p.productId}`,
-        }, { status: 400 });
-      }
-
-      const overlappingLock = await prisma.productLock.findFirst({
-        where: {
-          productId: p.productId,
-          OR: [
-            {
-              deliveryDate: { lte: new Date(p.returnDate) },
-              returnDate: { gte: new Date(p.deliveryDate) },
-            },
-          ],
-        },
-      });
-
-      if (overlappingLock) {
-        return NextResponse.json({
-          message: `Selected Product is already booked for selected dates. Please select another date or product.`,
-        }, { status: 400 });
-      }
-    }
-
-    const booking = await prisma.booking.create({
+    const updatedBooking = await prisma.booking.update({
+      where: { id: bookingId },
       data: {
         customerName,
         phoneNumberPrimary,
         phoneNumberSecondary,
-        organizationId,
         notes,
         rentAmount,
         totalDeposit,
@@ -87,15 +61,13 @@ export async function POST(req: NextRequest) {
           })),
         },
       },
-      include: {
-        productLocks: true,
-      },
+      include: { productLocks: true },
     });
 
-    return NextResponse.json({ message: "Booking created successfully", data: booking });
+    return NextResponse.json({ success: true, message: "Booking updated successfully", data: updatedBooking });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
