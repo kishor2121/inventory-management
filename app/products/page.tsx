@@ -140,7 +140,12 @@ export default function ProductsPage() {
                   )}
                 </td>
                 <td>{product.sku}</td>
-                <td className={styles.productName}>{product.name}</td>
+                <td className={styles.productName}>
+                  <Link href={`/products/view/${product.id}`} className={styles.productLink}>
+                    {product.name}
+                  </Link>
+                </td>
+
                 <td>₹{product.price}</td>
                 <td>
                   <div
