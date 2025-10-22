@@ -64,12 +64,18 @@ export default function OrdersPage() {
         o.phoneNumberSecondary.toLowerCase().includes(search.toLowerCase())
     );
 
-    if (fromDate)
-      result = result.filter(
-        (o) => new Date(o.createdAt) >= new Date(fromDate)
-      );
-    if (toDate)
-      result = result.filter((o) => new Date(o.createdAt) <= new Date(toDate));
+    // ✅ Inclusive date range filter
+    if (fromDate || toDate) {
+      const from = fromDate ? new Date(fromDate + "T00:00:00") : null;
+      const to = toDate ? new Date(toDate + "T23:59:59") : null;
+
+      result = result.filter((o) => {
+        const created = new Date(o.createdAt);
+        if (from && created < from) return false;
+        if (to && created > to) return false;
+        return true;
+      });
+    }
 
     setFilteredOrders(result);
   }, [search, fromDate, toDate, orders]);
