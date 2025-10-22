@@ -108,7 +108,9 @@ export default function ProductsPage() {
             <Link href="/products/add-product" className={styles.addBtn}>
               + Add Product
             </Link>
-            <button className={styles.importBtn}>Import</button>
+            <Link href="/products/import-product" className={styles.addBtn}>
+              Import
+            </Link>
           </div>
         </div>
 
