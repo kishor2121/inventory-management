@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-  const hideLayout = pathname === "/login" || pathname === "/sign-in";
+  const hideLayout = pathname === "/login" || pathname === "/sign-in" || pathname.startsWith("/e-receipt/");
 
   useEffect(() => {
     try {

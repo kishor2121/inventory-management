@@ -238,6 +238,25 @@ const generatePDF = () => {
     window.open(blobUrl, "_blank");
   };
 
+  // ✅ whatsappweb
+  const handleWhatsappShare = () => {
+    if (!order) return;
+
+    const phoneNumber = order.phoneNumberPrimary.startsWith("+")
+      ? order.phoneNumberPrimary.slice(1)
+      : order.phoneNumberPrimary;
+
+    const baseUrl = window.location.origin;
+    const receiptLink = `${baseUrl}/e-receipt/${order.id}`;
+
+    const message = `👉 *Invoice #${order.invoiceNumber} is Ready!*\n\nHello *${order.customerName}*,\n\nThank you for choosing our service.\n\n *View/Download Invoice:*\n${receiptLink}\n\nIf you have any questions, feel free to contact us.`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+    window.open(whatsappUrl, "_blank");
+  };
+
   return (
     <div className="view-order-container">
       <div className="view-header">
@@ -245,7 +264,9 @@ const generatePDF = () => {
           <ArrowLeft size={18} /> Orders
         </button>
         <div className="action-buttons">
-          <button className="whatsapp"><MessageCircle size={16} /> Share on Whatsapp</button>
+          <button className="whatsapp" onClick={handleWhatsappShare}>
+            <MessageCircle size={16} /> Share on Whatsapp
+          </button>
           <button className="copy"><Copy size={16} /> Copy</button>
           <button className="print" onClick={handlePrint}>
             <Printer size={16} /> Print Invoice
