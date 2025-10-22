@@ -1,0 +1,52 @@
+.invoice-card {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.invoice-card h4 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.invoice-card p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.product-table th,
+.product-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.product-table th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.footer-section {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+}
+
+.footer-section p {
+  margin: 0;
+}
