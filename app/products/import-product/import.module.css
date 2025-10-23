@@ -67,6 +67,22 @@
   gap: 12px;
 }
 
+.sampleCSVBtn {
+  padding: 10px 20px;
+  background-color: transparent; 
+  color: #1e40af; 
+  cursor: pointer;
+  font-weight: 500;
+  border: none; 
+  margin-top: 16px;
+}
+
+.sampleCSVBtn:hover {
+  color: #052364;
+  text-decoration: none; 
+  background-color: transparent; 
+}
+
 .discardBtn,
 .importBtn {
   padding: 10px 20px;

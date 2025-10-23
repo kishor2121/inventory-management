@@ -4,6 +4,7 @@ import styles from './import.module.css';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { FaCloudUploadAlt } from 'react-icons/fa'; 
 
 export default function ImportProductPage() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function ImportProductPage() {
     setSkippedProducts([]);
 
     if (!file || !gender || !category) {
-      setErrorMessage('⚠️ Please select gender, category, and a CSV file.');
+      setErrorMessage(' Please select gender, category, and a CSV file.');
       return;
     }
 
@@ -64,7 +65,7 @@ export default function ImportProductPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrorMessage(data.message || '❌ Failed to import products.');
+        setErrorMessage(data.message || ' Failed to import products.');
         return;
       }
 
@@ -78,14 +79,14 @@ export default function ImportProductPage() {
         router.push('/products');
       } else if (data.skipped && data.skipped.length > 0) {
         setSkippedProducts(data.skipped);
-        setErrorMessage('❌ No products were imported.');
+        setErrorMessage(' No products were imported.');
       } else {
-        setErrorMessage('❌ Import failed. No products processed.');
+        setErrorMessage(' Import failed. No products processed.');
       }
 
     } catch (error) {
       console.error('Import error:', error);
-      setErrorMessage('❌ Something went wrong. Please try again.');
+      setErrorMessage(' Something went wrong. Please try again.');
     } finally {
       setIsImporting(false);
     }
@@ -98,6 +99,22 @@ export default function ImportProductPage() {
 
   const isFileInputEnabled = gender !== '' && category !== '';
   const isImportEnabled = isFileInputEnabled && file !== null;
+
+  const sampleCSV = `name,description,price,sku,size
+MEN BLAZER FORMAL,Premium formal blazer for men,499,BLAZER00345,34
+WOMEN DENIM JACKET,Trendy denim jacket for women,699,DENIM00245,"36,38,40,42"
+UNISEX T-SHIRT,Cotton t-shirt with relaxed fit,299,TSHIRT00145,"34,38"
+SPORTS SHOES,High-grip lightweight running shoes,1299,KRRNJ445,"38,40,42"
+KIDS HOODIE,Warm hoodie for kids with cartoon print,399,HOODIE001565,"36,38"
+`;
+
+  const handleDownloadCSV = () => {
+    const blob = new Blob([sampleCSV], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'sample-products.csv';
+    link.click();
+  };
 
   return (
     <div className={styles.importContainer}>
@@ -140,7 +157,17 @@ export default function ImportProductPage() {
           ))}
         </select>
 
-        <div className={styles.fileDrop}>
+        {/* Drag and Drop File Upload */}
+        <div
+          className={`${styles.fileDrop} ${!isFileInputEnabled ? styles.disabledLabel : ''}`}
+        >
+          <label
+            htmlFor="csvFileInput"
+            className={styles.fileLabel}
+          >
+            <FaCloudUploadAlt size={50} color="#111827" />
+            <p>Select a CSV file to import <br />or drag and drop it here (Max: 1MB)</p>
+          </label>
           <input
             type="file"
             accept=".csv"
@@ -149,13 +176,15 @@ export default function ImportProductPage() {
             style={{ display: 'none' }}
             disabled={!isFileInputEnabled}
           />
-          <label
-            htmlFor="csvFileInput"
-            className={`${styles.fileLabel} ${!isFileInputEnabled ? styles.disabledLabel : ''}`}
+        </div>
+
+        <div className={styles.actions}>
+          <button
+            className={styles.sampleCSVBtn}
+            onClick={handleDownloadCSV}
           >
-            {file ? file.name : 'Choose File'}
-          </label>
-          <p>Select a CSV file to import<br />(Max: 1MB)</p>
+            Download Sample CSV
+          </button>
         </div>
 
         {errorMessage && (
@@ -166,7 +195,7 @@ export default function ImportProductPage() {
 
         {skippedProducts.length > 0 && (
           <div className={styles.skippedBox}>
-            <h4>⚠️ Skipped Products:</h4>
+            <h4> Skipped Products:</h4>
             <ul>
               {skippedProducts.map((item, index) => (
                 <li key={index}>
