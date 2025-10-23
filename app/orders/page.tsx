@@ -80,7 +80,7 @@ export default function OrdersPage() {
     }
 
     setFilteredOrders(result);
-    setCurrentPage(1); // Reset pagination on filter change
+    setCurrentPage(1);
   }, [search, fromDate, toDate, orders]);
 
   async function handleDelete() {
@@ -105,13 +105,9 @@ export default function OrdersPage() {
   async function handleExport() {
     try {
       const url = `/api/booking/export?from_date=${fromDate || ""}&to_date=${toDate || ""}`;
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await fetch(url, { method: "GET", credentials: "include" });
 
       if (!response.ok) {
-        console.error("Failed to fetch file");
         alert("Failed to export file");
         return;
       }
@@ -133,20 +129,17 @@ export default function OrdersPage() {
       a.remove();
       window.URL.revokeObjectURL(downloadUrl);
     } catch (err) {
-      console.error("Error downloading file:", err);
+      console.error(err);
       alert("Export failed. Check console for details.");
     }
   }
-
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
   function goToPage(page: number) {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   }
 
   return (
@@ -214,6 +207,13 @@ export default function OrdersPage() {
                   0
                 );
 
+                // Determine if booking is ongoing or future
+                const now = new Date();
+                const isEditable = o.productLocks.some((lock) => {
+                  const returnDate = new Date(lock.returnDate);
+                  return now <= returnDate; // ongoing or future
+                });
+
                 return (
                   <tr key={o.id}>
                     <td>{o.invoiceNumber}</td>
@@ -230,20 +230,24 @@ export default function OrdersPage() {
                         title="View"
                         onClick={() => router.push(`/orders/${o.id}`)}
                       />
-                      <Edit
-                        className="action-icon edit"
-                        size={16}
-                        title="Edit"
-                        onClick={() =>
-                          router.push(`/create-booking/${o.id}/updatebooking`)
-                        }
-                      />
-                      <Trash2
-                        className="action-icon delete"
-                        size={16}
-                        title="Delete"
-                        onClick={() => setDeleteId(o.id)}
-                      />
+                      {isEditable && (
+                        <>
+                          <Edit
+                            className="action-icon edit"
+                            size={16}
+                            title="Edit"
+                            onClick={() =>
+                              router.push(`/create-booking/${o.id}/updatebooking`)
+                            }
+                          />
+                          <Trash2
+                            className="action-icon delete"
+                            size={16}
+                            title="Delete"
+                            onClick={() => setDeleteId(o.id)}
+                          />
+                        </>
+                      )}
                     </td>
                   </tr>
                 );
@@ -298,6 +302,7 @@ export default function OrdersPage() {
             </div>
           </div>
         </div>
+
       )}
     </div>
   );
