@@ -24,7 +24,7 @@ interface Order {
   customerName: string;
   phoneNumberPrimary: string;
   phoneNumberSecondary: string;
-  securityDeposit: number; // replaced totalDeposit
+  securityDeposit: number;
   invoiceNumber: number;
   createdAt: string;
   productLocks: ProductLock[];
@@ -39,6 +39,9 @@ export default function OrdersPage() {
   const [toDate, setToDate] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchOrders();
@@ -64,7 +67,6 @@ export default function OrdersPage() {
         o.phoneNumberSecondary.toLowerCase().includes(search.toLowerCase())
     );
 
-    // ✅ Inclusive date range filter
     if (fromDate || toDate) {
       const from = fromDate ? new Date(fromDate + "T00:00:00") : null;
       const to = toDate ? new Date(toDate + "T23:59:59") : null;
@@ -78,6 +80,7 @@ export default function OrdersPage() {
     }
 
     setFilteredOrders(result);
+    setCurrentPage(1); // Reset pagination on filter change
   }, [search, fromDate, toDate, orders]);
 
   async function handleDelete() {
@@ -102,7 +105,6 @@ export default function OrdersPage() {
   async function handleExport() {
     try {
       const url = `/api/booking/export?from_date=${fromDate || ""}&to_date=${toDate || ""}`;
-
       const response = await fetch(url, {
         method: "GET",
         credentials: "include",
@@ -133,6 +135,17 @@ export default function OrdersPage() {
     } catch (err) {
       console.error("Error downloading file:", err);
       alert("Export failed. Check console for details.");
+    }
+  }
+
+
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
   }
 
@@ -194,8 +207,8 @@ export default function OrdersPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.length > 0 ? (
-              filteredOrders.map((o) => {
+            {paginatedOrders.length > 0 ? (
+              paginatedOrders.map((o) => {
                 const productAmount = o.productLocks.reduce(
                   (sum, lock) => sum + lock.product.price,
                   0
@@ -246,33 +259,40 @@ export default function OrdersPage() {
         </table>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+            Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              className={currentPage === i + 1 ? "active-page" : ""}
+              onClick={() => goToPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+            Next
+          </button>
+        </div>
+      )}
+
       {deleteId && (
         <div className="modal-overlay">
           <div className="modal-box">
             <div className="modal-header">
               <h3>Confirm Order Deletion?</h3>
-              <X
-                size={18}
-                className="close-icon"
-                onClick={() => setDeleteId(null)}
-              />
+              <X size={18} className="close-icon" onClick={() => setDeleteId(null)} />
             </div>
             <p>Are you sure you want to delete this order?</p>
             <p className="note">This action cannot be undone.</p>
             <div className="modal-actions">
-              <button
-                className="cancel-btn"
-                onClick={() => setDeleteId(null)}
-                disabled={loading}
-              >
+              <button className="cancel-btn" onClick={() => setDeleteId(null)} disabled={loading}>
                 Cancel
               </button>
-              <button
-                className="delete-btn"
-                onClick={handleDelete}
-                disabled={loading}
-              >
+              <button className="delete-btn" onClick={handleDelete} disabled={loading}>
                 {loading ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
