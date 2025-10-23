@@ -25,7 +25,7 @@
 
 .select,
 .search {
-  padding: 8px 14px;
+  padding: 8px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   background-color: white;
@@ -52,7 +52,6 @@
   transition: all 0.2s ease;
   text-decoration: none;
 }
-
 .addBtn:hover {
   background-color: #111827;
 }
@@ -87,10 +86,11 @@
 
 .table th,
 .table td {
-  padding: 16px 12px;
+  padding: 12px 8px;
   text-align: center;
   vertical-align: middle;
-  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
 }
 
 .table th {
@@ -100,10 +100,52 @@
   font-size: 13.5px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-bottom: 2px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.table tr:hover td {
-  background-color: #f9fafb;
+/* Enhanced table row styles */
+.table tbody tr {
+  background-color: white;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+.table tbody tr:hover {
+  background-color: #f0f9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.table tbody tr:hover td {
+  border-color: #ebebeb;
+}
+
+.table tbody tr:active {
+  transform: translateY(0);
+  transition-duration: 0.1s;
+}
+
+/* Enhanced table cell styles */
+.table td {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.table tbody tr td:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.table tbody tr td:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 /* Image cell */
@@ -111,6 +153,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 8px;
 }
 
 .productImage {
@@ -119,6 +162,12 @@
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table tbody tr:hover .productImage {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
 .noImage {
@@ -134,22 +183,33 @@
   border: 1px dashed #d1d5db;
 }
 
-.table td {
-  color: #1f2937;
-  font-weight: 500;
+/* Product name cell */
+.productName {
+  text-align: center !important;
+  font-weight: 600;
+  max-width: 200px;
 }
 
-/* Product link styles (if used) */
+/* Product link styles */
 .productLink {
-  color: #2563eb;
+  color: #1f2937;
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: inline-block;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
 }
 
 .productLink:hover {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  transform: translateX(2px);
+}
+
+.table tbody tr:hover .productLink {
   color: #1e40af;
-  text-decoration: underline;
 }
 
 /* Actions column */
@@ -157,7 +217,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .edit,
@@ -195,11 +255,11 @@
 /* Status / dropdown base */
 .dropdownWrapper {
   position: relative; /* keeps dropdownMenu positioned relative to this */
-  z-index: 5; /* base stacking for the trigger */
+  z-index: 1; /* lower z-index for the trigger button */
   padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
-  color: white;
+  color: #374151;
   font-size: 13.5px;
   font-weight: 500;
   text-transform: capitalize;
@@ -208,6 +268,8 @@
   justify-content: center;
   gap: 6px;
   transition: all 0.2s ease;
+  background: transparent;
+  border: 1px solid #d1d5db;
 }
 
 /* Status pill variant (if used directly as pill) */
@@ -226,45 +288,50 @@
 
 /* Colored status classes (used both on wrapper and options) */
 .statusGreen {
-  background-color: #16a34a;
+  background: transparent;
+  color: #374151;
 }
 
 .statusBlue {
-  background-color: #2563eb;
+  background: transparent;
+  color: #374151;
 }
 
 .statusGray {
-  background-color: #9ca3af;
-  color: #f3f4f6;
+  background: transparent;
+  color: #374151;
 }
 
 /* Dropdown menu
-   Important: place ABOVE the trigger so it doesn't sit inside the card.
-   We use bottom: 110% so it grows upward. If you prefer it below, change to top: 110%.
+   Positioned outside of parent stacking context for maximum z-index
 */
 .dropdownMenu {
-  position: absolute;
-  bottom: 110%;
-  left: 0;
+  position: fixed; /* use fixed positioning to break out of parent stacking context */
+  bottom: auto;
+  top: auto;
+  left: auto;
   width: 140px;
   background: white;
   border-radius: 8px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e5e7eb;
   overflow: visible;
-  z-index: 9999; /* ensure top-most */
+  z-index: 999999; /* maximum z-index */
   display: flex;
   flex-direction: column;
   animation: fadeIn 0.12s ease;
-  transform-origin: bottom left;
+  transform-origin: top left;
 }
 
 /* Each option inside dropdown */
 .dropdownOption {
   padding: 8px 12px;
   cursor: pointer;
-  color: white;
+  color: "#374151";
+  font-weight: bold;
+  font-size: 12;
   text-align: center;
-  font-weight: 500;
+  font-weight: normal;
   text-transform: capitalize;
   transition: all 0.12s ease;
   border-bottom: 1px solid rgba(255,255,255,0.04);
@@ -291,6 +358,18 @@
 .dropdownWrapper:focus {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
   outline: none;
+}
+
+/* Dropdown backdrop */
+.dropdownBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999998; /* below dropdown menu but above everything else */
+  background: transparent;
+  cursor: default;
 }
 
 /* Small animation for menu */

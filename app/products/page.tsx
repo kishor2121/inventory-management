@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Edit2, Trash2, ChevronDown } from 'lucide-react';
+import { Edit2, Trash2, ChevronDown, Archive, WashingMachine, CheckCircle } from 'lucide-react';
 import styles from './products.module.css';
 import Confirmation from '../../components/confirmation';
 
@@ -22,6 +22,7 @@ export default function ProductsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // for custom dropdown
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -51,6 +52,20 @@ export default function ProductsPage() {
     }
   };
 
+  const handleDropdownToggle = (id: string, event: React.MouseEvent) => {
+    if (openDropdownId === id) {
+      setOpenDropdownId(null);
+      setDropdownPosition(null);
+    } else {
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 5,
+        left: rect.left + window.scrollX
+      });
+      setOpenDropdownId(id);
+    }
+  };
+
   const handleStatusChange = async (id: string, newStatus: string) => {
     await fetch(`/api/products/${id}`, {
       method: 'PUT',
@@ -62,6 +77,7 @@ export default function ProductsPage() {
       prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
     );
     setOpenDropdownId(null);
+    setDropdownPosition(null);
   };
 
   const filteredProducts = products.filter(
@@ -80,6 +96,19 @@ export default function ProductsPage() {
         return styles.statusGray;
       default:
         return '';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'available':
+        return <CheckCircle size={14} />;
+      case 'in laundry':
+        return <WashingMachine size={14} />;
+      case 'archived':
+        return <Archive size={14} />;
+      default:
+        return null;
     }
   };
 
@@ -150,37 +179,14 @@ export default function ProductsPage() {
                 <td>
                   <div
                     className={`${styles.dropdownWrapper} ${getStatusColor(product.status)}`}
-                    onClick={() =>
-                      setOpenDropdownId(openDropdownId === product.id ? null : product.id)
-                    }
+                    onClick={(e) => handleDropdownToggle(product.id, e)}
                   >
+                    {getStatusIcon(product.status)}
                     <span className={styles.dropdownText}>{product.status}</span>
                     <ChevronDown size={14} />
-                    {openDropdownId === product.id && (
-                      <div className={styles.dropdownMenu}>
-                        <div
-                          className={`${styles.dropdownOption} ${styles.statusGreen}`}
-                          onClick={() => handleStatusChange(product.id, 'available')}
-                        >
-                          Available
-                        </div>
-                        <div
-                          className={`${styles.dropdownOption} ${styles.statusBlue}`}
-                          onClick={() => handleStatusChange(product.id, 'in Laundry')}
-                        >
-                          In Laundry
-                        </div>
-                        <div
-                          className={`${styles.dropdownOption} ${styles.statusGray}`}
-                          onClick={() => handleStatusChange(product.id, 'archived')}
-                        >
-                          Archived
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </td>
-                <td className={styles.actions}>
+                <td>
                   <Link href={`/products/edit-product/${product.id}`} className={styles.edit}>
                     <Edit2 size={16} />
                   </Link>
@@ -202,6 +208,50 @@ export default function ProductsPage() {
             )}
           </tbody>
         </table>
+
+        {/* Fixed positioned dropdown menu */}
+        {openDropdownId && dropdownPosition && (
+          <div 
+            className={styles.dropdownMenu}
+            style={{
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+            }}
+          >
+            <div
+              className={`${styles.dropdownOption}`}
+              onClick={() => handleStatusChange(openDropdownId, 'available')}
+            >
+              <CheckCircle size={14} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+              Available
+            </div>
+            <div
+              className={`${styles.dropdownOption}`}
+              onClick={() => handleStatusChange(openDropdownId, 'in Laundry')}
+            >
+              <WashingMachine size={14} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+              In Laundry
+            </div>
+            <div
+              className={`${styles.dropdownOption}`}
+              onClick={() => handleStatusChange(openDropdownId, 'archived')}
+            >
+              <Archive size={14} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+              Archived
+            </div>
+          </div>
+        )}
+
+        {/* Backdrop to close dropdown when clicking outside */}
+        {openDropdownId && (
+          <div 
+            className={styles.dropdownBackdrop}
+            onClick={() => {
+              setOpenDropdownId(null);
+              setDropdownPosition(null);
+            }}
+          />
+        )}
       </div>
 
       <Confirmation
