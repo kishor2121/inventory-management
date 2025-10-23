@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     const rentalType = formData.get("rentalType")?.toString() || "";
     const advancePaymentMethod = formData.get("advancePaymentMethod")?.toString() || "";
     const productsString = formData.get("products")?.toString() || "[]";
+    const additionalCharges = parseFloat(formData.get("additionalCharges")?.toString() || "0");
 
     if (!customerName || !phoneNumberPrimary || !productsString) {
       return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 });
@@ -101,6 +102,7 @@ export async function POST(req: NextRequest) {
         rentAmount,
         totalDeposit,
         securityDeposit,
+        additionalCharges,
         returnAmount,
         advancePayment,
         discount,
