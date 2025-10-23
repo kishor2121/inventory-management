@@ -41,21 +41,10 @@ export default function UpdateBooking() {
   const [rentAmount, setRentAmount] = useState<number>(0);
   const [totalDeposit, setTotalDeposit] = useState<number>(0);
   const [returnAmount, setReturnAmount] = useState<number>(0);
-  const [errors, setErrors] = useState({
-    customerName: "",
-    phoneNumber: "",
-    bookingType: "",
-    product: "",
-    deliveryDate: "",
-    returnDate: "",
-    securityDeposit: "",
-    advance: "",
-    paymentMode: "",
-  });
+  const [errors, setErrors] = useState<any>({});
 
   const [selectedBookingType, setSelectedBookingType] = useState<string>("");
   const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>("");
-
   const [customerName, setCustomerName] = useState("");
   const [phoneNumberPrimary, setPhoneNumberPrimary] = useState("");
   const [phoneNumberSecondary, setPhoneNumberSecondary] = useState("");
@@ -78,7 +67,7 @@ export default function UpdateBooking() {
     fetchProducts();
   }, []);
 
-  // Fetch booking
+  // Fetch booking details
   useEffect(() => {
     const fetchBooking = async () => {
       const res = await fetch(`/api/booking/${bookingId}`);
@@ -132,6 +121,10 @@ export default function UpdateBooking() {
     fetchBooking();
   }, [bookingId]);
 
+  // Helpers
+  const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
+  const isValidPhone = (num: string) => /^[0-9]{10}$/.test(num);
+
   const getAvailableProducts = (currentId: number) => {
     const selectedIds = productCards
       .filter((p) => p.product && p.id !== currentId)
@@ -140,16 +133,11 @@ export default function UpdateBooking() {
   };
 
   const handleChange = (id: number, field: keyof ProductCard, value: any) => {
-    setProductCards((prev) =>
-      prev.map((card) => {
+    setProductCards(prev =>
+      prev.map(card => {
         if (card.id === id) {
           if (field === "product" && value) {
-            return {
-              ...card,
-              product: value,
-              size: value.size && value.size.length === 1 ? value.size[0] : "",
-              amount: String(value.price || ""),
-            };
+            return { ...card, product: value, size: value.size && value.size.length === 1 ? value.size[0] : "", amount: String(value.price || "") };
           }
           return { ...card, [field]: value };
         }
@@ -165,38 +153,28 @@ export default function UpdateBooking() {
       setErrorMessage("⚠️ Please fill all product details before adding another item.");
       return;
     }
-    setProductCards((prev) => [
-      ...prev,
-      { id: Date.now(), product: null, size: "", amount: "", deliveryDate: "", returnDate: "" },
-    ]);
+    setProductCards(prev => [...prev, { id: Date.now(), product: null, size: "", amount: "", deliveryDate: "", returnDate: "" }]);
     setErrorMessage("");
   };
 
-    const handleRemoveItem = async (cardId: number) => {
-      const card = productCards.find((c) => c.id === cardId);
-      if (!card || !card.productLockId) return;
+  const handleRemoveItem = async (cardId: number) => {
+    const card = productCards.find(c => c.id === cardId);
+    if (!card || !card.productLockId) return;
 
-      try {
-        const res = await fetch(`/api/product-lock/${card.productLockId}`, {
-          method: "DELETE",
-        });
+    try {
+      const res = await fetch(`/api/product-lock/${card.productLockId}`, { method: "DELETE" });
+      if (!res.ok) return console.error("Failed to delete product lock");
+      setProductCards(prev => prev.filter(c => c.id !== cardId));
+    } catch (err) {
+      console.error("Error deleting product lock:", err);
+    }
+  };
 
-        if (!res.ok) {
-          console.error("Failed to delete product lock");
-          return;
-        }
-
-        setProductCards(prev => prev.filter((c) => c.id !== cardId));
-      } catch (err) {
-        console.error("Error deleting product lock:", err);
-      }
-    };
-
-
+  // Same date effect
   useEffect(() => {
     if (sameDate) {
-      setProductCards((prev) =>
-        prev.map((card) => ({ ...card, deliveryDate: globalDeliveryDate, returnDate: globalReturnDate }))
+      setProductCards(prev =>
+        prev.map(card => ({ ...card, deliveryDate: globalDeliveryDate, returnDate: globalReturnDate }))
       );
     }
   }, [sameDate, globalDeliveryDate, globalReturnDate]);
@@ -204,30 +182,33 @@ export default function UpdateBooking() {
   // Update totals
   useEffect(() => {
     const totalProductAmount = productCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0);
-    const discount = discountValue || 0;
-    const extras = additionalCharges || 0;
-    const baseRent = Math.max(totalProductAmount - discount, 0);
-    const rentWithExtras = baseRent + extras;
+    const baseRent = Math.max(totalProductAmount - (discountValue || 0), 0) + (additionalCharges || 0);
     const totalDep = (advance || 0) + (securityDeposit || 0);
-    const retAmt = totalDep - rentWithExtras;
+    const retAmt = totalDep - baseRent;
 
-    setRentAmount(rentWithExtras);
+    setRentAmount(baseRent);
     setTotalDeposit(totalDep);
     setReturnAmount(retAmt);
   }, [productCards, discountValue, securityDeposit, advance, additionalCharges]);
 
-  const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
-
+  // Booking submit
   const handleBooking = async () => {
     let newErrors: any = {};
+
     if (!customerName.trim()) newErrors.customerName = "Customer Name is required.";
     if (!phoneNumberPrimary.trim()) newErrors.phoneNumber = "Mobile No. is required.";
+    else if (!isValidPhone(phoneNumberPrimary)) newErrors.phoneNumber = "Mobile No. must be 10 digits.";
+
+    if (phoneNumberSecondary && !isValidPhone(phoneNumberSecondary))
+      newErrors.phoneNumberSecondary = "Alternate No. must be 10 digits.";
+
     if (!selectedBookingType) newErrors.bookingType = "Booking Type is required.";
 
     const firstProduct = productCards[0];
-    if (!firstProduct.product) newErrors.product = "Please select a product.";
-    if (!firstProduct.deliveryDate && !sameDate) newErrors.deliveryDate = "Delivery date is required.";
-    if (!firstProduct.returnDate && !sameDate) newErrors.returnDate = "Return date is required.";
+    if (!firstProduct?.product) newErrors.product = "Please select a product.";
+    if (!firstProduct?.deliveryDate && !sameDate) newErrors.deliveryDate = "Delivery date is required.";
+    if (!firstProduct?.returnDate && !sameDate) newErrors.returnDate = "Return date is required.";
+
     if (!securityDeposit) newErrors.securityDeposit = "Deposit Amount is required.";
     if (!advance) newErrors.advance = "Adv. Payment is required.";
     if (!selectedPaymentMode) newErrors.paymentMode = "Payment mode is required.";
@@ -235,7 +216,7 @@ export default function UpdateBooking() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    const productsData = productCards.map((card) => ({
+    const productsData = productCards.map(card => ({
       productId: card.product?.value,
       deliveryDate: sameDate ? globalDeliveryDate : card.deliveryDate,
       returnDate: sameDate ? globalReturnDate : card.returnDate,
@@ -260,16 +241,9 @@ export default function UpdateBooking() {
     formData.append("bookingId", bookingId);
 
     try {
-      const res = await fetch("/api/booking/update-booking", {
-        method: "PUT",
-        body: formData,
-      });
+      const res = await fetch("/api/booking/update-booking", { method: "PUT", body: formData });
       const data = await res.json();
-
-      if (!res.ok) {
-        setErrorMessage(data.message || "⚠️ Failed to update booking.");
-        return;
-      }
+      if (!res.ok) return setErrorMessage(data.message || "⚠️ Failed to update booking.");
 
       setErrorMessage("");
       alert("✅ Booking updated successfully!");
@@ -280,10 +254,12 @@ export default function UpdateBooking() {
     }
   };
 
+  // Render
   return (
     <div className="booking-page">
       <div className="breadcrumb">Home › <span>Update Booking</span></div>
       <div className="booking-container">
+        {/* Left Side Form */}
         <div className="booking-left">
           <div className="card">
             <div className="form-row">
@@ -300,6 +276,7 @@ export default function UpdateBooking() {
               <div className="form-group">
                 <label>Alternate No.</label>
                 <input type="text" placeholder="Enter alternate number" value={phoneNumberSecondary} onChange={(e) => setPhoneNumberSecondary(e.target.value)} />
+                {errors.phoneNumberSecondary && <span className="error-text">{errors.phoneNumberSecondary}</span>}
               </div>
             </div>
 
@@ -335,7 +312,7 @@ export default function UpdateBooking() {
             )}
           </div>
 
-          {productCards.map((card) => (
+          {productCards.map(card => (
             <div className="card product-card" key={card.id}>
               {productCards.length > 1 && <button className="remove-btn" onClick={() => handleRemoveItem(card.id)}>×</button>}
               <div className="form-row">
@@ -374,6 +351,7 @@ export default function UpdateBooking() {
           </div>
         </div>
 
+        {/* Right Side */}
         <div className="booking-right">
           <div className="card">
             <div className="form-group">
