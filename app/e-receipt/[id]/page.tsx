@@ -19,7 +19,6 @@ export default function EReceiptPage() {
           fetch("/api/organization/get-organization-info"),
         ]);
 
-        // ✅ Same error handling as your original logic
         if (!orderRes.ok) {
           if (orderRes.status === 404) {
             setError("Booking not found. Please check the booking ID.");
@@ -63,6 +62,7 @@ export default function EReceiptPage() {
     order.discount;
 
   const remainingPayment = total - order.advancePayment;
+  const returnAmount = remainingPayment - order.advancePayment;
 
   return (
     <div className="invoice-wrapper">
@@ -134,6 +134,11 @@ export default function EReceiptPage() {
             <div>
               <span>Rem. Payment:</span>
               <span className="red">Rs.{remainingPayment}</span>
+            </div>
+            {/* === Added Return Amount here === */}
+            <div>
+              <span>Return Amount:</span>
+              <span>Rs.{returnAmount}</span> {/* This is the new calculation */}
             </div>
           </div>
 
