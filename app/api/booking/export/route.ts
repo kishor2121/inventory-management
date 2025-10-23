@@ -11,22 +11,25 @@ export async function GET(req: NextRequest) {
     const fromDate = searchParams.get("from_date");
     const toDate = searchParams.get("to_date");
 
+
     const from = fromDate ? new Date(fromDate) : null;
-    const to = toDate ? new Date(toDate) : null;
+    const to = toDate
+      ? new Date(new Date(toDate).setHours(23, 59, 59, 999))
+      : null;
 
     const bookings = await prisma.booking.findMany({
+      where: {
+        createdAt: {
+          ...(from ? { gte: from } : {}),
+          ...(to ? { lte: to } : {}),
+        },
+        isDeleted: false,
+      },
       include: {
         productLocks: { include: { product: true } },
       },
       orderBy: { createdAt: "desc" },
     });
-
-    const filtered = bookings.filter((b) =>
-      b.productLocks.some((pl) => {
-        const delivery = new Date(pl.deliveryDate);
-        return (!from || delivery >= from) && (!to || delivery <= to);
-      })
-    );
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Bookings");
@@ -54,19 +57,16 @@ export async function GET(req: NextRequest) {
     });
 
     const rows: any[] = [];
-    filtered.forEach((b) => {
+
+    bookings.forEach((b) => {
       const totalAmount = b.productLocks.reduce(
         (sum, pl) => sum + (pl.product?.price || 0),
         0
       );
 
-      const bookingDate = b.productLocks
-        .map((pl) => new Date(pl.deliveryDate))
-        .sort((a, b) => a.getTime() - b.getTime())[0];
-
       rows.push({
         invoiceNumber: b.invoiceNumber || "",
-        deliveryDate: bookingDate,
+        bookingDate: b.createdAt,
         customerName: b.customerName || "",
         phoneNumberPrimary: b.phoneNumberPrimary || "",
         phoneNumberSecondary: b.phoneNumberSecondary || "",
@@ -75,12 +75,13 @@ export async function GET(req: NextRequest) {
       });
     });
 
-    rows.sort((a, b) => a.deliveryDate.getTime() - b.deliveryDate.getTime());
+    // ✅ Sort by booking date (createdAt)
+    rows.sort((a, b) => a.bookingDate.getTime() - b.bookingDate.getTime());
 
     rows.forEach((r) =>
       sheet.addRow([
         r.invoiceNumber,
-        r.deliveryDate.toLocaleDateString(),
+        r.bookingDate.toLocaleDateString("en-GB"), // dd/mm/yyyy format
         r.customerName,
         r.phoneNumberPrimary,
         r.phoneNumberSecondary,
@@ -89,9 +90,11 @@ export async function GET(req: NextRequest) {
       ])
     );
 
+    // ✅ Format ₹ columns
     sheet.getColumn(6).numFmt = '"₹"#,##0.00';
     sheet.getColumn(7).numFmt = '"₹"#,##0.00';
 
+    // ✅ Auto column width
     sheet.columns.forEach((column) => {
       let maxLength = 0;
       column.eachCell({ includeEmpty: true }, (cell) => {
@@ -101,6 +104,7 @@ export async function GET(req: NextRequest) {
       column.width = maxLength + 2;
     });
 
+    // ✅ Add border to all cells
     sheet.eachRow((row) => {
       row.eachCell((cell) => {
         cell.border = {
@@ -114,7 +118,9 @@ export async function GET(req: NextRequest) {
 
     const buffer = await workbook.xlsx.writeBuffer();
     const formatDate = (d: string | null) => d ?? "all";
-    const fileName = `bookings_export_${formatDate(fromDate)}_to_${formatDate(toDate)}.xlsx`;
+    const fileName = `bookings_export_${formatDate(fromDate)}_to_${formatDate(
+      toDate
+    )}.xlsx`;
 
     return new NextResponse(buffer, {
       headers: {
