@@ -28,10 +28,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Please provide 'from' and 'to' dates" }, { status: 400 });
     }
 
+    const fromDate = new Date(from);
+    fromDate.setHours(0, 0, 0, 0);
+    const toDate = new Date(to);
+    toDate.setHours(23, 59, 59, 999);
+
     const locks = await prisma.productLock.findMany({
       where: {
-        deliveryDate: { gte: new Date(from), lte: new Date(to) },
-        booking: { isDeleted: false },
+        booking: {
+          isDeleted: false,
+          createdAt: { gte: fromDate, lte: toDate },
+        },
       },
       include: { booking: true, product: true },
     });
@@ -39,8 +46,9 @@ export async function GET(req: NextRequest) {
     const weeklyMap: Record<string, { revenue: number; bookings: Set<string> }> = {};
 
     locks.forEach((l) => {
-      if (!l.deliveryDate) return;
-      const weekRange = getWeekRange(l.deliveryDate);
+      const createdAt = l.booking?.createdAt;
+      if (!createdAt) return;
+      const weekRange = getWeekRange(new Date(createdAt));
       if (!weeklyMap[weekRange]) weeklyMap[weekRange] = { revenue: 0, bookings: new Set() };
       weeklyMap[weekRange].revenue += l.product?.price || 0;
       weeklyMap[weekRange].bookings.add(l.bookingId);
@@ -54,12 +62,42 @@ export async function GET(req: NextRequest) {
         bookings: data.bookings.size,
       }));
 
-    const totalBookingCount = new Set(locks.map((l) => l.bookingId)).size;
-    const totalRevenue = locks.reduce((sum, l) => sum + (l.product?.price || 0), 0);
-    const revenueInCash = locks.filter((l) => l.booking?.advancePaymentMethod === "Cash").reduce((sum, l) => sum + (l.product?.price || 0), 0);
-    const revenueInBank = locks.filter((l) => l.booking?.advancePaymentMethod === "Card").reduce((sum, l) => sum + (l.product?.price || 0), 0);
+    const bookingsMap: Record<string, { booking: any; products: any[] }> = {};
+    locks.forEach((lock) => {
+      if (!bookingsMap[lock.bookingId]) bookingsMap[lock.bookingId] = { booking: lock.booking, products: [] };
+      bookingsMap[lock.bookingId].products.push(lock.product);
+    });
 
-    return NextResponse.json({ weeklyStats, total: { totalRevenue, totalBookingCount, revenue: { revenueInCash, revenueInBank } } });
+    // Calculate totalRevenue using product prices + additionalCharges - discount
+    const totalRevenue = Object.values(bookingsMap).reduce((sum, b) => {
+      const productSum = b.products.reduce((s, p) => s + (p.price || 0), 0);
+      const additionalCharges = b.booking.additionalCharges || 0;
+      const discount = b.booking.discount || 0;
+      return sum + productSum + additionalCharges - discount;
+    }, 0);
+
+    const totalBookingCount = Object.keys(bookingsMap).length;
+
+    const revenueInCash = Object.values(bookingsMap).reduce((sum, b) => {
+      if (b.booking.advancePaymentMethod === "Cash") {
+        const productSum = b.products.reduce((s, p) => s + (p.price || 0), 0);
+        return sum + productSum + (b.booking.additionalCharges || 0) - (b.booking.discount || 0);
+      }
+      return sum;
+    }, 0);
+
+    const revenueInBank = Object.values(bookingsMap).reduce((sum, b) => {
+      if (b.booking.advancePaymentMethod === "Card") {
+        const productSum = b.products.reduce((s, p) => s + (p.price || 0), 0);
+        return sum + productSum + (b.booking.additionalCharges || 0) - (b.booking.discount || 0);
+      }
+      return sum;
+    }, 0);
+
+    return NextResponse.json({
+      weeklyStats,
+      total: { totalRevenue, totalBookingCount, revenue: { revenueInCash, revenueInBank } },
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
