@@ -139,17 +139,31 @@ export default function CreateBooking() {
   }, [productCards, discountValue, securityDeposit, advance, additionalCharges]);
 
   const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
+  const isValidPhoneNumber = (num: string) => /^[0-9]{10}$/.test(num);
+
 
   const handleBooking = async () => {
     const customerName = (document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]')?.value || "").trim();
     const phoneNumber = (document.querySelector<HTMLInputElement>('input[placeholder="Enter mobile number"]')?.value || "").trim();
+    const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim(); 
     const bookingType = (document.querySelector<HTMLSelectElement>('select.booking-type')?.value || "").trim();
     const paymentMode = (document.querySelector<HTMLSelectElement>('select.payment-mode')?.value || "").trim();
+    
 
     let newErrors: any = {};
 
     if (!customerName) newErrors.customerName = "Customer Name is required.";
-    if (!phoneNumber) newErrors.phoneNumber = "Mobile No. is required.";
+    if (!phoneNumber) {
+      newErrors.phoneNumber = "Mobile No. is required.";
+    } else if (!isValidPhoneNumber(phoneNumber)) {
+      newErrors.phoneNumber = "Mobile No. must be 10 digits and contain only numbers.";
+    }
+
+    if (phoneNumberSecondary && !isValidPhoneNumber(phoneNumberSecondary)) {
+      newErrors.phoneNumberSecondary = "Alternate No. must be 10 digits and contain only numbers.";
+    }
+
+
     if (!bookingType || bookingType === "Select Booking Type") newErrors.bookingType = "Booking Type is required.";
 
     const firstProduct = productCards[0];
@@ -179,7 +193,7 @@ export default function CreateBooking() {
       returnDate: sameDate ? globalReturnDate : card.returnDate,
     }));
 
-    const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim();
+   
     const notes = (document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Notes"]')?.value || "").trim();
 
     const formData = new FormData();
@@ -239,6 +253,7 @@ export default function CreateBooking() {
               <div className="form-group">
                 <label>Alternate No.</label>
                 <input type="text" placeholder="Enter alternate number" />
+                {errors.phoneNumberSecondary && <span className="error-text">{errors.phoneNumberSecondary}</span>}
               </div>
             </div>
 
