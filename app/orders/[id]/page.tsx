@@ -231,12 +231,30 @@ export default function ViewOrderPage() {
     const baseUrl = window.location.origin;
     const receiptLink = `${baseUrl}/e-receipt/${order.id}`;
 
-    const message = `👉 *Invoice #${order.invoiceNumber} is Ready!*\n\nHello *${order.customerName}*,\n\nThank you for choosing our service.\n\n *View/Download Invoice:*\n${receiptLink}\n\nIf you have any questions, feel free to contact us.`;
+    const message = `👉 *Invoice #${order.invoiceNumber} is Ready!*\n\nHello *${order.customerName}*,\n\nThank you for choosing our service.\n\n *Please find the invoice attached:*\n${receiptLink}\n\nIf you have any questions, feel free to contact us.`;
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
     window.open(whatsappUrl, "_blank");
+  };
+
+  // ✅ Copy same message as WhatsApp share
+  const handleCopy = async () => {
+    if (!order) return;
+
+    const baseUrl = window.location.origin;
+    const receiptLink = `${baseUrl}/e-receipt/${order.id}`;
+
+    const message = `👉 *Invoice #${order.invoiceNumber} is Ready!*\n\nHello *${order.customerName}*,\n\nThank you for choosing our service.\n\n*Please find the invoice attached:*\n${receiptLink}\n\nIf you have any questions, feel free to contact us.`;
+
+    try {
+      await navigator.clipboard.writeText(message);
+      alert("Invoice message copied");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      alert("Failed to copy message!");
+    }
   };
 
   return (
@@ -249,7 +267,9 @@ export default function ViewOrderPage() {
           <button className="whatsapp" onClick={handleWhatsappShare}>
             <MessageCircle size={16} /> Share on Whatsapp
           </button>
-          <button className="copy"><Copy size={16} /> Copy</button>
+          <button className="copy" onClick={handleCopy}>
+            <Copy size={16} /> Copy
+          </button>
           <button className="print" onClick={handlePrint}>
             <Printer size={16} /> Print Invoice
           </button>
