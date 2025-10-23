@@ -33,9 +33,10 @@ interface OrderDetails {
   advancePayment: number;
   discount: number;
   discountType: string;
-  additionalCharges?: number; // ✅ added
+  additionalCharges?: number; 
   invoiceNumber: number;
   createdAt: string;
+  totalDeposit: number;
   productLocks: ProductLock[];
 }
 
@@ -75,11 +76,13 @@ export default function ViewOrderPage() {
     (sum, lock) => sum + (lock.product?.price || 0),
     0
   );
-  const additionalCharges = order.additionalCharges || 0; // ✅ default to 0
+  const additionalCharges = order.additionalCharges || 0; 
   const securityDeposit = order.securityDeposit;
   const discount = order.discount;
-  const total = productAmount + additionalCharges + securityDeposit - discount; // ✅ updated
+  const total = productAmount + additionalCharges + securityDeposit - discount; 
   const remainingPayment = total - order.advancePayment;
+  const returnAmount = order.totalDeposit - order.rentAmount; 
+
 
   const generatePDF = () => {
     const doc = new jsPDF();
@@ -90,7 +93,6 @@ export default function ViewOrderPage() {
     const formatCurrency = (amount: number) =>
       `Rs.${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 
-    // === Header ===
     doc.setFont("helvetica", "bold").setFontSize(16).setTextColor(0);
     doc.text(organizationInfo.organizationName, margin, currentY);
 
@@ -99,7 +101,6 @@ export default function ViewOrderPage() {
     doc.text(`Email: ${organizationInfo.email}`, margin, currentY + 12);
     doc.text(`Phone: ${organizationInfo.contactNumber}`, margin, currentY + 18);
 
-    // Invoice info (top-right)
     doc.setTextColor(0).setFontSize(12);
     const invoiceY = currentY;
     doc.text(`Invoice #: ${order.invoiceNumber}`, pageWidth - margin, invoiceY, { align: "right" });
@@ -115,18 +116,17 @@ export default function ViewOrderPage() {
     );
 
     currentY += 28;
-
-    // === Billed To Box ===
+    const billedBoxHeight = 30;
     doc.setFillColor(245, 245, 245);
-    doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 20, 3, 3, "F");
+    doc.rect(margin, currentY, pageWidth - 2 * margin, billedBoxHeight, "F"); 
     doc.setTextColor(0).setFont("helvetica", "bold").setFontSize(11);
-    doc.text("Billed To", margin + 5, currentY + 6);
+    doc.text("Billed To:", margin + 5, currentY + 8);
     doc.setFont("helvetica", "normal").setFontSize(10);
-    doc.text(order.customerName, margin + 5, currentY + 12);
-    doc.text(`${order.phoneNumberPrimary} | ${order.phoneNumberSecondary}`, margin + 5, currentY + 18);
-    currentY += 30;
+    doc.text(order.customerName, margin + 5, currentY + 15);
+    doc.text(`${order.phoneNumberPrimary} , ${order.phoneNumberSecondary}`, margin + 5, currentY + 22);
 
-    // === Product Table ===
+    currentY += billedBoxHeight + 5;
+
     autoTable(doc, {
       startY: currentY,
       head: [["#", "Product Name", "Del. Date", "Return Date", "Amount"]],
@@ -150,48 +150,57 @@ export default function ViewOrderPage() {
     });
 
     currentY = (doc as any).lastAutoTable.finalY + 12;
+    const boxWidth = 80;
+    const boxHeight = 35;
+    const gap = 10;
 
-    // === Payment Summary ===
     const leftX = margin;
-    const rightX = pageWidth / 2 + 10;
-    let leftY = currentY;
-    let rightY = currentY;
+    const rightX = pageWidth - margin - boxWidth;
+    const boxY = currentY;
 
-    // Left Box (Advance + Remaining)
-    doc.roundedRect(leftX, leftY, 75, 24, 2, 2);
-    doc.setFont("helvetica", "normal").setFontSize(10);
-    doc.text("Adv. Payment:", leftX + 3, leftY + 8);
-    doc.text(formatCurrency(order.advancePayment), leftX + 70, leftY + 8, { align: "right" });
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.5);
+    doc.setFont("helvetica", "normal").setFontSize(8);
+
+    const lineSpacing = 6;
+
+    doc.roundedRect(leftX, boxY, boxWidth, boxHeight, 2, 2);
+    doc.text("Adv. Payment:", leftX + 3, boxY + lineSpacing);
+    doc.text(formatCurrency(order.advancePayment), leftX + boxWidth - 3, boxY + lineSpacing, { align: "right" });
 
     doc.setTextColor(220, 38, 38);
-    doc.text("Rem. Payment:", leftX + 3, leftY + 16);
-    doc.text(formatCurrency(total - order.advancePayment), leftX + 70, leftY + 16, { align: "right" });
+    doc.text("Rem. Payment:", leftX + 3, boxY + 2 * lineSpacing);
+    doc.text(formatCurrency(remainingPayment), leftX + boxWidth - 3, boxY + 2 * lineSpacing, { align: "right" });
     doc.setTextColor(0);
 
-    // Right Box (Amount + Additional + Deposit + Discount + Total)
-    doc.roundedRect(rightX, rightY, 90, 44, 2, 2);
-    doc.setFont("helvetica", "normal").setFontSize(10);
-    doc.text("Amount:", rightX + 3, rightY + 8);
-    doc.text(formatCurrency(productAmount), rightX + 75, rightY + 8, { align: "right" });
+    doc.text("Return Amount:", leftX + 3, boxY + 3 * lineSpacing);
+    doc.text(formatCurrency(returnAmount), leftX + boxWidth - 3, boxY + 3 * lineSpacing, { align: "right" });
 
-    doc.text("Additional Charges:", rightX + 3, rightY + 16);
-    doc.text(formatCurrency(additionalCharges), rightX + 75, rightY + 16, { align: "right" });
+    doc.roundedRect(rightX, boxY, boxWidth, boxHeight, 2, 2);
+    doc.text("Amount:", rightX + 3, boxY + lineSpacing);
+    doc.text(formatCurrency(productAmount), rightX + boxWidth - 3, boxY + lineSpacing, { align: "right" });
 
-    doc.text("Deposit:", rightX + 3, rightY + 24);
-    doc.text(formatCurrency(order.securityDeposit), rightX + 75, rightY + 24, { align: "right" });
+    doc.text("Add. Charges:", rightX + 3, boxY + 2 * lineSpacing);
+    doc.text(formatCurrency(additionalCharges), rightX + boxWidth - 3, boxY + 2 * lineSpacing, { align: "right" });
 
-    doc.text("Discount:", rightX + 3, rightY + 32);
+    doc.text("Deposit:", rightX + 3, boxY + 3 * lineSpacing);
+    doc.text(formatCurrency(order.securityDeposit), rightX + boxWidth - 3, boxY + 3 * lineSpacing, { align: "right" });
+
     doc.setTextColor(34, 197, 94);
-    doc.text(`- ${formatCurrency(order.discount)}`, rightX + 75, rightY + 32, { align: "right" });
+    doc.text("Discount:", rightX + 3, boxY + 4 * lineSpacing);
+    doc.text(`- ${formatCurrency(order.discount)}`, rightX + boxWidth - 3, boxY + 4 * lineSpacing, { align: "right" });
     doc.setTextColor(0);
 
-    doc.line(rightX + 3, rightY + 36, rightX + 87, rightY + 36);
-    doc.setFont("helvetica", "bold");
-    doc.text("Total:", rightX + 3, rightY + 41);
-    doc.text(formatCurrency(total), rightX + 75, rightY + 41, { align: "right" });
+    doc.setDrawColor(200); 
+    doc.setLineWidth(0.3); 
+    doc.line(rightX + 2, boxY + 4 * lineSpacing + 2, rightX + boxWidth - 2, boxY + 4 * lineSpacing + 2);
 
-    // Notes
-    currentY = Math.max(leftY + 30, rightY + 50);
+    doc.setFont("helvetica", "bold");
+    doc.text("Total:", rightX + 3, boxY + boxHeight - 4);
+    doc.text(formatCurrency(total), rightX + boxWidth - 3, boxY + boxHeight - 4, { align: "right" });
+
+    currentY = boxY + boxHeight + 10; 
+
     if (order.notes) {
       doc.setFont("helvetica", "bold").setFontSize(11);
       doc.text("Special Note:", margin, currentY);
@@ -239,7 +248,6 @@ export default function ViewOrderPage() {
     window.open(whatsappUrl, "_blank");
   };
 
-  // ✅ Copy same message as WhatsApp share
   const handleCopy = async () => {
     if (!order) return;
 
@@ -333,6 +341,10 @@ export default function ViewOrderPage() {
               <div>
                 <span>Rem. Payment:</span>
                 <span className="remaining">₹{remainingPayment}</span>
+              </div>
+              <div>
+                <span>Return Amount:</span>
+                <span className="return">₹{returnAmount}</span>
               </div>
             </div>
 
