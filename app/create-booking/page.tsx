@@ -211,6 +211,7 @@ export default function CreateBooking() {
     formData.append("rentalType", bookingType);
     formData.append("advancePaymentMethod", paymentMode);
     formData.append("products", JSON.stringify(productsData));
+    formData.append("additionalCharges", String(additionalCharges));
 
     try {
       const res = await fetch("/api/booking/create-booking", {

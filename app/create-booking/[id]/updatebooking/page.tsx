@@ -80,6 +80,7 @@ export default function UpdateBooking() {
       setRentAmount(booking.rentAmount || 0);
       setTotalDeposit(booking.totalDeposit || 0);
       setReturnAmount(booking.returnAmount || 0);
+      setAdditionalCharges(booking.additionalCharges || 0); 
 
       if (booking.productLocks && booking.productLocks.length) {
         const cards: ProductCard[] = booking.productLocks.map((lock: any, idx: number) => ({
@@ -239,6 +240,8 @@ export default function UpdateBooking() {
     formData.append("products", JSON.stringify(productsData));
     formData.append("securityDeposit", String(securityDeposit));
     formData.append("bookingId", bookingId);
+    formData.append("additionalCharges", String(additionalCharges));
+    
 
     try {
       const res = await fetch("/api/booking/update-booking", { method: "PUT", body: formData });
