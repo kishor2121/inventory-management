@@ -29,6 +29,31 @@ interface TotalData {
   };
 }
 
+// Generate all week ranges between fromDate and toDate
+function getWeeksBetween(startDate: Date, endDate: Date): string[] {
+  const weeks: string[] = [];
+  const options: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short" };
+  let current = new Date(startDate);
+
+  while (current <= endDate) {
+    const day = current.getDay();
+    const diffToMon = (day + 6) % 7;
+    const weekStart = new Date(current);
+    weekStart.setDate(current.getDate() - diffToMon);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const startStr = weekStart.toLocaleDateString("en-US", options);
+    const endStr = weekEnd.toLocaleDateString("en-US", options);
+    weeks.push(`${startStr} - ${endStr}`);
+
+    current = new Date(weekEnd);
+    current.setDate(current.getDate() + 1);
+  }
+
+  return weeks;
+}
+
 export default function Statistics() {
   const [filter, setFilter] = useState<string>("Last Month");
   const [fromDate, setFromDate] = useState<string>("");
@@ -45,14 +70,23 @@ export default function Statistics() {
       const res = await fetch(`/api/booking/stats?from=${from}&to=${to}`);
       const data = await res.json();
 
-      const weeklyData: BookingData[] =
-        data.weeklyStats?.map((item: any) => ({
-          week: item.week,
-          revenue: Number(item.revenue),
-          bookings: Number(item.bookings),
-        })) || [];
+      // Generate all weeks between from and to
+      const weeks = getWeeksBetween(new Date(from), new Date(to));
 
-      setChartData(weeklyData);
+      // Map API data to week for easy lookup
+      const apiMap: Record<string, { revenue: number; bookings: number }> = {};
+      data.weeklyStats?.forEach((w: any) => {
+        apiMap[w.week] = { revenue: w.revenue, bookings: w.bookings };
+      });
+
+      // Fill chart data for all weeks
+      const fullData: BookingData[] = weeks.map((week) => ({
+        week,
+        revenue: apiMap[week]?.revenue || 0,
+        bookings: apiMap[week]?.bookings || 0,
+      }));
+
+      setChartData(fullData);
 
       if (data.total) {
         setTotalData({
@@ -72,28 +106,36 @@ export default function Statistics() {
   useEffect(() => {
     const today = new Date();
     let from: string;
-    let to: string = today.toISOString().split("T")[0];
+    let to: string;
 
-    if (filter === "Today") from = to;
-    else if (filter === "Last Week") {
-      const weekAgo = new Date();
-      weekAgo.setDate(today.getDate() - 7);
-      from = weekAgo.toISOString().split("T")[0];
+    if (filter === "Today") {
+      from = today.toISOString().split("T")[0];
+      to = from;
+    } else if (filter === "Last Week") {
+      const lastWeekStart = new Date(today);
+      lastWeekStart.setDate(today.getDate() - 7);
+      from = lastWeekStart.toISOString().split("T")[0];
+      to = today.toISOString().split("T")[0];
     } else if (filter === "Last Month") {
-      const monthAgo = new Date();
-      monthAgo.setDate(today.getDate() - 30);
-      from = monthAgo.toISOString().split("T")[0];
+      const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+      from = lastMonth.toISOString().split("T")[0];
+      to = lastMonthEnd.toISOString().split("T")[0];
     } else if (filter === "Custom Date" && fromDate && toDate) {
       from = fromDate;
       to = toDate;
-    } else from = "";
+    } else {
+      from = today.toISOString().split("T")[0];
+      to = from;
+    }
 
+    setFromDate(from);
+    setToDate(to);
     fetchStats(from, to);
   }, [filter, fromDate, toDate]);
 
   return (
     <div className="page-container">
-      {/* Header */}
       <div className="header-bar">
         <h2 className="page-title">Statistics</h2>
         <div className="filter-bar">
@@ -120,7 +162,6 @@ export default function Statistics() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="stats-grid">
         <div className="stat-card">
           <h3>Total Booking</h3>
@@ -140,60 +181,51 @@ export default function Statistics() {
         </div>
       </div>
 
-      {/* Charts */}
       <div className="chart-grid">
         {/* Revenue Chart */}
         <div className="chart-card">
           <h3>Revenue Overview</h3>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#8884d8"
-                  fill="url(#revGradient)"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="no-data">No revenue data available.</p>
-          )}
+          <ResponsiveContainer width="100%" height={250}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="week" />
+              <YAxis />
+              <Tooltip />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#8884d8"
+                fill="url(#revGradient)"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Booking Chart */}
         <div className="chart-card">
           <h3>Booking Overview</h3>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={chartData}>
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Line
-                  type="monotone"
-                  dataKey="bookings"
-                  stroke="#82ca9d"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="no-data">No booking data available.</p>
-          )}
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={chartData}>
+              <XAxis dataKey="week" />
+              <YAxis />
+              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" />
+              <Line
+                type="monotone"
+                dataKey="bookings"
+                stroke="#82ca9d"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>
