@@ -29,6 +29,8 @@ export async function PUT(req: NextRequest) {
     const returnAmount = formData.get("returnAmount") ? parseFloat(formData.get("returnAmount")!.toString()) : undefined;
     const advancePayment = formData.get("advancePayment") ? parseFloat(formData.get("advancePayment")!.toString()) : undefined;
     const discount = formData.get("discount") ? parseFloat(formData.get("discount")!.toString()) : undefined;
+    const additionalCharges = formData.get("additionalCharges") ? parseFloat(formData.get("additionalCharges")!.toString()) : undefined; // <--
+
     const discountType = formData.get("discountType")?.toString();
     const rentalType = formData.get("rentalType")?.toString();
     const invoiceNumber = formData.get("invoiceNumber") ? parseInt(formData.get("invoiceNumber")!.toString()) : undefined;
@@ -48,6 +50,7 @@ export async function PUT(req: NextRequest) {
     if (returnAmount !== undefined) updateData.returnAmount = returnAmount;
     if (advancePayment !== undefined) updateData.advancePayment = advancePayment;
     if (discount !== undefined) updateData.discount = discount;
+    if (additionalCharges !== undefined) updateData.additionalCharges = additionalCharges; // <--
     if (discountType) updateData.discountType = discountType;
     if (rentalType) updateData.rentalType = rentalType;
     if (invoiceNumber !== undefined) updateData.invoiceNumber = invoiceNumber;

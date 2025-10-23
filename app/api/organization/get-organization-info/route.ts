@@ -5,7 +5,7 @@ import validate from "../../auth/validate";
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
-  await validate();
+  // await validate();
   try {
     const organizations = await prisma.organization.findMany();
 
