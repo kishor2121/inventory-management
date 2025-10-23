@@ -7,27 +7,47 @@ import "./viewReceipt.css";
 export default function EReceiptPage() {
   const { id } = useParams();
   const [order, setOrder] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchBooking() {
       try {
         const res = await fetch(`/api/booking/e-receipt/${id}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            setError("Booking not found. Please check the booking ID.");
+          } else {
+            setError("Something went wrong. Please try again later.");
+          }
+          setLoading(false);
+          return;
+        }
+
         const data = await res.json();
         setOrder(data.data);
       } catch (err) {
         console.error(err);
+        setError("Unable to fetch booking. Please check your connection.");
+      } finally {
+        setLoading(false);
       }
     }
+
     fetchBooking();
   }, [id]);
 
-  if (!order) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div style={{ textAlign: "center", marginTop: "50px" }}>{error}</div>;
+  if (!order) return <div style={{ textAlign: "center", marginTop: "50px" }}>No booking data found.</div>;
 
   return (
     <div className="invoice-card">
       <h4>Invoice # {order.invoiceNumber}</h4>
       <p>{order.customerName}</p>
-      <p>{order.phoneNumberPrimary} | {order.phoneNumberSecondary}</p>
+      <p>
+        {order.phoneNumberPrimary} | {order.phoneNumberSecondary}
+      </p>
 
       <table className="product-table">
         <thead>
