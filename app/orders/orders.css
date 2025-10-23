@@ -112,35 +112,6 @@
   font-weight: 500;
 }
 
-/* Actions */
-.actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-}
-
-.action-icon {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.action-icon.view:hover {
-  color: #2563eb;
-  transform: scale(1.1);
-}
-
-.action-icon.edit:hover {
-  color: #16a34a;
-  transform: scale(1.1);
-}
-
-.action-icon.delete:hover {
-  color: #dc2626;
-  transform: scale(1.1);
-}
-
-/* No data */
 .no-data {
   text-align: center;
   padding: 24px;
@@ -279,4 +250,39 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.actions {
+  position: relative;
+  width: 80px; 
+  height: 24px; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-icon {
+  position: absolute; 
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-icon.view {
+  left: 0;
+ 
+}
+
+.action-icon.edit {
+  left: 28px; 
+}
+
+.action-icon.delete {
+  left: 56px; 
+}
+
+.action-icon:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
 
