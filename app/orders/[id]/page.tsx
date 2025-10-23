@@ -79,7 +79,8 @@ export default function ViewOrderPage() {
   const total = productAmount + securityDeposit - discount;
   const remainingPayment = total - order.advancePayment;
 
-  // ✅ Shared PDF Generator
+   // ✅ Shared PDF Generator
+// ✅ Updated PDF Generator (UI matches image exactly, uses Rs.)
 const generatePDF = () => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -87,7 +88,7 @@ const generatePDF = () => {
   let currentY = 20;
 
   const formatCurrency = (amount: number) =>
-    `₹${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+    `Rs.${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 
   // === 1. Header ===
   doc.setFont("helvetica", "bold").setFontSize(16).setTextColor(0);
@@ -98,12 +99,16 @@ const generatePDF = () => {
   doc.text(`Email: ${organizationInfo.email}`, margin, currentY + 12);
   doc.text(`Phone: ${organizationInfo.contactNumber}`, margin, currentY + 18);
 
-  // Invoice info
+  // Invoice info (top-right)
   doc.setTextColor(0).setFontSize(12);
   const invoiceY = currentY;
   doc.text(`Invoice #: ${order.invoiceNumber}`, pageWidth - margin, invoiceY, { align: "right" });
   doc.text(
-    `Date: ${new Date(order.createdAt).toLocaleDateString("en-GB")}`,
+    `Date: ${new Date(order.createdAt).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })}`,
     pageWidth - margin,
     invoiceY + 6,
     { align: "right" }
@@ -111,25 +116,20 @@ const generatePDF = () => {
 
   currentY += 28;
 
-  // === 2. Billed To ===
-  doc.setFillColor(240, 240, 240);
-  doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 18, 3, 3, "F");
+  // === 2. Billed To Box ===
+  doc.setFillColor(245, 245, 245);
+  doc.roundedRect(margin, currentY, pageWidth - 2 * margin, 20, 3, 3, "F");
   doc.setTextColor(0).setFont("helvetica", "bold").setFontSize(11);
-  doc.text("Billed To", margin + 4, currentY + 6);
-
+  doc.text("Billed To", margin + 5, currentY + 6);
   doc.setFont("helvetica", "normal").setFontSize(10);
-  doc.text(order.customerName, margin + 4, currentY + 12);
-  doc.text(
-    `${order.phoneNumberPrimary} | ${order.phoneNumberSecondary}`,
-    margin + 4,
-    currentY + 18
-  );
-  currentY += 28;
+  doc.text(order.customerName, margin + 5, currentY + 12);
+  doc.text(`${order.phoneNumberPrimary} | ${order.phoneNumberSecondary}`, margin + 5, currentY + 18);
+  currentY += 30;
 
   // === 3. Product Table ===
   autoTable(doc, {
     startY: currentY,
-    head: [["#", "Product", "Delivery", "Return", "Amount"]],
+    head: [["#", "Product Name", "Del. Date", "Return Date", "Amount"]],
     body: order.productLocks.map((lock, i) => [
       i + 1,
       lock.product.name,
@@ -137,93 +137,76 @@ const generatePDF = () => {
       new Date(lock.returnDate).toLocaleDateString("en-GB"),
       formatCurrency(lock.product.price),
     ]),
-    theme: "plain",
+    theme: "grid",
+    styles: { lineColor: [200, 200, 200], lineWidth: 0.2, fontSize: 10, cellPadding: 3 },
     headStyles: {
-      fillColor: [240, 240, 240],
+      fillColor: [245, 245, 245],
       textColor: 0,
       fontStyle: "bold",
       halign: "center",
     },
-    bodyStyles: {
-      textColor: 50,
-      fontSize: 11,
-      halign: "center",
-    },
-    columnStyles: {
-      1: { halign: "left" },
-      4: { halign: "right" },
-    },
+    bodyStyles: { textColor: 0, halign: "center" },
+    columnStyles: { 1: { halign: "left" }, 4: { halign: "right" } },
   });
 
-  // === 4. Two-column layout for payment summary ===
-  let y = (doc as any).lastAutoTable.finalY + 10;
+  currentY = (doc as any).lastAutoTable.finalY + 12;
 
+  // === 4. Payment Summary (two-column boxes) ===
   const leftX = margin;
   const rightX = pageWidth / 2 + 10;
-  let leftY = y;
-  let rightY = y;
+  let leftY = currentY;
+  let rightY = currentY;
 
-  const printLeft = (label: string, amount: number, color?: "green" | "red") => {
-    doc.setFont("helvetica", "normal").setFontSize(10);
-    if (color === "green") doc.setTextColor(34, 197, 94);
-    else if (color === "red") doc.setTextColor(220, 38, 38);
-    else doc.setTextColor(0);
-    doc.text(label, leftX, leftY);
-    doc.text(formatCurrency(amount), leftX + 50, leftY, { align: "right" });
-    leftY += 8;
-  };
+  // Left Box (Advance + Remaining)
+  doc.roundedRect(leftX, leftY, 75, 24, 2, 2);
+  doc.setFont("helvetica", "normal").setFontSize(10);
+  doc.text("Adv. Payment:", leftX + 3, leftY + 8);
+  doc.text(formatCurrency(order.advancePayment), leftX + 70, leftY + 8, { align: "right" });
 
-  const printRight = (label: string, amount: number, bold = false, color?: "green") => {
-    doc.setFont("helvetica", bold ? "bold" : "normal").setFontSize(10);
-    if (color === "green") doc.setTextColor(34, 197, 94);
-    else doc.setTextColor(0);
-    doc.text(label, rightX, rightY);
-    doc.text(formatCurrency(amount), rightX + 50, rightY, { align: "right" });
-    rightY += 8;
-  };
+  doc.setTextColor(220, 38, 38);
+  doc.text("Rem. Payment:", leftX + 3, leftY + 16);
+  doc.text(formatCurrency(total - order.advancePayment), leftX + 70, leftY + 16, { align: "right" });
+  doc.setTextColor(0);
 
-  const productAmount = order.productLocks.reduce(
-    (sum, lock) => sum + (lock.product?.price || 0),
-    0
-  );
-  const securityDeposit = order.securityDeposit;
-  const discount = order.discount;
-  const total = productAmount + securityDeposit - discount;
-  const remainingPayment = total - order.advancePayment;
+  // Right Box (Amount + Deposit + Discount + Total)
+  doc.roundedRect(rightX, rightY, 80, 32, 2, 2);
+  doc.setFont("helvetica", "normal").setFontSize(10);
+  doc.text("Amount:", rightX + 3, rightY + 8);
+  doc.text(formatCurrency(productAmount), rightX + 75, rightY + 8, { align: "right" });
 
-  // Left column
-  printLeft("Adv. Payment:", order.advancePayment, "green");
-  printLeft("Rem. Payment:", remainingPayment, "red");
+  doc.text("Deposit:", rightX + 3, rightY + 16);
+  doc.text(formatCurrency(order.securityDeposit), rightX + 75, rightY + 16, { align: "right" });
 
-  // Right column
-  printRight("Amount:", productAmount);
-  printRight("Deposit:", securityDeposit);
-  printRight("Discount:", discount, false, "green");
-  doc.setDrawColor(220);
-  doc.line(rightX, rightY, rightX + 60, rightY); // separator above total
-  rightY += 6;
-  printRight("Total:", total, true);
+  doc.text("Discount:", rightX + 3, rightY + 22);
+  doc.setTextColor(34, 197, 94);
+  doc.text(`- ${formatCurrency(order.discount)}`, rightX + 75, rightY + 22, { align: "right" });
+  doc.setTextColor(0);
 
-  // === 5. Notes ===
-  y = Math.max(leftY, rightY) + 10;
-  if (order.notes) {
-    doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(0);
-    doc.text("Notes:", margin, y);
-    doc.setFont("helvetica", "italic").setFontSize(10).setTextColor(100);
-    const notes = doc.splitTextToSize(order.notes, pageWidth - margin * 2);
-    doc.text(notes, margin, y + 6);
-  }
+  doc.line(rightX + 3, rightY + 26, rightX + 77, rightY + 26);
+  doc.setFont("helvetica", "bold");
+  doc.text("Total:", rightX + 3, rightY + 31);
+  doc.text(formatCurrency(total), rightX + 75, rightY + 31, { align: "right" });
+  
+  // === 5. Notes Section ===
+    currentY = Math.max(leftY + 30, rightY + 40);
+    if (order.notes) {
+      doc.setFont("helvetica", "bold").setFontSize(11);
+      doc.text("Special Note:", margin, currentY);
+      doc.setFont("helvetica", "normal").setFontSize(10);
+      const noteText = doc.splitTextToSize(order.notes, pageWidth - margin * 2 - 25);
+      doc.text(noteText, margin + 30, currentY); // indent note text after label
+    }
+
 
   // === 6. Footer ===
   const footerY = doc.internal.pageSize.getHeight() - 15;
   doc.setDrawColor(220);
   doc.line(margin, footerY - 6, pageWidth - margin, footerY - 6);
   doc.setFont("helvetica", "italic").setFontSize(10).setTextColor(120);
-  doc.text("Thank you! Please visit again.", pageWidth / 2, footerY, { align: "center" });
+  doc.text("Thanks You Visit Again!", pageWidth / 2, footerY, { align: "center" });
 
   return doc;
 };
-
 
   // ✅ Download PDF
   const handleDownload = () => {
