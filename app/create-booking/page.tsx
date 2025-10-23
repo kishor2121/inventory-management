@@ -52,6 +52,13 @@ export default function CreateBooking() {
     paymentMode: "",
   });
 
+  // ✅ Helper to add days
+  const addDays = (dateStr: string, days: number) => {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split("T")[0];
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       const res = await fetch("/api/products");
@@ -79,6 +86,30 @@ export default function CreateBooking() {
     setProductCards((prev) =>
       prev.map((card) => {
         if (card.id === id) {
+          // ✅ When Delivery Date changes
+          if (field === "deliveryDate") {
+            const delivery = value;
+            let updatedReturn = card.returnDate;
+
+            // Auto set return = delivery + 2 days if not set or earlier
+            if (!card.returnDate || new Date(card.returnDate) <= new Date(delivery)) {
+              updatedReturn = addDays(delivery, 2);
+            }
+
+            return { ...card, deliveryDate: delivery, returnDate: updatedReturn };
+          }
+
+          // ✅ When Return Date changes
+          if (field === "returnDate") {
+            const delivery = card.deliveryDate;
+            if (delivery && new Date(value) < new Date(delivery)) {
+              alert("⚠️ Return date cannot be before delivery date.");
+              return card;
+            }
+            return { ...card, returnDate: value };
+          }
+
+          // ✅ When Product changes
           if (field === "product" && value) {
             return {
               ...card,
@@ -87,6 +118,7 @@ export default function CreateBooking() {
               amount: String(value.price || ""),
             };
           }
+
           return { ...card, [field]: value };
         }
         return card;
@@ -112,13 +144,21 @@ export default function CreateBooking() {
     setProductCards((prev) => prev.filter((card) => card.id !== id));
   };
 
+  // ✅ Same-date mode auto return = +2 days
   useEffect(() => {
     if (sameDate) {
+      let autoReturn = globalReturnDate;
+
+      if (globalDeliveryDate && (!globalReturnDate || new Date(globalReturnDate) <= new Date(globalDeliveryDate))) {
+        autoReturn = addDays(globalDeliveryDate, 2);
+        setGlobalReturnDate(autoReturn);
+      }
+
       setProductCards((prev) =>
         prev.map((card) => ({
           ...card,
           deliveryDate: globalDeliveryDate,
-          returnDate: globalReturnDate,
+          returnDate: autoReturn,
         }))
       );
     }
@@ -141,14 +181,12 @@ export default function CreateBooking() {
   const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
   const isValidPhoneNumber = (num: string) => /^[0-9]{10}$/.test(num);
 
-
   const handleBooking = async () => {
     const customerName = (document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]')?.value || "").trim();
     const phoneNumber = (document.querySelector<HTMLInputElement>('input[placeholder="Enter mobile number"]')?.value || "").trim();
-    const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim(); 
+    const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim();
     const bookingType = (document.querySelector<HTMLSelectElement>('select.booking-type')?.value || "").trim();
     const paymentMode = (document.querySelector<HTMLSelectElement>('select.payment-mode')?.value || "").trim();
-    
 
     let newErrors: any = {};
 
@@ -163,13 +201,11 @@ export default function CreateBooking() {
       newErrors.phoneNumberSecondary = "Alternate No. must be 10 digits and contain only numbers.";
     }
 
-
     if (!bookingType || bookingType === "Select Booking Type") newErrors.bookingType = "Booking Type is required.";
 
     const firstProduct = productCards[0];
     if (!firstProduct.product) newErrors.product = "Please select a product.";
 
-    // ✅ Add proper validation for sameDate
     if (sameDate) {
       if (!globalDeliveryDate || !globalReturnDate) {
         newErrors.deliveryDate = "Global Delivery and Return dates are required.";
@@ -186,14 +222,12 @@ export default function CreateBooking() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    // ✅ FIXED: Use sameDate condition for products payload
     const productsData = productCards.map((card) => ({
       productId: card.product?.value,
       deliveryDate: sameDate ? globalDeliveryDate : card.deliveryDate,
       returnDate: sameDate ? globalReturnDate : card.returnDate,
     }));
 
-   
     const notes = (document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Notes"]')?.value || "").trim();
 
     const formData = new FormData();
@@ -285,7 +319,18 @@ export default function CreateBooking() {
                 </div>
                 <div className="form-group date-input">
                   <label>Return Date</label>
-                  <input type="date" value={globalReturnDate} onChange={(e) => setGlobalReturnDate(e.target.value)} />
+                  <input
+                    type="date"
+                    value={globalReturnDate}
+                    min={globalDeliveryDate}
+                    onChange={(e) => {
+                      if (new Date(e.target.value) < new Date(globalDeliveryDate)) {
+                        alert("⚠️ Return date cannot be before delivery date.");
+                        return;
+                      }
+                      setGlobalReturnDate(e.target.value);
+                    }}
+                  />
                 </div>
               </div>
             )}
@@ -315,7 +360,12 @@ export default function CreateBooking() {
                   </div>
                   <div className="form-group date-input">
                     <label>Return Date</label>
-                    <input type="date" value={card.returnDate} onChange={(e) => handleChange(card.id, "returnDate", e.target.value)} />
+                    <input
+                      type="date"
+                      value={card.returnDate}
+                      min={card.deliveryDate}
+                      onChange={(e) => handleChange(card.id, "returnDate", e.target.value)}
+                    />
                     {errors.returnDate && <span className="error-text">{errors.returnDate}</span>}
                   </div>
                 </div>
