@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const perPage = parseInt(searchParams.get("per_page") || "5");
+    const perPage = parseInt(searchParams.get("per_page") || "10");
     const skip = (page - 1) * perPage;
 
     const [bookings, total] = await Promise.all([
