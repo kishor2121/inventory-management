@@ -1,6 +1,6 @@
 .orders-container {
   padding: 24px 40px;
-  background-color: #f9fafb;
+  background-color:  #FFDEE9, #B5FFFC,;
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
@@ -228,4 +228,21 @@
 .product-details-table img:hover,
 .product-image:hover {
   transform: scale(1.05);
+}
+.main-content.with-layout {
+margin-left: 250px;
+margin-top: 60px;
+padding: 20px;
+min-height: calc(100vh - 60px);
+background: transparent;
+display: flex;
+justify-content: flex-start;
+}
+
+.orders-container {
+width: 100%;
+max-width: 98%;
+padding: 24px 40px;
+box-sizing: border-box;
+margin-left: 10px;
 }

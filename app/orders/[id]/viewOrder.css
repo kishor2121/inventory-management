@@ -1,6 +1,6 @@
 .view-order-container {
   padding: 24px 40px;
-  background: #f9fafb;
+  background: #FFDEE9, #B5FFFC,;
   min-height: 100vh;
   font-family: "Inter", sans-serif;
   font-size: 13px;
@@ -10,7 +10,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f9fafb;
+  background:  #FFDEE9, #B5FFFC,;
   padding: 6px 0;
   margin-bottom: 20px;
   border-bottom: 1px solid #e5e7eb;
