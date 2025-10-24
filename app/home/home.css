@@ -10,8 +10,10 @@ body, html {
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-width: 100%;
+  width: 100%;
   justify-content: flex-start;
-  background-color: #f3f6fa;
+  background-color: #FFDEE9, #B5FFFC;
   height: 100vh;
   padding: 20px 0;
   box-sizing: border-box;
