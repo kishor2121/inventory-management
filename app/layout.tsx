@@ -1,7 +1,6 @@
 "use client";
 
 import "./globals.css";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import {
@@ -60,34 +59,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <nav>
                 <ul>
                   <li>
-                    <Link href="/home">
+                    <a href="/home">
                       <Home className="nav-icon" size={18} /> Home
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/delivery">
+                    <a href="/delivery">
                       <Truck className="nav-icon" size={18} /> Delivery
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/return">
+                    <a href="/return">
                       <RotateCcw className="nav-icon" size={18} /> Return
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/products">
+                    <a href="/products">
                       <Package className="nav-icon" size={18} /> Products
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/orders">
+                    <a href="/orders">
                       <ShoppingBag className="nav-icon" size={18} /> Orders
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/statistics">
+                    <a href="/statistics">
                       <BarChart3 className="nav-icon" size={18} /> Statistics
-                    </Link>
+                    </a>
                   </li>
                 </ul>
               </nav>
