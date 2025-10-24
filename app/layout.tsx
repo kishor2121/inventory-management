@@ -1,7 +1,6 @@
 "use client";
 
 import "./globals.css";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import {
@@ -14,6 +13,8 @@ import {
   Package,
   ShoppingBag,
   BarChart3,
+  Menu,
+  X,
 } from "lucide-react";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const [user, setUser] = useState<{ id?: string; name?: string } | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const hideLayout = pathname === "/login" || pathname === "/sign-in" || pathname.startsWith("/e-receipt/");
@@ -44,6 +46,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (showMobileSidebar) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showMobileSidebar]);
+
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     localStorage.removeItem("user");
@@ -55,46 +71,108 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {!hideLayout && (
           <>
-            {/* Sidebar */}
+            {/* Desktop Sidebar */}
             <aside className="sidebar">
               <nav>
                 <ul>
                   <li>
-                    <Link href="/home">
+                    <a href="/home">
                       <Home className="nav-icon" size={18} /> Home
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/delivery">
+                    <a href="/delivery">
                       <Truck className="nav-icon" size={18} /> Delivery
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/return">
+                    <a href="/return">
                       <RotateCcw className="nav-icon" size={18} /> Return
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/products">
+                    <a href="/products">
                       <Package className="nav-icon" size={18} /> Products
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/orders">
+                    <a href="/orders">
                       <ShoppingBag className="nav-icon" size={18} /> Orders
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link href="/statistics">
+                    <a href="/statistics">
                       <BarChart3 className="nav-icon" size={18} /> Statistics
-                    </Link>
+                    </a>
                   </li>
                 </ul>
               </nav>
             </aside>
 
+            {/* Mobile Sidebar Overlay */}
+            {showMobileSidebar && (
+              <>
+                <div 
+                  className="mobile-sidebar-backdrop"
+                  onClick={() => setShowMobileSidebar(false)}
+                />
+                <aside className="mobile-sidebar">
+                  <div className="mobile-sidebar-header">
+                    <h3>Menu</h3>
+                    <button 
+                      className="close-mobile-sidebar"
+                      onClick={() => setShowMobileSidebar(false)}
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
+                  <nav>
+                    <ul>
+                      <li>
+                        <Link href="/home" onClick={() => setShowMobileSidebar(false)}>
+                          <Home className="nav-icon" size={18} /> Home
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/delivery" onClick={() => setShowMobileSidebar(false)}>
+                          <Truck className="nav-icon" size={18} /> Delivery
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/return" onClick={() => setShowMobileSidebar(false)}>
+                          <RotateCcw className="nav-icon" size={18} /> Return
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/products" onClick={() => setShowMobileSidebar(false)}>
+                          <Package className="nav-icon" size={18} /> Products
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/orders" onClick={() => setShowMobileSidebar(false)}>
+                          <ShoppingBag className="nav-icon" size={18} /> Orders
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/statistics" onClick={() => setShowMobileSidebar(false)}>
+                          <BarChart3 className="nav-icon" size={18} /> Statistics
+                        </Link>
+                      </li>
+                    </ul>
+                  </nav>
+                </aside>
+              </>
+            )}
+
             {/* Header */}
             <header className="top-bar">
+              <button 
+                className="hamburger-menu"
+                onClick={() => setShowMobileSidebar(true)}
+              >
+                <Menu size={24} />
+              </button>
+              
               <div
                 className="user-profile"
                 ref={dropdownRef}
