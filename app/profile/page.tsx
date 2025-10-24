@@ -15,12 +15,14 @@ interface Organization {
   logo?: string;
   billingRules: string[];
   activeTill?: string;
+  logoFile?: File; 
 }
 
 export default function OrganizationDetails() {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [notes, setNotes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false); 
   const router = useRouter();
 
   useEffect(() => {
@@ -52,58 +54,102 @@ export default function OrganizationDetails() {
     setNotes(updated);
   };
 
+  // ✅ Save handler (supports JSON + FormData upload)
   const handleSave = async () => {
     if (!organization) return;
 
-    const payload = {
-      ...organization,
-      billingRules: notes,
-    };
-
+    setSaving(true); // start saving
     try {
+      let body: BodyInit;
+      let headers: HeadersInit = {};
+
+      if (organization.logoFile) {
+        // Multipart FormData if file present
+        const formData = new FormData();
+        formData.append("id", organization.id);
+        formData.append("organizationName", organization.organizationName);
+        formData.append("ownerName", organization.ownerName);
+        formData.append("description", organization.description);
+        formData.append("address", organization.address);
+        formData.append("billingRules", JSON.stringify(notes));
+        formData.append("logo", organization.logoFile);
+        body = formData;
+      } else {
+        // Fallback to JSON
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify({
+          ...organization,
+          billingRules: notes,
+        });
+      }
+
       const res = await fetch("/api/organization/update-organization", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        headers,
+        body,
       });
 
       const data = await res.json();
       if (data.success) {
-        alert("✅ Organization updated successfully!");
-        router.push("/"); 
+        alert("✅ Changes saved successfully!");
+        router.refresh();
       } else {
         alert(data.message || "❌ Failed to update organization");
       }
     } catch (err) {
       console.error("Error updating organization:", err);
       alert("❌ Error updating organization");
+    } finally {
+      setSaving(false); 
     }
   };
 
-  if (loading) return <div className="organization-container">Loading...</div>;
-  if (!organization) return <div className="organization-container">No organization found</div>;
+  if (loading)
+    return <div className="organization-container">Loading...</div>;
+  if (!organization)
+    return <div className="organization-container">No organization found</div>;
 
   return (
     <div className="organization-container">
       <div className="breadcrumb">
-        <span>Home</span> <span className="arrow">›</span> <span>Organization Details</span>
+        <span>Home</span> <span className="arrow">›</span>{" "}
+        <span>Organization Details</span>
       </div>
 
       <div className="form-section">
         <div className="left-image">
           <div className="image-circle">
-            {organization.logo ? (
-              <img
-                src={organization.logo}
-                alt="Logo"
-                style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
-              />
-            ) : (
-              <>
-                <span>No image</span>
-                <div className="camera-icon">📷</div>
-              </>
-            )}
+            <img
+              src={organization.logo || "/default-logo.png"}
+              alt="Logo"
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+            />
+
+            {/* 📷 Camera icon triggers hidden file input */}
+            <label htmlFor="logoUpload" className="camera-icon">
+              📷
+            </label>
+            <input
+              id="logoUpload"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setOrganization({
+                    ...organization,
+                    logo: URL.createObjectURL(file),
+                    logoFile: file,
+                  });
+                }
+              }}
+            />
           </div>
         </div>
 
@@ -115,7 +161,10 @@ export default function OrganizationDetails() {
                 type="text"
                 value={organization.organizationName}
                 onChange={(e) =>
-                  setOrganization({ ...organization, organizationName: e.target.value })
+                  setOrganization({
+                    ...organization,
+                    organizationName: e.target.value,
+                  })
                 }
               />
             </div>
@@ -124,7 +173,12 @@ export default function OrganizationDetails() {
               <input
                 type="text"
                 value={organization.ownerName}
-                onChange={(e) => setOrganization({ ...organization, ownerName: e.target.value })}
+                onChange={(e) =>
+                  setOrganization({
+                    ...organization,
+                    ownerName: e.target.value,
+                  })
+                }
               />
             </div>
           </div>
@@ -135,7 +189,12 @@ export default function OrganizationDetails() {
               <input
                 type="text"
                 value={organization.description}
-                onChange={(e) => setOrganization({ ...organization, description: e.target.value })}
+                onChange={(e) =>
+                  setOrganization({
+                    ...organization,
+                    description: e.target.value,
+                  })
+                }
               />
             </div>
           </div>
@@ -146,7 +205,12 @@ export default function OrganizationDetails() {
               <input
                 type="text"
                 value={organization.address}
-                onChange={(e) => setOrganization({ ...organization, address: e.target.value })}
+                onChange={(e) =>
+                  setOrganization({
+                    ...organization,
+                    address: e.target.value,
+                  })
+                }
               />
             </div>
           </div>
@@ -164,7 +228,10 @@ export default function OrganizationDetails() {
               placeholder="Add note..."
             />
             {notes.length > 1 && (
-              <button className="delete-btn" onClick={() => removeNote(i)}>
+              <button
+                className="delete-btn"
+                onClick={() => removeNote(i)}
+              >
                 🗑️
               </button>
             )}
@@ -176,8 +243,14 @@ export default function OrganizationDetails() {
       </div>
 
       <div className="save-section">
-        <button className="save-btn" onClick={handleSave}>
-          Save
+        {/* ✅ Save button now shows “Saving...” while updating */}
+        <button
+          className="save-btn"
+          onClick={handleSave}
+          disabled={saving}
+          style={{ opacity: saving ? 0.7 : 1 }}
+        >
+          {saving ? "Saving..." : "Save"}
         </button>
       </div>
     </div>
