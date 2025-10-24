@@ -46,9 +46,23 @@ export default function ProductsPage() {
 
   const confirmDelete = async () => {
     if (selectedProductId) {
-      await fetch(`/api/products/${selectedProductId}`, { method: 'DELETE' });
-      setProducts((prev) => prev.filter((p) => p.id !== selectedProductId));
-      closeDeleteModal();
+      try {
+        const res = await fetch(`/api/products/${selectedProductId}`, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.message || 'Failed to delete product');
+          closeDeleteModal();
+          return;
+        }
+
+        setProducts((prev) => prev.filter((p) => p.id !== selectedProductId));
+        alert(data.message || 'Product deleted successfully');
+        closeDeleteModal();
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Something went wrong while deleting.');
+      }
     }
   };
 
