@@ -76,13 +76,13 @@ export async function POST(req: NextRequest) {
       if (overlappingLock) {
           const from = overlappingLock.deliveryDate.toISOString().split("T")[0];
           const to   = overlappingLock.returnDate.toISOString().split("T")[0];  
-          overlappingProducts.push(`${productExists.name} (${from} to ${to})`);
+          overlappingProducts.push(`(${from} to ${to})`);
       }
     }
 
     if (overlappingProducts.length > 0) {
       return NextResponse.json({
-        message: `product are already booked. Please select another date: ${overlappingProducts.join(", ")}`,
+        message: `product are already booked for ${overlappingProducts.join(", ")}`,
       }, { status: 400 });
     }
 
