@@ -177,13 +177,23 @@ export async function DELETE(req: Request, context: any) {
     return NextResponse.json({ message: "Product not found" }, { status: 404 });
   }
 
+  const now = new Date();
   const isBooked = await prisma.productLock.findFirst({
-    where: { productId: id },
+    where: {
+      productId: id,
+      OR: [
+        { deliveryDate: { gte: now } },
+        { returnDate: { gte: now } },
+      ],
+    },
   });
 
   if (isBooked) {
     return NextResponse.json(
-      { message: "This product is currently booked or has future bookings and cannot be deleted." },
+      {
+        message:
+          "This product has future bookings and cannot be deleted.",
+      },
       { status: 400 }
     );
   }

@@ -23,15 +23,17 @@ export default function ProductsPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // for custom dropdown
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     fetchProducts();
   }, []);
 
   const fetchProducts = async () => {
+    setLoading(true);
     const res = await fetch('/api/products');
     const data = await res.json();
     setProducts(data.data);
+    setLoading(false);
   };
 
   const openDeleteModal = (id: string) => {
@@ -46,9 +48,23 @@ export default function ProductsPage() {
 
   const confirmDelete = async () => {
     if (selectedProductId) {
-      await fetch(`/api/products/${selectedProductId}`, { method: 'DELETE' });
-      setProducts((prev) => prev.filter((p) => p.id !== selectedProductId));
-      closeDeleteModal();
+      try {
+        const res = await fetch(`/api/products/${selectedProductId}`, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.message || 'Failed to delete product');
+          closeDeleteModal();
+          return;
+        }
+
+        setProducts((prev) => prev.filter((p) => p.id !== selectedProductId));
+        alert(data.message || 'Product deleted successfully');
+        closeDeleteModal();
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Something went wrong while deleting.');
+      }
     }
   };
 
@@ -143,18 +159,24 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Image</th>
-              <th>SKU</th>
-              <th>Product Name</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
+        {loading ? (
+          <div className={styles.loader}>
+            <div className={styles.spinner}></div>
+            <span className={styles.loadingText}>Loading products...</span>
+          </div>
+        ) : (
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>SKU</th>
+                <th>Product Name</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
             {filteredProducts.map((product) => (
               <tr key={product.id}>
                 <td className={styles.imageCell}>
@@ -208,10 +230,11 @@ export default function ProductsPage() {
             )}
           </tbody>
         </table>
+        )}
 
         {/* Fixed positioned dropdown menu */}
         {openDropdownId && dropdownPosition && (
-          <div 
+          <div
             className={styles.dropdownMenu}
             style={{
               top: dropdownPosition.top,
@@ -244,7 +267,7 @@ export default function ProductsPage() {
 
         {/* Backdrop to close dropdown when clicking outside */}
         {openDropdownId && (
-          <div 
+          <div
             className={styles.dropdownBackdrop}
             onClick={() => {
               setOpenDropdownId(null);

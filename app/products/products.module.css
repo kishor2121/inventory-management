@@ -2,8 +2,9 @@
 
 /* Page container */
 .container {
+  width: 100%;
   padding: 24px 40px;
-  background-color:  #FFDEE9, #B5FFFC,;
+  background: linear-gradient(120deg, #FFDEE9, #B5FFFC);
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
@@ -252,6 +253,12 @@
   font-size: 15px;
 }
 
+/* Status cell - container for dropdown */
+.statusCell {
+  position: relative;
+  text-align: center;
+}
+
 /* Status / dropdown base */
 .dropdownWrapper {
   position: relative; /* keeps dropdownMenu positioned relative to this */
@@ -303,24 +310,24 @@
 }
 
 /* Dropdown menu
-   Positioned outside of parent stacking context for maximum z-index
+   Positioned relative to the status cell container
 */
 .dropdownMenu {
-  position: fixed; /* use fixed positioning to break out of parent stacking context */
-  bottom: auto;
-  top: auto;
-  left: auto;
+  position: absolute; /* position relative to the .statusCell container */
+  top: 100%; /* position below the dropdown wrapper */
+  left: 50%;
+  transform: translateX(-50%); /* center horizontally */
   width: 140px;
   background: white;
   border-radius: 8px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   border: 1px solid #e5e7eb;
   overflow: visible;
-  z-index: 999999; /* maximum z-index */
+  z-index: 100; /* high enough to appear above table content */
   display: flex;
   flex-direction: column;
   animation: fadeIn 0.12s ease;
-  transform-origin: top left;
+  margin-top: 4px; /* small gap between trigger and menu */
 }
 
 /* Each option inside dropdown */
@@ -367,15 +374,53 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 999998; /* below dropdown menu but above everything else */
+  z-index: 99; /* below dropdown menu but above table content */
   background: transparent;
   cursor: default;
 }
 
 /* Small animation for menu */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0; 
+    transform: translateX(-50%) translateY(-6px); 
+  }
+  to   { 
+    opacity: 1; 
+    transform: translateX(-50%) translateY(0); 
+  }
+}
+
+/* Loader styles */
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loadingText {
+  margin-left: 16px;
+  color: #6b7280;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Responsive tweaks */

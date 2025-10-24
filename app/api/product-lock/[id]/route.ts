@@ -45,7 +45,7 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
 export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
   await validate();
 
-  const { id } = await context.params;
+  const { id } = context.params;
 
   if (!id) {
     return NextResponse.json({ success: false, message: "Please check Product ID" }, { status: 400 });
@@ -58,9 +58,18 @@ export async function DELETE(req: NextRequest, context: { params: { id: string }
       return NextResponse.json({ success: false, message: "Booked product not found" }, { status: 404 });
     }
 
+    const now = new Date();
+    if (existingLock.deliveryDate > now) {
+      return NextResponse.json({
+        success: false,
+        message: "This product is booked for a future date and cannot be deleted.",
+      }, { status: 400 });
+    }
+
     await prisma.productLock.delete({ where: { id } });
 
-    return NextResponse.json({ message: "Product removed from booking successfully" });
+    return NextResponse.json({ success: true, message: "Product removed from booking successfully" });
+
   } catch (error) {
     console.error(error);
     return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
