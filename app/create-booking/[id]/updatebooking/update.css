@@ -8,7 +8,7 @@ body, html {
 .booking-page {
   min-height: 100vh;
   padding: 40px 60px;
-  background: linear-gradient(135deg,#FFDEE9, #B5FFFC,);
+  background: linear-gradient(135deg,#FFDEE9, #B5FFFC);
   transition: all 0.3s ease;
 }
 
@@ -206,74 +206,11 @@ textarea {
 }
 
 /* ✅ DISCOUNT SECTION */
-.discount-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.discount-type {
-  display: flex;
-  gap: 8px;
-  background-color: #f1f5f9;
-  padding: 4px;
-  border-radius: 8px;
-}
-
-.discount-type button {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
-  font-weight: 500;
-  color: #334155;
-  transition: all 0.3s ease;
-}
-
-.discount-type button.active {
-  background-color: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.discount-type button:hover {
-  background-color: #e2e8f0;
-}
-
-.date-row {
-  display: flex;
-  gap: 12px;
-}
-
-.date-input input[type="date"] {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
-}
-
-.add-item-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: -6px;
-}
-
-/* ✅ Red validation message */
-.error-message {
-  color: #dc2626;
-  font-size: 14px;
-  font-weight: 500;
-  margin-top: 6px;
-  margin-bottom: 8px;
-  padding-left: 4px;
-  transition: all 0.2s ease-in-out;
-}
-
-/* ✅ Product Card Remove Button */
-.product-card {
-  position: relative;
-}
+.discount-section { display: flex; flex-direction: column; gap: 10px; }
+.discount-type { display: flex; gap: 8px; background-color: #f1f5f9; padding: 4px; border-radius: 8px; }
+.discount-type button { flex: 1; padding: 10px 12px; border-radius: 8px; border: none; background-color: transparent; cursor: pointer; font-weight: 500; color: #334155; transition: 0.3s; }
+.discount-type button.active { background-color: #ffffff; color: #0f172a; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+.discount-type button:hover { background-color: #e2e8f0; }
 
 .remove-btn {
   position: absolute;
@@ -286,12 +223,8 @@ textarea {
   width: 22px;
   height: 22px;
   font-size: 14px;
-  font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: 0.2s;
 }
 
 .remove-btn:hover {
@@ -299,56 +232,20 @@ textarea {
   transform: scale(1.1);
 }
 
-/* ✅ Show only image */
-.selected-product-preview.image-only {
-  display: flex;
-  justify-content: flex-end;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+/* ✅ RESPONSIVE FIXES */
+@media (max-width: 1024px) {
+  .booking-page { padding: 30px 20px; }
 }
 
-.selected-product-preview.image-only img {
-  width: 70px;
-  height: 70px;
-  border-radius: 10px;
-  object-fit: cover;
-  border: 1px solid #cbd5e1;
+@media (max-width: 768px) {
+  .booking-container { flex-direction: column; }
+  .action-buttons { flex-direction: column; width: 100%; }
+  .cancel-btn, .book-btn { width: 100%; }
 }
 
-
-.product-name {
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0;
+@media (max-width: 480px) {
+  .booking-page { padding: 20px 15px; }
+  .card { padding: 20px; }
+  .form-row { flex-direction: column; }
+  .add-item-btn { width: 100%; }
 }
-
-.product-amount {
-  color: #2563eb;
-  font-weight: 500;
-  margin: 0;
-}
-
-.preview-image img {
-  width: 60px;
-  height: 60px;
-  border-radius: 10px;
-  object-fit: cover;
-  border: 1px solid #cbd5e1;
-}
-
-.summary-row.discount-row .negative {
-  color: #e53935; /* red color for negative value */
-  font-weight: 600;
-}
-
-.error-text {
-  color: red;
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
-}
-

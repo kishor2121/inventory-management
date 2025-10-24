@@ -337,3 +337,65 @@ html, body {
     font-size: 14px;
   }
 }
+
+/* Mobile & Tablet Responsive */
+@media (max-width: 1024px) {
+  /* Hide Desktop sidebar */
+  .sidebar {
+    display: none;
+  }
+
+  /* Header - show hamburger */
+  .hamburger-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Main content should take full width */
+  .main-content.with-layout {
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  /* Adjust top bar layout */
+  .top-bar {
+    justify-content: space-between;
+    padding: 0 14px;
+  }
+
+  /* User text smaller */
+  .user-profile {
+    font-size: 15px;
+  }
+
+  /* Improve dropdown fit */
+  .user-dropdown {
+    right: 0;
+    width: 200px;
+    max-width: calc(100vw - 30px);
+  }
+}
+
+/* Extra Small Phone Fix */
+@media (max-width: 480px) {
+  .top-bar {
+    height: 56px;
+  }
+
+  .user-profile {
+    font-size: 14px;
+  }
+
+  .dropdown-item {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+
+  .mobile-sidebar {
+    width: 240px;
+  }
+}
+
+
+
