@@ -131,8 +131,10 @@ export default function ProductsPage() {
   return (
     <>
       <div className={styles.container}>
-        <div className={styles.header}>
-          <h1>Products</h1>
+        <div className={styles.breadcrumb}>
+          Product
+        </div>
+          <div className={styles.header}>
           <div className={styles.controls}>
             <select
               value={filter}

@@ -1,6 +1,4 @@
-/* products.module.css - full stylesheet */
 
-/* Page container */
 .container {
   width: 100%;
   padding: 24px 40px;
@@ -13,7 +11,7 @@
 /* Header & controls */
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 24px;
 }
@@ -23,6 +21,14 @@
   gap: 12px;
   align-items: center;
 }
+
+.breadcrumb {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0a0b0c;
+  margin-bottom: 12px;
+}
+
 
 .select,
 .search {
@@ -428,4 +434,104 @@
   .controls { flex-wrap: wrap; gap: 8px; }
   .table th, .table td { padding: 12px 8px; font-size: 13px; }
   .productImage { width: 48px; height: 48px; }
+}
+
+/* --- Responsive enhancements --- */
+@media (max-width: 1024px) {
+  .container {
+    padding: 20px 30px;
+  }
+
+  .breadcrumb {
+    font-size: 18px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .controls {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .select, .search, .addBtn, .importBtn {
+    flex: 1 1 1; 
+  }
+
+  .table th, .table td {
+    padding: 10px 6px;
+    font-size: 12.5px;
+  }
+
+  .productImage {
+    width: 48px;
+    height: 48px;
+  }
+
+  .productName {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 16px 20px;
+  }
+
+  .breadcrumb {
+    font-size: 16px;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .select, .search, .addBtn, .importBtn {
+    width: 95%;
+  }
+  .addBtn, .importBtn {
+    width: 90%;
+  }
+
+  .table th, .table td {
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+
+  .productImage {
+    width: 40px;
+    height: 40px;
+  }
+
+  .productName {
+    max-width: 120px;
+    font-size: 13px;
+  }
+
+  .dropdownWrapper {
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  .dropdownMenu {
+    width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .table th, .table td {
+    white-space: nowrap;
+  }
 }

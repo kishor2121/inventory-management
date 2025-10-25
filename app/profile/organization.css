@@ -1,3 +1,4 @@
+
 body, html {
   height: 100%;
   margin: 0;
@@ -5,15 +6,17 @@ body, html {
   background-color: #f8fafc;
 }
 
-/* Container fits full viewport */
+
 .organization-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   padding: 40px 60px;
-  background: linear-gradient(135deg,#FFDEE9, #B5FFFC, );
+  background: linear-gradient(135deg, #FFDEE9, #B5FFFC);
   transition: all 0.3s ease;
   box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Breadcrumb */
@@ -49,11 +52,12 @@ body, html {
   transform: translateY(-2px);
 }
 
-/* Image Circle */
+/* Left Image Section */
 .left-image {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex: 0 0 160px;
 }
 
 .image-circle {
@@ -96,13 +100,7 @@ body, html {
   border-color: #2563eb;
 }
 
-
-.save-btn:disabled {
-  cursor: not-allowed;
-  background-color: #94a3b8;
-}
-
-/* Form Inputs */
+/* Right Form Section */
 .right-form {
   flex: 1;
   min-width: 250px;
@@ -160,8 +158,8 @@ body, html {
   margin-top: 30px;
   transition: all 0.3s ease;
   flex: 1 1 auto;
-  overflow-y: auto; /* Scroll if content is long */
-  max-height: calc(100vh - 300px); /* Adjust depending on form size */
+  overflow-y: auto;
+  max-height: calc(100vh - 300px);
 }
 
 .notes-section:hover {
@@ -176,11 +174,13 @@ body, html {
   font-weight: 600;
 }
 
+/* Note Input Rows */
 .note-row {
   display: flex;
   align-items: center;
   margin-bottom: 15px;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .note-row input {
@@ -230,7 +230,6 @@ body, html {
   background-color: #2563eb;
 }
 
-/* Save Button Section */
 .save-section {
   text-align: right;
   margin-top: 30px;
@@ -252,7 +251,22 @@ body, html {
   background-color: #2563eb;
 }
 
-/* Responsive Adjustments */
+.save-btn:disabled {
+  cursor: not-allowed;
+  background-color: #94a3b8;
+}
+
+
+.main-content.with-layout {
+  margin-left: 250px;
+  margin-top: 60px;
+  padding: 20px;
+  min-height: calc(100vh - 60px);
+  background: transparent;
+  display: flex;
+  justify-content: flex-start;
+}
+
 @media (max-width: 1024px) {
   .organization-container {
     padding: 30px 40px;
@@ -260,20 +274,41 @@ body, html {
 
   .form-section {
     flex-direction: column;
+    align-items: center;
     padding: 30px 25px;
+  }
+
+  .left-image {
+    margin-bottom: 20px;
   }
 
   .notes-section {
     padding: 30px 25px;
   }
+
+  /* Smaller header fonts */
+  .notes-section h3 {
+    font-size: 16px;
+  }
+
+  .breadcrumb {
+    font-size: 15px;
+  }
+
+  .main-content.with-layout {
+    margin-left: 0;
+    padding: 15px;
+  }
 }
+
 
 @media (max-width: 640px) {
   .organization-container {
     padding: 20px;
   }
 
-  .form-section, .notes-section {
+  .form-section, 
+  .notes-section {
     padding: 20px;
   }
 
@@ -281,24 +316,30 @@ body, html {
     width: 120px;
     height: 120px;
   }
-}
-.main-content.with-layout {
-  margin-left: 250px; 
-  margin-top: 60px;
-  padding: 20px;
-  min-height: calc(100vh - 60px);
-  background: transparent;
-  display: flex;
-  justify-content: flex-start; 
-}
 
+  .input-group input {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
 
-.organization-container {
-  width: 100%;
-  max-width: 100%; 
-  padding: 40px 50px;
-  box-sizing: border-box;
-  margin-left: 20px; 
+  .save-section {
+    text-align: center;
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 14px;
+  }
+
+  /* Smaller header fonts for mobile */
+  .notes-section h3 {
+    font-size: 14px;
+  }
+
+  .breadcrumb {
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
 }
 
 

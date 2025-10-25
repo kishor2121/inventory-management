@@ -1,15 +1,11 @@
-body, html {
-  height: 100%;
-  margin: 0;
-  font-family: "Inter", sans-serif;
-  background-color: #f8fafc;
-}
-
+/* Page Wrapper */
 .container {
-  background: #FFDEE9, #B5FFFC,;
+  width: 100%;
   min-height: 100vh;
-  padding: 40px 60px;
+  padding: 32px 40px;
   box-sizing: border-box;
+  background: linear-gradient(120deg, #FFDEE9, #B5FFFC);
+  font-family: "Inter", sans-serif;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -20,30 +16,27 @@ body, html {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #ffffff, #f1f5f9);
-  padding: 12px 20px;
+  background: #ffffffaa;
+  padding: 12px 18px;
   border-radius: 12px;
   font-size: 15px;
   color: #475569;
   font-weight: 500;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(6px);
 }
 
 .breadcrumbLink {
-  color: #0f172a;
   cursor: pointer;
-  transition: color 0.2s ease;
+  color: #0f172a;
+  transition: 0.2s;
 }
-
 .breadcrumbLink:hover {
   color: #2563eb;
   text-decoration: underline;
 }
-
 .breadcrumbDivider {
   color: #94a3b8;
 }
-
 .breadcrumbActive {
   color: #000;
   font-weight: 600;
@@ -51,41 +44,35 @@ body, html {
 
 /* Form Card */
 .form {
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
-  border-radius: 20px;
-  padding: 40px 50px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px 40px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  transition: all 0.3s ease;
+  gap: 28px;
 }
 
-.form:hover {
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
-}
-
-/* Inputs */
+/* Row Layout */
 .row {
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
-  align-items: center;
+  gap: 18px;
+  width: 100%;
 }
 
 .input,
 .select,
 .textarea {
   flex: 1;
-  padding: 12px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  font-size: 14px;
-  background-color: #f8fafc;
-  transition: all 0.2s ease;
   min-width: 220px;
   box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 14px;
 }
 
 .input:focus,
@@ -93,25 +80,17 @@ body, html {
 .textarea:focus {
   outline: none;
   border-color: #2563eb;
-  background-color: #fff;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  background: #fff;
 }
 
-
+/* Radio */
 .radioGroup {
   display: flex;
-  gap: 20px;
   align-items: center;
+  gap: 18px;
 }
 
-.radioGroup label {
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #334155;
-}
-
+/* Two Grid Sections */
 .gridTwo {
   display: flex;
   flex-wrap: wrap;
@@ -120,27 +99,18 @@ body, html {
 
 .gridItem {
   flex: 1;
-  display: flex;
-  flex-direction: column;
   min-width: 260px;
-  background: linear-gradient(135deg, #ffffff, #f9fafb);
+  background: #ffffff;
   padding: 20px;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
 }
 
-.gridItem:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  transform: translateY(-3px);
-}
-
-.gridItem label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1e293b;
-  margin-bottom: 6px;
+/* Textarea */
+.textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
 /* Upload Box */
@@ -151,86 +121,26 @@ body, html {
   padding: 25px;
   background: #f9fafb;
   cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
 }
-
-.uploadBox:hover {
-  border-color: #2563eb;
-  background: #f1f5f9;
-}
-
-.uploadBox.dragOver {
-  border-color: #0f172a;
-  background: #f8fafc;
-}
-
 .uploadText {
-  font-size: 13px;
   color: #475569;
-  line-height: 1.4;
-  text-align: center;
+  font-size: 13px;
 }
 
-.previewContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-}
-
-.previewWrapper {
-  position: relative;
-  width: 80px;
-  height: 80px;
-}
-
-.previewImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-.removeButton {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #0f172a;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.textarea {
-  resize: vertical;
-  min-height: 80px;
-  max-height: 160px;
-}
-
+/* Buttons */
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 15px;
-  margin-top: 20px;
+  gap: 16px;
 }
 
 .button {
-  font-weight: 600;
-  padding: 12px 28px;
-  border-radius: 10px;
+  padding: 12px 26px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  border: none;
+  transition: 0.2s;
   font-size: 14px;
 }
 
@@ -239,53 +149,49 @@ body, html {
   border: 1px solid #cbd5e1;
   color: #334155;
 }
-
 .cancelButton:hover {
   background: #f1f5f9;
 }
 
 .submitButton {
-  background-color: #0f172a;
-  color: #fff;
-  border: none;
+  background: #0f172a;
+  color: white;
 }
-
 .submitButton:hover {
-  background-color: #2563eb;
+  background: #2563eb;
 }
 
-.select[multiple] {
-  height: 100px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background-color: #f8fafc;
-  overflow-y: auto;
-  font-size: 14px;
-}
-
+/* Loader */
 .loader {
   width: 18px;
   height: 18px;
   border: 3px solid #fff;
   border-top: 3px solid #2563eb;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  display: inline-block;
-  vertical-align: middle;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.successMessage {
+  margin-top: 8px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 14px;
+  color: #16a34a;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+  .form {
+    padding: 24px;
+  }
+  .row {
+    flex-direction: column;
+  }
+  .actions {
+    justify-content: center;
   }
 }
-.successMessage {
-  margin-top: 12px;
-  color: #16a34a;
-  font-size: 14px;
-  font-weight: 500;
-  text-align: right;
-}
-
-
-

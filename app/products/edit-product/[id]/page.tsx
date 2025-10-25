@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Select from 'react-select';
-import styles from '../../add-product/addProduct.module.css';
+import styles from './editProduct.module.css';
 
 export default function EditProductPage() {
   const router = useRouter();
