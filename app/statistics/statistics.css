@@ -1,9 +1,12 @@
+/* Main container */
 .page-container {
   width: 100%;
   padding: 24px;
   font-family: "Inter", sans-serif;
-  background-color: #FFDEE9, #B5FFFC;
+  background: linear-gradient(120deg, #FFDEE9, #B5FFFC);
   min-height: 100vh;
+  box-sizing: border-box; /* prevent padding overflow */
+  overflow-x: hidden; /* no horizontal scroll */
 }
 
 /* Header section */
@@ -12,6 +15,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  flex-wrap: wrap; /* wrap on smaller screens */
 }
 
 .page-title {
@@ -25,6 +29,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap; /* wrap filters if they overflow */
 }
 
 .filter-bar select,
@@ -104,6 +109,8 @@
 }
 
 /* RESPONSIVE ADJUSTMENTS */
+
+/* Large tablets and small desktops */
 @media (max-width: 1024px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -114,6 +121,7 @@
   }
 }
 
+/* Tablets / mid-size screens */
 @media (max-width: 768px) {
   .header-bar {
     flex-direction: column;
@@ -142,6 +150,7 @@
   }
 }
 
+/* Mobile devices */
 @media (max-width: 480px) {
   .page-title {
     font-size: 20px;
