@@ -156,7 +156,7 @@ export default function OrganizationDetails() {
         <div className="right-form">
           <div className="row">
             <div className="input-group">
-              <label>Organization Name</label>
+              <label>Org.Name</label>
               <input
                 type="text"
                 value={organization.organizationName}
