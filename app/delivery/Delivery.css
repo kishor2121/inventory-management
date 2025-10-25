@@ -275,15 +275,15 @@
   margin-left: 10px; 
 }
 
-/* ===== RESPONSIVE ===== */
+/* ===== RESPONSIVE STYLING ===== */
+
+/* Tablet / Medium screens */
 @media (max-width: 1024px) {
   .orders-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-
-  
 
   .filters {
     width: 100%;
@@ -306,6 +306,7 @@
   }
 }
 
+/* Mobile / Small screens */
 @media (max-width: 768px) {
   .orders-container {
     padding: 20px 20px;
@@ -313,6 +314,7 @@
 
   .orders-title {
     font-size: 18px;
+    margin-top: 60px; /* space below fixed header */
   }
 
   .search-wrapper,
@@ -362,6 +364,7 @@
   }
 }
 
+/* Extra small screens / Phones */
 @media (max-width: 480px) {
   .orders-container {
     padding: 15px 10px;
@@ -369,6 +372,7 @@
 
   .orders-title {
     font-size: 16px;
+    margin-top: 50px; /* adjust for smaller header if needed */
   }
 
   .orders-table th,
