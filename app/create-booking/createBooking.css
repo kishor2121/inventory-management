@@ -104,7 +104,7 @@ body, html {
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: 27px;
   font-size: 14px;
   color: #334155;
 }
@@ -113,6 +113,7 @@ body, html {
   width: 16px;
   height: 16px;
   accent-color: #2563eb;
+  margin: 0;
 }
 
 .add-item-btn,
