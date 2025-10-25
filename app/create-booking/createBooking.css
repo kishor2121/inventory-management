@@ -104,7 +104,7 @@ body, html {
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  margin-top: 27px;
+  margin-top: 21px;
   font-size: 14px;
   color: #334155;
 }
@@ -269,3 +269,14 @@ textarea {
     width: 100%;
   }
 }
+
+.checkbox-right label {
+  display: flex;
+  align-items: center; 
+  gap: 6px;            
+}
+
+.checkbox-right input[type="checkbox"] {
+  transform: translateY(1px); 
+}
+
