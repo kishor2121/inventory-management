@@ -1,7 +1,7 @@
 "use client";
 
 import "./globals.css";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import {
   User,
@@ -16,11 +16,9 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import Link from "next/link";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [user, setUser] = useState<{ id?: string; name?: string } | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -47,24 +45,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  // Prevent body scroll when mobile sidebar is open
   useEffect(() => {
-    if (showMobileSidebar) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = '';
-    };
+    document.body.style.overflow = showMobileSidebar ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
   }, [showMobileSidebar]);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     localStorage.removeItem("user");
-    router.push("/sign-in");
+    window.location.href = "/sign-in"; // full reload
+  };
+
+  // Mobile sidebar link handler
+  const handleMobileLink = (href: string) => {
+    setShowMobileSidebar(false);
+    window.location.href = href;
+  };
+
+  // Dropdown link handler
+  const handleDropdownLink = (href: string) => {
+    setShowDropdown(false);
+    window.location.href = href;
   };
 
   return (
@@ -76,36 +77,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <aside className="sidebar">
               <nav>
                 <ul>
-                  <li>
-                    <a href="/home">
-                      <Home className="nav-icon" size={18} /> Home
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/delivery">
-                      <Truck className="nav-icon" size={18} /> Delivery
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/return">
-                      <RotateCcw className="nav-icon" size={18} /> Return
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/products">
-                      <Package className="nav-icon" size={18} /> Products
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/orders">
-                      <ShoppingBag className="nav-icon" size={18} /> Orders
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/statistics">
-                      <BarChart3 className="nav-icon" size={18} /> Statistics
-                    </a>
-                  </li>
+                  <li><a href="/home"><Home className="nav-icon" size={18} /> Home</a></li>
+                  <li><a href="/delivery"><Truck className="nav-icon" size={18} /> Delivery</a></li>
+                  <li><a href="/return"><RotateCcw className="nav-icon" size={18} /> Return</a></li>
+                  <li><a href="/products"><Package className="nav-icon" size={18} /> Products</a></li>
+                  <li><a href="/orders"><ShoppingBag className="nav-icon" size={18} /> Orders</a></li>
+                  <li><a href="/statistics"><BarChart3 className="nav-icon" size={18} /> Statistics</a></li>
                 </ul>
               </nav>
             </aside>
@@ -113,51 +90,45 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* Mobile Sidebar Overlay */}
             {showMobileSidebar && (
               <>
-                <div 
-                  className="mobile-sidebar-backdrop"
-                  onClick={() => setShowMobileSidebar(false)}
-                />
+                <div className="mobile-sidebar-backdrop" onClick={() => setShowMobileSidebar(false)} />
                 <aside className="mobile-sidebar">
                   <div className="mobile-sidebar-header">
                     <h3>Menu</h3>
-                    <button 
-                      className="close-mobile-sidebar"
-                      onClick={() => setShowMobileSidebar(false)}
-                    >
+                    <button className="close-mobile-sidebar" onClick={() => setShowMobileSidebar(false)}>
                       <X size={24} />
                     </button>
                   </div>
                   <nav>
                     <ul>
                       <li>
-                        <Link href="/home" onClick={() => setShowMobileSidebar(false)}>
+                        <a href="/home" onClick={(e) => { e.preventDefault(); handleMobileLink("/home"); }}>
                           <Home className="nav-icon" size={18} /> Home
-                        </Link>
+                        </a>
                       </li>
                       <li>
-                        <Link href="/delivery" onClick={() => setShowMobileSidebar(false)}>
+                        <a href="/delivery" onClick={(e) => { e.preventDefault(); handleMobileLink("/delivery"); }}>
                           <Truck className="nav-icon" size={18} /> Delivery
-                        </Link>
+                        </a>
                       </li>
                       <li>
-                        <Link href="/return" onClick={() => setShowMobileSidebar(false)}>
+                        <a href="/return" onClick={(e) => { e.preventDefault(); handleMobileLink("/return"); }}>
                           <RotateCcw className="nav-icon" size={18} /> Return
-                        </Link>
+                        </a>
                       </li>
                       <li>
-                        <Link href="/products" onClick={() => setShowMobileSidebar(false)}>
+                        <a href="/products" onClick={(e) => { e.preventDefault(); handleMobileLink("/products"); }}>
                           <Package className="nav-icon" size={18} /> Products
-                        </Link>
+                        </a>
                       </li>
                       <li>
-                        <Link href="/orders" onClick={() => setShowMobileSidebar(false)}>
+                        <a href="/orders" onClick={(e) => { e.preventDefault(); handleMobileLink("/orders"); }}>
                           <ShoppingBag className="nav-icon" size={18} /> Orders
-                        </Link>
+                        </a>
                       </li>
                       <li>
-                        <Link href="/statistics" onClick={() => setShowMobileSidebar(false)}>
+                        <a href="/statistics" onClick={(e) => { e.preventDefault(); handleMobileLink("/statistics"); }}>
                           <BarChart3 className="nav-icon" size={18} /> Statistics
-                        </Link>
+                        </a>
                       </li>
                     </ul>
                   </nav>
@@ -167,41 +138,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             {/* Header */}
             <header className="top-bar">
-              <button 
-                className="hamburger-menu"
-                onClick={() => setShowMobileSidebar(true)}
-              >
+              <button className="hamburger-menu" onClick={() => setShowMobileSidebar(true)}>
                 <Menu size={24} />
               </button>
-              
-              <div
-                className="user-profile"
-                ref={dropdownRef}
-                style={{ position: "relative", cursor: "pointer" }}
-              >
+
+              <div className="user-profile" ref={dropdownRef} style={{ position: "relative", cursor: "pointer" }}>
                 <div onClick={() => setShowDropdown((s) => !s)}>
                   Hi, {user?.name ?? "User"} <span style={{ marginLeft: 6 }}>▼</span>
                 </div>
 
                 {showDropdown && (
                   <div className="user-dropdown">
-                    <button
-                      onClick={() => {
-                        setShowDropdown(false);
-                        router.push("/profile");
-                      }}
-                      className="dropdown-item"
-                    >
+                    <button onClick={() => handleDropdownLink("/profile")} className="dropdown-item">
                       <User className="icon" size={16} /> Profile
                     </button>
-
-                    <button
-                      onClick={() => {
-                        setShowDropdown(false);
-                        router.push("/change-password");
-                      }}
-                      className="dropdown-item"
-                    >
+                    <button onClick={() => handleDropdownLink("/change-password")} className="dropdown-item">
                       <Lock className="icon" size={16} /> Change Password
                     </button>
                     <button onClick={handleLogout} className="dropdown-item logout">
