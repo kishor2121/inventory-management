@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Select from "react-select";
 import { useRouter } from "next/navigation";
 import "./createBooking.css";
+import Modal from "./Modal";
+
 
 interface ProductOption {
   value: string;
@@ -40,6 +42,12 @@ export default function CreateBooking() {
   const [rentAmount, setRentAmount] = useState<number>(0);
   const [totalDeposit, setTotalDeposit] = useState<number>(0);
   const [returnAmount, setReturnAmount] = useState<number>(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"error" | "success">("error");
+  const [redirectAfterModal, setRedirectAfterModal] = useState<string | null>(null);
+
+
   const [errors, setErrors] = useState({
     customerName: "",
     phoneNumber: "",
@@ -51,6 +59,20 @@ export default function CreateBooking() {
     advance: "",
     paymentMode: "",
   });
+
+  const showModal = (
+    msg: string,
+    type: "error" | "success" = "error",
+    productName?: string,
+    redirectUrl?: string
+  ) => {
+    setModalMessage(productName ? `${msg}: ${productName}` : msg);
+    setModalType(type);
+    setRedirectAfterModal(redirectUrl || null);
+    setIsModalOpen(true);
+  };
+
+
 
   // ✅ Helper to add days
   const addDays = (dateStr: string, days: number) => {
@@ -103,7 +125,7 @@ export default function CreateBooking() {
           if (field === "returnDate") {
             const delivery = card.deliveryDate;
             if (delivery && new Date(value) < new Date(delivery)) {
-              alert("⚠️ Return date cannot be before delivery date.");
+              showModal("⚠️ Return date cannot be before delivery date.", "error");
               return card;
             }
             return { ...card, returnDate: value };
@@ -168,10 +190,10 @@ export default function CreateBooking() {
     const totalProductAmount = productCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0);
     const discount = discountValue || 0;
     const extras = additionalCharges || 0;
-    const baseRent = Math.max(totalProductAmount - discount, 0);
+    const baseRent = Math.max(totalProductAmount, 0);
     const rentWithExtras = baseRent + extras;
     const totalDep = (advance || 0) + (securityDeposit || 0);
-    const retAmt = totalDep - rentWithExtras;
+    const retAmt = ((totalDep + discount) - rentWithExtras);
 
     setRentAmount(rentWithExtras);
     setTotalDeposit(totalDep);
@@ -180,6 +202,8 @@ export default function CreateBooking() {
 
   const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
   const isValidPhoneNumber = (num: string) => /^[0-9]{10}$/.test(num);
+  const isAlpha = (val: string) => /^[A-Za-z\s]+$/.test(val);
+
 
   const handleBooking = async () => {
     const customerName = (document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]')?.value || "").trim();
@@ -187,10 +211,15 @@ export default function CreateBooking() {
     const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim();
     const bookingType = (document.querySelector<HTMLSelectElement>('select.booking-type')?.value || "").trim();
     const paymentMode = (document.querySelector<HTMLSelectElement>('select.payment-mode')?.value || "").trim();
+    
 
     let newErrors: any = {};
 
-    if (!customerName) newErrors.customerName = "Customer Name is required.";
+    if (!customerName) {
+      newErrors.customerName = "Customer Name is required.";
+    } else if (!isAlpha(customerName)) {
+      newErrors.customerName = "Customer Name can only contain letters and spaces.";
+    }
     if (!phoneNumber) {
       newErrors.phoneNumber = "Mobile No. is required.";
     } else if (!isValidPhoneNumber(phoneNumber)) {
@@ -254,14 +283,22 @@ export default function CreateBooking() {
       });
       const data = await res.json();
 
-      if (!res.ok) {
-        setErrorMessage(data.message || "⚠️ Failed to create booking.");
-        return;
+      if (res.ok) {
+        showModal(
+          "✅ Booking created successfully!",
+          "success",
+          undefined,
+          `/orders/${data.data.id}` 
+        );
+      } else {
+        const bookedProducts = data.bookedProducts || [];
+        const productNames = bookedProducts.join(", ");
+        showModal(
+          data.message || "⚠️ Failed to create booking",
+          "error",
+          productNames
+        );
       }
-
-      setErrorMessage("");
-      alert("✅ Booking created successfully!");
-      router.push(`/orders/${data.data.id}`);
     } catch (err) {
       console.error(err);
       setErrorMessage("⚠️ Something went wrong. Please try again.");
@@ -276,12 +313,12 @@ export default function CreateBooking() {
           <div className="card">
             <div className="form-row">
               <div className="form-group">
-                <label>Customer Name</label>
+                <label className="required">Customer Name</label>
                 <input type="text" placeholder="Enter customer name" />
                 {errors.customerName && <span className="error-text">{errors.customerName}</span>}
               </div>
               <div className="form-group">
-                <label>Mobile No.</label>
+                <label className="required">Mobile No.</label>
                 <input type="text" placeholder="Enter mobile number" />
                 {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
               </div>
@@ -294,7 +331,7 @@ export default function CreateBooking() {
 
             <div className="form-row align-center">
               <div className="form-group booking-type">
-                <label>Booking Type</label>
+                <label className="required">Booking Type</label>
                 <select className="booking-type">
                   <option>Select Booking Type</option>
                   <option>Pre Wedding</option>
@@ -304,21 +341,28 @@ export default function CreateBooking() {
                 </select>
                 {errors.bookingType && <span className="error-text">{errors.bookingType}</span>}
               </div>
+
               <div className="checkbox-right">
                 <label>
-                  <input type="checkbox" checked={sameDate} onChange={(e) => setSameDate(e.target.checked)} /> Same Delivery/Return Date for All
+                  <input 
+                    type="checkbox" 
+                    checked={sameDate} 
+                    onChange={(e) => setSameDate(e.target.checked)}
+                  />
+                  <span>Same Delivery/Return Date for All</span>
                 </label>
+
               </div>
             </div>
 
             {sameDate && (
               <div className="form-row date-row">
                 <div className="form-group date-input">
-                  <label>Delivery Date</label>
+                  <label className="required">Delivery Date</label>
                   <input type="date" value={globalDeliveryDate} onChange={(e) => setGlobalDeliveryDate(e.target.value)} />
                 </div>
                 <div className="form-group date-input">
-                  <label>Return Date</label>
+                  <label className="required">Return Date</label>
                   <input
                     type="date"
                     value={globalReturnDate}
@@ -341,25 +385,25 @@ export default function CreateBooking() {
               {productCards.length > 1 && <button className="remove-btn" onClick={() => handleRemoveItem(card.id)}>×</button>}
               <div className="form-row">
                 <div className="form-group" style={{ flex: 2 }}>
-                  <label>Product Name</label>
+                  <label className="required">Product Name</label>
                   <Select options={getAvailableProducts(card.id)} value={card.product} onChange={(val) => handleChange(card.id, "product", val)} placeholder="Select a product" isSearchable />
                   {errors.product && <span className="error-text">{errors.product}</span>}
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
-                  <label>Amount</label>
-                  <input type="number" placeholder="Amount" value={card.amount === "0" ? "" : card.amount} onChange={(e) => handleChange(card.id, "amount", e.target.value)} />
+                  <label className="required">Amount</label>
+                  <input type="number" placeholder="Amount" value={card.amount === "0" ? "" : card.amount} onChange={(e) => handleChange(card.id, "amount", e.target.value)} readOnly  />
                 </div>
               </div>
 
               {!sameDate && (
                 <div className="form-row date-row">
                   <div className="form-group date-input">
-                    <label>Delivery Date</label>
+                    <label className="required">Delivery Date</label>
                     <input type="date" value={card.deliveryDate} onChange={(e) => handleChange(card.id, "deliveryDate", e.target.value)} />
                     {errors.deliveryDate && <span className="error-text">{errors.deliveryDate}</span>}
                   </div>
                   <div className="form-group date-input">
-                    <label>Return Date</label>
+                    <label className="required">Return Date</label>
                     <input
                       type="date"
                       value={card.returnDate}
@@ -383,7 +427,13 @@ export default function CreateBooking() {
         <div className="booking-right">
           <div className="card">
             <div className="form-group">
-              <label>Deposit (₹)</label>
+              <label className="required">(a) Adv. Payment (₹)</label>
+              <input type="number" placeholder="Adv. Payment" value={advance === 0 ? "" : advance} onChange={(e) => setAdvance(safeNumber(e.target.value))} />
+              {errors.advance && <span className="error-text">{errors.advance}</span>}
+            </div>
+
+            <div className="form-group">
+              <label className="required">(b) Security Deposit (₹)</label>
               <input
                 type="number"
                 placeholder="Deposit"
@@ -394,13 +444,7 @@ export default function CreateBooking() {
             </div>
 
             <div className="form-group">
-              <label>Adv. Payment (₹)</label>
-              <input type="number" placeholder="Adv. Payment" value={advance === 0 ? "" : advance} onChange={(e) => setAdvance(safeNumber(e.target.value))} />
-              {errors.advance && <span className="error-text">{errors.advance}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>Payment Mode</label>
+              <label className="required">Payment Mode</label>
               <select className="payment-mode">
                 <option>Select Payment Mode</option>
                 <option>Cash</option>
@@ -410,7 +454,7 @@ export default function CreateBooking() {
             </div>
 
             <div className="form-group">
-              <label>Additional Charges (₹)</label>
+              <label>(c) Additional Charges (₹)</label>
               <input type="number" placeholder="Additional Charges" value={additionalCharges === 0 ? "" : additionalCharges} onChange={(e) => setAdditionalCharges(safeNumber(e.target.value))} />
             </div>
 
@@ -420,6 +464,16 @@ export default function CreateBooking() {
             </div>
 
             <div className="form-group">
+              <label>(d) Total Product Amount(₹)</label>
+              <input
+                type="number"
+                readOnly
+                value={Number(
+                  productCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0).toFixed(2)
+                )}
+              />
+            </div>
+            <div className="form-group">
               <label>Notes</label>
               <textarea placeholder="Notes" maxLength={500}></textarea>
               <div className="notes-count">0 / 500</div>
@@ -427,10 +481,10 @@ export default function CreateBooking() {
           </div>
 
           <div className="summary-card">
-            <div className="summary-row"><span>Rent Amount</span><span>₹ {rentAmount.toFixed(2)}</span></div>
-            <div className="summary-row"><span>Total Deposit</span><span>₹ {totalDeposit.toFixed(2)}</span></div>
-            <div className="summary-row discount-row"><span>Discount</span><span className="negative">- ₹{(discountValue || 0).toFixed(2)}</span></div>
-            <div className="summary-row"><span>Return Amount</span><span>₹ {returnAmount.toFixed(2)}</span></div>
+            <div className="summary-row"><span>A. Total Deposit (a+b)</span><span>₹ {totalDeposit.toFixed(2)}</span></div>
+            <div className="summary-row"><span>B. Rent Amount (c+d)</span><span>₹ {rentAmount.toFixed(2)}</span></div>
+            <div className="summary-row discount-row"><span>C. Discount</span><span className="negative">- ₹{(discountValue || 0).toFixed(2)}</span></div>
+            <div className="summary-row"><span>D. Return Amount(A+C-B)</span><span>₹ {returnAmount.toFixed(2)}</span></div>
           </div>
 
           <div className="action-buttons">
@@ -439,6 +493,18 @@ export default function CreateBooking() {
           </div>
         </div>
       </div>
+      <Modal
+        isOpen={isModalOpen}
+        message={modalMessage}
+        type={modalType}
+        onClose={() => {
+          setIsModalOpen(false);
+          if (modalType === "success" && redirectAfterModal) {
+            router.push(redirectAfterModal);
+          }
+        }}
+      />
+
     </div>
   );
 }
