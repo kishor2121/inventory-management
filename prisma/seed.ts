@@ -39,10 +39,17 @@ async function main() {
       organizationId: organization.id,
     },
   });
+ const statsPassword = 'Test@2025';
+  const hashedStatsPassword = await bcrypt.hash(statsPassword, 10);
 
-  console.log('Default organization and admin user seeded successfully!');
+  await prisma.settings.upsert({
+    where: { key: 'statisticsPassword' },
+    update: { value: hashedStatsPassword },
+    create: { key: 'statisticsPassword', value: hashedStatsPassword },
+  });
+
+  console.log('Default organization, admin user, and statistics password seeded successfully!');
 }
-
 main()
   .catch((e) => {
     console.error(e);

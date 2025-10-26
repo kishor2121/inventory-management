@@ -23,6 +23,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  // Inside RootLayout
+
+  const [showStatsPassword, setShowStatsPassword] = useState(false);
+  const [statsPassword, setStatsPassword] = useState("");
+  const [statsError, setStatsError] = useState("");
+
+  const handleStatisticsClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowStatsPassword(true);
+  };
+
+  const verifyStatsPassword = async () => {
+    const res = await fetch("/api/statistics/verify-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: statsPassword }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setShowStatsPassword(false);
+      setStatsPassword("");
+      setStatsError("");
+      window.location.href = "/statistics";
+    } else {
+      setStatsError("Incorrect password");
+    }
+  };
+
 
   const hideLayout = pathname === "/login" || pathname === "/sign-in" || pathname.startsWith("/e-receipt/");
 
@@ -68,6 +96,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     window.location.href = href;
   };
 
+  
+
   return (
     <html lang="en">
       <body>
@@ -82,7 +112,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li><a href="/return"><RotateCcw className="nav-icon" size={18} /> Return</a></li>
                   <li><a href="/products"><Package className="nav-icon" size={18} /> Products</a></li>
                   <li><a href="/orders"><ShoppingBag className="nav-icon" size={18} /> Orders</a></li>
-                  <li><a href="/statistics"><BarChart3 className="nav-icon" size={18} /> Statistics</a></li>
+                  <li>
+                    <a href="/statistics" onClick={handleStatisticsClick}>
+                      <BarChart3 className="nav-icon" size={18} /> Statistics
+                    </a>
+                  </li>
+
                 </ul>
               </nav>
             </aside>
@@ -126,10 +161,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         </a>
                       </li>
                       <li>
-                        <a href="/statistics" onClick={(e) => { e.preventDefault(); handleMobileLink("/statistics"); }}>
+                        <a href="/statistics" onClick={(e) => { e.preventDefault(); handleStatisticsClick(e); }}>
                           <BarChart3 className="nav-icon" size={18} /> Statistics
                         </a>
                       </li>
+
                     </ul>
                   </nav>
                 </aside>
@@ -168,6 +204,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className={`main-content ${!hideLayout ? "with-layout" : ""}`}>
           {children}
         </main>
+
+        {showStatsPassword && (
+          <div className="modal-backdrop">
+            <div className="modal">
+              <h3>Enter Statistics Password</h3>
+              <input
+                type="password"
+                value={statsPassword}
+                onChange={(e) => setStatsPassword(e.target.value)}
+                placeholder="Password"
+              />
+              {statsError && <p className="error">{statsError}</p>}
+              <div className="modal-actions">
+                <button onClick={verifyStatsPassword}>Submit</button>
+                <button onClick={() => setShowStatsPassword(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+        
       </body>
     </html>
   );
