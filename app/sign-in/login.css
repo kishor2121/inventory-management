@@ -93,7 +93,7 @@ body, html {
   position: absolute;
   right: 14px;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-100%);
   cursor: pointer;
   color: #64748b;
   transition: color 0.2s ease;
