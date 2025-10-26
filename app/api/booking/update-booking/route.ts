@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest) {
     const returnAmount = formData.get("returnAmount") ? parseFloat(formData.get("returnAmount")!.toString()) : undefined;
     const advancePayment = formData.get("advancePayment") ? parseFloat(formData.get("advancePayment")!.toString()) : undefined;
     const discount = formData.get("discount") ? parseFloat(formData.get("discount")!.toString()) : undefined;
-    const additionalCharges = formData.get("additionalCharges") ? parseFloat(formData.get("additionalCharges")!.toString()) : undefined; // <--
+    const additionalCharges = formData.get("additionalCharges") ? parseFloat(formData.get("additionalCharges")!.toString()) : undefined;
 
     const discountType = formData.get("discountType")?.toString();
     const rentalType = formData.get("rentalType")?.toString();
@@ -50,7 +50,7 @@ export async function PUT(req: NextRequest) {
     if (returnAmount !== undefined) updateData.returnAmount = returnAmount;
     if (advancePayment !== undefined) updateData.advancePayment = advancePayment;
     if (discount !== undefined) updateData.discount = discount;
-    if (additionalCharges !== undefined) updateData.additionalCharges = additionalCharges; // <--
+    if (additionalCharges !== undefined) updateData.additionalCharges = additionalCharges;
     if (discountType) updateData.discountType = discountType;
     if (rentalType) updateData.rentalType = rentalType;
     if (invoiceNumber !== undefined) updateData.invoiceNumber = invoiceNumber;
@@ -68,11 +68,17 @@ export async function PUT(req: NextRequest) {
       for (const p of products) {
         const productExists = await prisma.product.findUnique({ where: { id: p.productId } });
         if (!productExists) {
-          return NextResponse.json({ message: `Product not found: ${p.productId}` }, { status: 400 });
+          return NextResponse.json(
+            { message: `Product not found: ID ${p.productId}` },
+            { status: 400 }
+          );
         }
+
+        const productName = productExists.name;
+
         if (productExists.status !== "available") {
           return NextResponse.json({
-            message: `Product is currently ${productExists.status}. Please wait until it becomes available.`,
+            message: `${productName}: currently ${productExists.status}. Please wait until it becomes available.`,
           }, { status: 400 });
         }
 
