@@ -195,3 +195,28 @@
     justify-content: center;
   }
 }
+
+.required::after {
+  content: " *";
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.formGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+
+.required::after {
+  content: " *";
+  color: #ff4d4d;
+  font-weight: bold;
+}
+
+
+
+
+

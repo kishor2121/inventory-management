@@ -18,13 +18,13 @@ export default function AddProductPage() {
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [loading, setLoading] = useState(false); // ✅ Loader state
-  const [successMessage, setSuccessMessage] = useState(''); // ✅ Success message
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const menCategories = ['Blazer','Sherwani','Shirt', 'Pant'];
+  const menCategories = ['Blazer', 'Sherwani', 'Shirt', 'Pant'];
   const womenCategories = ['Chaniya-Choli', 'Gown', 'Overcoat'];
-  const menSizes = ['34', '36', '38', '40', '42','44', '46'];
-  const womenSizes = ['Free Size', 'XS','S', 'M', 'L', 'XL', 'XXL'];
+  const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
+  const womenSizes = ['Free Size', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   const sizeOptions =
     gender === 'Men'
@@ -34,7 +34,9 @@ export default function AddProductPage() {
       : [];
 
   const addImages = (files: FileList | File[]) => {
-    const validImages = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    const validImages = Array.from(files).filter((f) =>
+      f.type.startsWith('image/')
+    );
     if (validImages.length > 0) {
       const newImages = [...images, ...validImages];
       setImages(newImages);
@@ -60,7 +62,7 @@ export default function AddProductPage() {
   };
 
   const handleSubmit = async () => {
-    if (!name || !sku || !category || !price) {
+    if (!gender || !name || !sku || !category || !price) {
       alert('Please fill all required fields');
       return;
     }
@@ -112,7 +114,7 @@ export default function AddProductPage() {
         }}
       >
         <div className={styles.row}>
-          <label>Gender Type:</label>
+          <label className={styles.required}>Gender Type:</label>
           <div className={styles.radioGroup}>
             <label>
               <input
@@ -146,46 +148,60 @@ export default function AddProductPage() {
         </div>
 
         <div className={styles.row}>
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="SKU"
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-          />
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="Product Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <div className={styles.formGroup}>
+            <label className={styles.required}>SKU</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              placeholder="SKU"
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.required}>Product Name</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Product Name"
+            />
+          </div>
         </div>
 
         <div className={styles.row}>
-          <select
-            className={styles.select}
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            disabled={!gender}
-          >
-            <option value="">Select category</option>
-            {categories.map((c) => (
-              <option key={c} value={c.toLowerCase()}>
-                {c}
-              </option>
-            ))}
-          </select>
+          <div className={styles.formGroup}>
+            <label className={styles.required}>Category</label>
+            <select
+              className={styles.select}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              disabled={!gender}
+            >
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c} value={c.toLowerCase()}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <input
-            className={styles.input}
-            type="number"
-            placeholder="Enter Price"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
+          <div className={styles.formGroup}>
+            <label className={styles.required}>Price (₹)</label>
+            <input
+              className={styles.input}
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="Enter Price"
+            />
+          </div>
 
-          <div style={{ flex: 1 }}>
+          <div className={styles.formGroup} style={{ flex: 1 }}>
+            <label>Size</label>
             <Select
               isMulti
               options={sizeOptions}
@@ -193,20 +209,6 @@ export default function AddProductPage() {
               onChange={(selected) => setSize(selected.map((opt) => opt.value))}
               placeholder="Select size(s)"
               isDisabled={!gender}
-              classNamePrefix="react-select"
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  borderRadius: '8px',
-                  borderColor: '#d1d5db',
-                  minHeight: '40px',
-                  fontSize: '14px',
-                }),
-                multiValue: (base) => ({
-                  ...base,
-                  backgroundColor: '#e5e7eb',
-                }),
-              }}
             />
           </div>
         </div>
@@ -294,7 +296,6 @@ export default function AddProductPage() {
           </button>
         </div>
 
-        {/* ✅ Green message below */}
         {successMessage && (
           <p className={styles.successMessage}>{successMessage}</p>
         )}
