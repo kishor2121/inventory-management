@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import validate from "../../auth/validate";
 
+// Generate booking ID based on customer name
 function generateBookingId(customerName: string) {
   const prefix = "bk"; 
   const last4 = customerName.slice(-4).toLowerCase().padStart(4, "x");
@@ -55,12 +56,14 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
       }
 
+      // Status check with product name first
       if (productExists.status !== "available") {
         return NextResponse.json({
-          message: `Product is currently ${productExists.status}. Please wait until it becomes available.`,
+          message: `${productExists.name}: Product is currently ${productExists.status}. Please wait until it becomes available.`,
         }, { status: 400 });
       }
 
+      // Check for overlapping bookings
       const overlappingLock = await prisma.productLock.findFirst({
         where: {
           productId: p.productId,
@@ -74,18 +77,19 @@ export async function POST(req: NextRequest) {
       });
 
       if (overlappingLock) {
-          const from = overlappingLock.deliveryDate.toISOString().split("T")[0];
-          const to   = overlappingLock.returnDate.toISOString().split("T")[0];  
-          overlappingProducts.push(`(${from} to ${to})`);
+        const from = overlappingLock.deliveryDate.toISOString().split("T")[0];
+        const to = overlappingLock.returnDate.toISOString().split("T")[0];
+        overlappingProducts.push(`${productExists.name}: Already booked from ${from} to ${to}`);
       }
     }
 
     if (overlappingProducts.length > 0) {
       return NextResponse.json({
-        message: `product are already booked for ${overlappingProducts.join(", ")}`,
+        message: overlappingProducts.join(", "),
       }, { status: 400 });
     }
 
+    // Generate invoice number
     const lastBooking = await prisma.booking.findFirst({
       orderBy: { createdAt: "desc" },
     });
@@ -93,6 +97,7 @@ export async function POST(req: NextRequest) {
 
     const bookingId = generateBookingId(customerName);
 
+    // Create booking with product locks
     const booking = await prisma.booking.create({
       data: {
         id: bookingId,
