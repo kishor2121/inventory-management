@@ -72,6 +72,7 @@ export default function EditProductPage() {
       setPreviewUrls(files.map((f) => URL.createObjectURL(f)));
     }
   };
+  
 
   const handleSubmit = async () => {
     if (!name || !sku || !category || !price) {
@@ -81,6 +82,7 @@ export default function EditProductPage() {
 
     setLoading(true);
     setSuccessMessage('');
+
 
     const formData = new FormData();
     formData.append('name', name);
@@ -112,6 +114,22 @@ export default function EditProductPage() {
       alert('Error: ' + (data?.message || 'Something went wrong!'));
     }
   };
+
+  // Allow only letters and spaces
+      const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (/^[A-Za-z\s]*$/.test(value)) {
+          setName(value);
+        }
+      };
+
+      // Allow only positive whole numbers
+      const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (/^\d*$/.test(value)) { // only numbers
+          setPrice(value);
+        }
+      };
 
   const categories =
     gender === 'Men'
@@ -189,8 +207,9 @@ export default function EditProductPage() {
             type="text"
             placeholder="Product Name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={handleNameChange}
           />
+
         </div>
 
         {/* Category + Price + Size */}
@@ -211,11 +230,13 @@ export default function EditProductPage() {
 
           <input
             className={styles.input}
-            type="number"
+            type="text"
             placeholder="Enter Price"
             value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            onChange={handlePriceChange}
+            inputMode="numeric"
           />
+
 
           <div style={{ flex: 1 }}>
             {/* Render Select only after mount to prevent hydration errors */}

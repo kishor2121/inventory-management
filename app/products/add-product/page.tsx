@@ -100,6 +100,23 @@ export default function AddProductPage() {
     }
   };
 
+  // Allow only letters and spaces
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^[A-Za-z\s]*$/.test(value)) {
+      setName(value);
+    }
+  };
+
+  // Allow only numbers and prevent negative
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^\d*$/.test(value)) {   // Only digits allowed
+      setPrice(value);
+    }
+  };
+
+
   const categories =
     gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
 
@@ -169,12 +186,13 @@ export default function AddProductPage() {
           <div className={styles.formGroup}>
             <label className={styles.required}>Product Name</label>
             <input
-              className={styles.input}
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Product Name"
+                className={styles.input}
+                type="text"
+                value={name}
+                onChange={handleNameChange}
+                placeholder="Product Name"
             />
+
           </div>
         </div>
 
@@ -200,11 +218,13 @@ export default function AddProductPage() {
             <label className={styles.required}>Price (₹)</label>
             <input
               className={styles.input}
-              type="number"
+              type="text"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={handlePriceChange}
               placeholder="Enter Price"
+              inputMode="numeric"
             />
+
           </div>
 
           <div className={styles.formGroup} style={{ flex: 1 }}>
