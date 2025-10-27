@@ -61,6 +61,7 @@ CREATE TABLE "Booking" (
     "notes" TEXT,
     "rentAmount" DOUBLE PRECISION NOT NULL,
     "totalDeposit" DOUBLE PRECISION NOT NULL,
+    "additionalCharges" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "returnAmount" DOUBLE PRECISION NOT NULL,
     "advancePayment" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "securityDeposit" DOUBLE PRECISION NOT NULL DEFAULT 0,
@@ -90,6 +91,15 @@ CREATE TABLE "ProductLock" (
     CONSTRAINT "ProductLock_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Settings" (
+    "id" SERIAL NOT NULL,
+    "key" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+
+    CONSTRAINT "Settings_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Organization_email_key" ON "Organization"("email");
 
@@ -98,6 +108,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_sku_key" ON "Product"("sku");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Settings_key_key" ON "Settings"("key");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
