@@ -17,6 +17,7 @@ interface Booking {
   returnAmount: number;
   advancePayment: number;
   discount: number;
+  additionalcharges: number;
   discountType: string;
   rentalType: string;
   invoiceNumber: number;
@@ -211,10 +212,18 @@ export default function ReturnPage() {
             <tbody>
               {filteredData.length > 0 ? (
                 filteredData.map((booking) => {
+                  const totalProductAmount = booking.productLocks.reduce(
+                    (sum, lock) => sum + (lock.product?.price || 0),
+                    0
+                  );
+
+                  const additionalCharges = booking.additionalcharges || 0;
+
                   const returnAmount = Math.max(
                     0,
-                    booking.totalDeposit - booking.rentAmount
+                    booking.totalDeposit - (totalProductAmount + additionalCharges)
                   );
+
                   const isExpanded = expandedRows.includes(booking.id);
 
                   return (

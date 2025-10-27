@@ -85,25 +85,52 @@ export default function ViewOrderPage() {
   const returnAmount = (securityDeposit + (order.advancePayment)) - total;
 
   const generatePDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    let currentY = 20;
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 15;
+  let currentY = 20;
 
-    const formatCurrency = (amount: number) =>
-      `Rs.${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+  const formatCurrency = (amount: number) =>
+    `Rs.${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 
-    doc.setFont("helvetica", "bold").setFontSize(16).setTextColor(0);
-    doc.text(organizationInfo.organizationName, margin, currentY);
+  const logo = new Image();
+    logo.src = "/icons/icon-512x512.png"; // Make sure this exists in /public/icons
 
-    doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(100);
-    doc.text(organizationInfo.address, margin, currentY + 6);
-    doc.text(`Email: ${organizationInfo.email}`, margin, currentY + 12);
-    doc.text(`Phone: ${organizationInfo.contactNumber}`, margin, currentY + 18);
+    const logoSize = 22;
+    const logoX = margin;
+    const logoY = currentY;
 
-    doc.setTextColor(0).setFontSize(12);
-    const invoiceY = currentY;
-    doc.text(`Invoice #: ${order.invoiceNumber}`, pageWidth - margin, invoiceY, { align: "right" });
+    // ✅ Draw logo
+    doc.addImage(logo, "PNG", logoX, logoY, logoSize, logoSize);
+
+    // ✅ Draw circle mask around logo (makes it look circular)
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.6);
+    doc.circle(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, "S");
+
+    // ✅ Text positioned to the right of the logo
+    const textX = logoX + logoSize + 5;
+    let textY = logoY + 4;
+
+    doc.setFont("helvetica", "bold").setFontSize(14).setTextColor(0);
+    doc.text(organizationInfo.organizationName, textX, textY);
+
+    doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(80);
+    textY += 6;
+    const addressLines = doc.splitTextToSize(organizationInfo.address, 80); // wrap width ~80px
+
+    doc.text(addressLines[0], textX, textY);
+    textY += 6;
+
+    if (addressLines[1]) {
+      doc.text(addressLines[1], textX, textY);
+      textY += 6;
+    }
+    doc.text(`Email: ${organizationInfo.email}`, textX, textY);
+    textY += 6;
+    doc.text(`Phone: ${organizationInfo.contactNumber}`, textX, textY);
+    doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(0);
+    doc.text(`Invoice #: ${order.invoiceNumber}`, pageWidth - margin, logoY + 4, { align: "right" });
     doc.text(
       `Date: ${new Date(order.createdAt).toLocaleDateString("en-GB", {
         day: "2-digit",
@@ -111,11 +138,12 @@ export default function ViewOrderPage() {
         year: "numeric",
       })}`,
       pageWidth - margin,
-      invoiceY + 6,
+      logoY + 10,
       { align: "right" }
     );
 
-    currentY += 28;
+    currentY = logoY + logoSize + 15; // Move content down cleanly
+
     const billedBoxHeight = 30;
     doc.setFillColor(245, 245, 245);
     doc.rect(margin, currentY, pageWidth - 2 * margin, billedBoxHeight, "F"); 
@@ -161,8 +189,8 @@ export default function ViewOrderPage() {
     doc.setLineWidth(0.4);
     doc.setFont("helvetica", "normal").setFontSize(9);
 
-    const step = 6; 
-    const gapAfterDivider = 3; 
+    const step = 6; // compact spacing
+    const gapAfterDivider = 3; // extra gap 
     doc.roundedRect(leftX, boxY, boxWidth, boxHeight, 2, 2);
 
     doc.text("Adv. Payment:", leftX + 4, boxY + step);
@@ -201,18 +229,58 @@ export default function ViewOrderPage() {
     if (order.notes) {
       doc.setFont("helvetica", "bold").setFontSize(11);
       doc.text("Special Note:", margin, currentY);
+
+      currentY += 8;
+
       doc.setFont("helvetica", "normal").setFontSize(10);
-      const noteText = doc.splitTextToSize(order.notes, pageWidth - margin * 2 - 25);
-      doc.text(noteText, margin + 30, currentY);
+      const noteText = doc.splitTextToSize(order.notes, pageWidth - margin * 2);
+      doc.text(noteText, margin, currentY);
+      currentY += (noteText.length * 6) + 14;
     }
 
-    // Footer
+      currentY += 5;
+
+      if (currentY + 80 > doc.internal.pageSize.height - 20) {
+        doc.addPage();
+        currentY = 20;
+}
+
+
+    const termsList = [
+      "1. Extra Day Charge: Rs.250 will be charged per gown or blazer for each extra day.",
+      "2. Dress Care: Dresses must be returned clean and without any damage. Do not use fire bombs, cold bombs, or color bombs.",
+      "3. Damage Fee: Minimum charge of Rs.2,000 will apply for any damage.",
+      "4. Pickup & Return: Customers must handle collection and return of dresses.",
+      "5. Delivery Charges: All courier or delivery costs (Dunzo, Swiggy, etc.) must be paid by the customer for both pickup and return."
+    ];
+
+    const boxWidthFull = pageWidth - margin * 2;
+    if (currentY + 70 > doc.internal.pageSize.height - 30) {
+      currentY = doc.internal.pageSize.height - 120;
+    }
+    doc.setFillColor(255, 249, 234);
+    doc.roundedRect(margin, currentY, boxWidthFull, 70, 4, 4, "F");
+    doc.setDrawColor(255, 171, 0);
+    doc.setLineWidth(1.5);
+    doc.line(margin + 2, currentY + 5, margin + 2, currentY + 65);
+
+    doc.setFont("helvetica", "bold").setFontSize(10);
+    doc.text("Terms & Conditions:", margin + 10, currentY + 12);
+
+    currentY += 20;
+    doc.setFont("helvetica", "normal").setFontSize(9);
+
+    termsList.forEach((line) => {
+      const wrapped = doc.splitTextToSize(line, boxWidthFull - 28);
+      doc.circle(margin + 8, currentY - 2, 1.3, "F"); 
+      doc.text(wrapped, margin + 14, currentY);
+      currentY += wrapped.length * 5 + 3;
+    });
     const footerY = doc.internal.pageSize.getHeight() - 15;
     doc.setDrawColor(220);
     doc.line(margin, footerY - 6, pageWidth - margin, footerY - 6);
     doc.setFont("helvetica", "italic").setFontSize(10).setTextColor(120);
     doc.text("Thanks You Visit Again!", pageWidth / 2, footerY, { align: "center" });
-
     return doc;
   };
 
