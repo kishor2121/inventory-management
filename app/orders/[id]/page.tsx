@@ -70,7 +70,14 @@ export default function ViewOrderPage() {
     fetchOrderAndOrganizationInfo();
   }, [id]);
 
-  if (!order || !organizationInfo) return <div>Loading...</div>;
+  if (!order || !organizationInfo)
+    return (
+      <div className="view-order-container">
+        <div className="loading-screen">
+          <div className="loader"></div> &nbsp; Loading...
+        </div>
+      </div>
+    );
 
   const productAmount = order.productLocks.reduce(
     (sum, lock) => sum + (lock.product?.price || 0),
