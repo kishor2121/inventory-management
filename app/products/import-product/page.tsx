@@ -179,6 +179,13 @@ KIDS HOODIE,Warm hoodie for kids with cartoon print,399,HOODIE001565,"36,38"
           />
         </div>
 
+                {/* ✅ Show File Name Here */}
+        {file && (
+          <p className={styles.fileName}>
+            📄 {file.name}
+          </p>
+        )}
+
         <div className={styles.actions}>
           <button
             className={styles.sampleCSVBtn}

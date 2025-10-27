@@ -5,6 +5,17 @@
   font-family: 'Inter', sans-serif;
 }
 
+
+.fileName {
+  margin-top: -10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #111827;
+  font-weight: 500;
+  text-align: center;
+}
+
+
 .breadcrumb {
   margin-bottom: 24px;
   color: #6b7280;
@@ -139,11 +150,4 @@
 .skippedBox ul {
   margin: 0;
   padding-left: 18px;
-}
-
-
-.select:disabled {
-  background-color: #e5e7eb;
-  cursor: not-allowed;
-  opacity: 0.7;
 }
