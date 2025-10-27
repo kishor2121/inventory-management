@@ -79,10 +79,10 @@ export default function ViewOrderPage() {
   const additionalCharges = order.additionalCharges || 0; 
   const securityDeposit = order.securityDeposit;
   const discount = order.discount;
-  const total = productAmount + additionalCharges + securityDeposit - discount; 
+  const rentamount = productAmount + additionalCharges;
+  const total = rentamount - discount
   const remainingPayment = total - order.advancePayment;
-  const returnAmount = order.totalDeposit - order.rentAmount; 
-
+  const returnAmount = (securityDeposit + (order.advancePayment)) - total;
 
   const generatePDF = () => {
     const doc = new jsPDF();
@@ -150,54 +150,51 @@ export default function ViewOrderPage() {
     });
 
     currentY = (doc as any).lastAutoTable.finalY + 12;
-    const boxWidth = 80;
-    const boxHeight = 35;
-    const gap = 10;
 
+    const boxWidth = 80;
+    const boxHeight = 32;
     const leftX = margin;
     const rightX = pageWidth - margin - boxWidth;
     const boxY = currentY;
 
     doc.setDrawColor(200);
-    doc.setLineWidth(0.5);
-    doc.setFont("helvetica", "normal").setFontSize(8);
+    doc.setLineWidth(0.4);
+    doc.setFont("helvetica", "normal").setFontSize(9);
 
-    const lineSpacing = 6;
-
+    const step = 6; 
+    const gapAfterDivider = 3; 
     doc.roundedRect(leftX, boxY, boxWidth, boxHeight, 2, 2);
-    doc.text("Adv. Payment:", leftX + 3, boxY + lineSpacing);
-    doc.text(formatCurrency(order.advancePayment), leftX + boxWidth - 3, boxY + lineSpacing, { align: "right" });
 
-    doc.setTextColor(220, 38, 38);
-    doc.text("Rem. Payment:", leftX + 3, boxY + 2 * lineSpacing);
-    doc.text(formatCurrency(remainingPayment), leftX + boxWidth - 3, boxY + 2 * lineSpacing, { align: "right" });
-    doc.setTextColor(0);
+    doc.text("Adv. Payment:", leftX + 4, boxY + step);
+    doc.text(formatCurrency(order.advancePayment), leftX + boxWidth - 4, boxY + step, { align: "right" });
 
-    doc.text("Return Amount:", leftX + 3, boxY + 3 * lineSpacing);
-    doc.text(formatCurrency(returnAmount), leftX + boxWidth - 3, boxY + 3 * lineSpacing, { align: "right" });
+    doc.text("Security Deposit:", leftX + 4, boxY + step * 2);
+    doc.text(formatCurrency(order.securityDeposit), leftX + boxWidth - 4, boxY + step * 2, { align: "right" });
 
-    doc.roundedRect(rightX, boxY, boxWidth, boxHeight, 2, 2);
-    doc.text("Amount:", rightX + 3, boxY + lineSpacing);
-    doc.text(formatCurrency(productAmount), rightX + boxWidth - 3, boxY + lineSpacing, { align: "right" });
-
-    doc.text("Add. Charges:", rightX + 3, boxY + 2 * lineSpacing);
-    doc.text(formatCurrency(additionalCharges), rightX + boxWidth - 3, boxY + 2 * lineSpacing, { align: "right" });
-
-    doc.text("Deposit:", rightX + 3, boxY + 3 * lineSpacing);
-    doc.text(formatCurrency(order.securityDeposit), rightX + boxWidth - 3, boxY + 3 * lineSpacing, { align: "right" });
-
-    doc.setTextColor(34, 197, 94);
-    doc.text("Discount:", rightX + 3, boxY + 4 * lineSpacing);
-    doc.text(`- ${formatCurrency(order.discount)}`, rightX + boxWidth - 3, boxY + 4 * lineSpacing, { align: "right" });
-    doc.setTextColor(0);
-
-    doc.setDrawColor(200); 
-    doc.setLineWidth(0.3); 
-    doc.line(rightX + 2, boxY + 4 * lineSpacing + 2, rightX + boxWidth - 2, boxY + 4 * lineSpacing + 2);
-
+    const dividerY_Left = boxY + step * 2 + gapAfterDivider;
+    doc.line(leftX + 3, dividerY_Left, leftX + boxWidth - 3, dividerY_Left);
     doc.setFont("helvetica", "bold");
-    doc.text("Total:", rightX + 3, boxY + boxHeight - 4);
-    doc.text(formatCurrency(total), rightX + boxWidth - 3, boxY + boxHeight - 4, { align: "right" });
+    doc.text("(d) Total:", leftX + 4, dividerY_Left + step);
+    doc.text(formatCurrency(order.securityDeposit + order.advancePayment), leftX + boxWidth - 4, dividerY_Left + step, { align: "right" });
+
+    doc.setFont("helvetica", "normal");
+    doc.text("Return Amount (c - d):", leftX + 4, dividerY_Left + step * 2);
+    doc.setFont("helvetica", "bold");
+    doc.text(formatCurrency(returnAmount), leftX + boxWidth - 4, dividerY_Left + step * 2, { align: "right" });
+
+    doc.setFont("helvetica", "normal");
+    doc.roundedRect(rightX, boxY, boxWidth, boxHeight, 2, 2);
+
+    doc.text("(a) Rent Amount:", rightX + 4, boxY + step);
+    doc.text(formatCurrency(rentamount), rightX + boxWidth - 4, boxY + step, { align: "right" });
+
+    doc.text("(b) Discount:", rightX + 4, boxY + step * 2);
+    doc.text(`- ${formatCurrency(discount)}`, rightX + boxWidth - 4, boxY + step * 2, { align: "right" });
+    const dividerY_Right = boxY + step * 2 + gapAfterDivider;
+    doc.line(rightX + 3, dividerY_Right, rightX + boxWidth - 3, dividerY_Right);
+    doc.setFont("helvetica", "bold");
+    doc.text("(c) Total:", rightX + 4, dividerY_Right + step);
+    doc.text(formatCurrency(total), rightX + boxWidth - 4, dividerY_Right + step, { align: "right" });
 
     currentY = boxY + boxHeight + 10; 
 
@@ -339,34 +336,30 @@ export default function ViewOrderPage() {
                 <span className="amount">₹{order.advancePayment}</span>
               </div>
               <div>
-                <span>Rem. Payment:</span>
-                <span className="remaining">₹{remainingPayment}</span>
+                <span>Security Deposite:</span>
+                <span>₹{securityDeposit}</span>
+              </div>
+              <div className="payment-total">
+                <span>(d) Total:</span>
+                <span>₹{securityDeposit + (order.advancePayment)}</span>
               </div>
               <div>
-                <span>Return Amount:</span>
+                <span>Return Amount(c-d):</span>
                 <span className="return">₹{returnAmount}</span>
               </div>
             </div>
 
             <div className="totals">
               <div>
-                <span>Amount:</span>
-                <span>₹{productAmount}</span>
+                <span>(a) Rent Amount:</span>
+                <span>₹{rentamount}</span>
               </div>
               <div>
-                <span>Additional Charges:</span>
-                <span>₹{additionalCharges}</span>
-              </div>
-              <div>
-                <span>Deposit:</span>
-                <span>₹{securityDeposit}</span>
-              </div>
-              <div>
-                <span>Discount:</span>
+                <span>(b) Discount:</span>
                 <span className="discount">-₹{discount}</span>
               </div>
               <div className="total">
-                <span>Total:</span>
+                <span>(c) Total:</span>
                 <span>₹{total}</span>
               </div>
             </div>

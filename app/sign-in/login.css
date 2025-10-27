@@ -143,3 +143,86 @@ body, html {
   font-size: 14px;
   font-weight: 500;
 }
+.logo-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover; /* makes the image fill the circle neatly */
+  border-radius: 50%;
+}
+
+
+/* ---------- RESPONSIVE DESIGN ---------- */
+
+/* Small screens (Tablets & below) */
+@media (max-width: 768px) {
+  .login-card {
+    padding: 32px 38px;
+    max-width: 350px;
+  }
+
+  .logo-img {
+    width: 70px;
+    height: 70px;
+  }
+
+  .login-card h2 {
+    font-size: 20px;
+  }
+
+  .login-card p {
+    font-size: 13px;
+  }
+
+  .login-card input,
+  .password-input input {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .login-card button {
+    padding: 10px;
+    font-size: 14px;
+  }
+}
+
+/* Very small screens (Phones) */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 25px 26px;
+    max-width: 90%;
+  }
+
+  .logo-img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .login-card h2 {
+    font-size: 18px;
+  }
+
+  .login-card p {
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+
+  .login-card label {
+    font-size: 13px;
+  }
+
+  .login-card input,
+  .password-input input {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .toggle-visibility {
+    right: 10px;
+    font-size: 16px;
+  }
+
+  .login-card button {
+    padding: 10px;
+    font-size: 13px;
+  }
+}

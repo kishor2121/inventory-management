@@ -315,3 +315,11 @@
   }
 }
 
+.payment-summary .payment-total {
+  border-top: 1px solid #ccc;
+  margin-top: 6px;
+  padding-top: 6px;
+  font-weight: bold;
+}
+
+
