@@ -84,7 +84,6 @@
   font-weight: bold;
 }
 
-/* === Payment Summary === */
 .payment-summary {
   display: flex;
   justify-content: space-between;
@@ -121,7 +120,6 @@
   font-weight: bold;
 }
 
-/* === Footer === */
 .footer-note {
   text-align: center;
   margin-top: 25px;
@@ -130,4 +128,138 @@
   font-style: italic;
   font-size: 12px;
   color: #666;
+}
+.payment-summary {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.calc-box {
+  width: 45%;
+  border: 1px solid #bbb;
+  border-radius: 5px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.calc-box .row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  line-height: 1.2;
+}
+
+
+.calc-box .divider {
+  border-top: 1px dashed #aaa;
+  margin: 6px 0 6px 0;
+}
+
+
+.calc-box .total-row span {
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.calc-box .return-row {
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+@media (max-width: 1024px) {
+  .invoice-card {
+    width: 95%;
+    padding: 18px;
+  }
+
+  .org-details h2 {
+    font-size: 16px;
+  }
+
+  .product-table th,
+  .product-table td {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .calc-box {
+    width: 48%;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .invoice-card {
+    width: 100%;
+    padding: 14px;
+  }
+
+  .invoice-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .org-details h2 {
+    font-size: 15px;
+  }
+
+  .org-details p,
+  .invoice-meta {
+    font-size: 12px;
+  }
+
+  .billed-name {
+    font-size: 13px;
+  }
+
+  .product-table th,
+  .product-table td {
+    padding: 5px;
+    font-size: 11px;
+  }
+
+  .payment-summary {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .calc-box {
+    width: 100%;
+    padding: 8px 3px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .invoice-card {
+    padding: 10px;
+  }
+
+  .org-details h2 {
+    font-size: 14px;
+  }
+
+  .org-details p,
+  .invoice-meta,
+  .billed-contact {
+    font-size: 11px;
+  }
+
+  .product-table th,
+  .product-table td {
+    padding: 4px;
+    font-size: 10px;
+  }
+
+  .calc-box {
+    padding: 6px 2px;
+    font-size: 11px;
+  }
+
+  .footer-note {
+    font-size: 11px;
+  }
 }

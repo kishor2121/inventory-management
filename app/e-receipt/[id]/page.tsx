@@ -126,45 +126,53 @@ export default function EReceiptPage() {
 
         {/* === PAYMENT SUMMARY === */}
         <div className="payment-summary">
-          <div className="left-box">
-            <div>
+          {/* LEFT BOX */}
+          <div className="calc-box">
+            <div className="row">
               <span>Adv. Payment:</span>
               <span>Rs.{order.advancePayment}</span>
             </div>
-            <div>
-              <span>Rem. Payment:</span>
-              <span className="red">Rs.{remainingPayment}</span>
+
+            <div className="row">
+              <span>Security Deposit:</span>
+              <span>Rs.{order.securityDeposit}</span>
             </div>
-            {/* === Added Return Amount here === */}
-            <div>
-              <span>Return Amount:</span>
-              <span>Rs.{returnAmount}</span> {/* This is the new calculation */}
+
+            {/* DIVIDER ABOVE TOTAL */}
+            <div className="divider" />
+
+            <div className="row total-row">
+              <span>(d) Total:</span>
+              <span>Rs.{order.advancePayment + order.securityDeposit}</span>
+            </div>
+
+            <div className="row return-row">
+              <span>Return Amount (c - d):</span>
+              <span>Rs.{returnAmount}</span>
             </div>
           </div>
 
-          <div className="right-box">
-            <div>
-              <span>Amount:</span>
+          {/* RIGHT BOX */}
+          <div className="calc-box">
+            <div className="row">
+              <span>(a) Rent Amount:</span>
               <span>Rs.{productAmount}</span>
             </div>
-            <div>
-              <span>Additional Charges:</span>
-              <span>Rs.{order.additionalCharges ? order.additionalCharges : 0}</span>
+
+            <div className="row">
+              <span>(b) Discount:</span>
+              <span>- Rs.{order.discount}</span>
             </div>
-            <div>
-              <span>Deposit:</span>
-              <span>Rs.{order.securityDeposit}</span>
-            </div>
-            <div>
-              <span>Discount:</span>
-              <span className="green">- Rs.{order.discount}</span>
-            </div>
-            <div className="total">
-              <strong>Total:</strong>
-              <strong>Rs.{total}</strong>
+
+            <div className="divider" />
+
+            <div className="row total-row">
+              <span>(c) Total:</span>
+              <span>Rs.{total + order.discount}</span>
             </div>
           </div>
         </div>
+
 
         {/* === FOOTER === */}
         <div className="footer-note">

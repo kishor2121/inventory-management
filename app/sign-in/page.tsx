@@ -45,7 +45,10 @@ export default function SignInPage() {
   return (
     <div className="login-page">
       <form className="login-card" onSubmit={handleSubmit}>
-        <div className="login-logo">⚙️</div>
+        <div className="login-logo">
+          <img src="/icons/icon-192x192.png" alt="Logo" className="logo-img" />
+        </div>
+
         <h2>Welcome Back!</h2>
         <p>Please sign in to access your account.</p>
 

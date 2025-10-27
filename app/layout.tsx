@@ -187,9 +187,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             {/* Header */}
             <header className="top-bar">
-              <button className="hamburger-menu" onClick={() => setShowMobileSidebar(true)}>
-                <Menu size={24} />
-              </button>
+              <div className="top-left">
+                <button className="hamburger-menu" onClick={() => setShowMobileSidebar(true)}>
+                  <Menu size={24} />
+                </button> 
+                <img src="/icons/icon-512x512.png" alt="Logo" className="header-logo" />
+              </div>
 
               <div className="user-profile" ref={dropdownRef} style={{ position: "relative", cursor: "pointer" }}>
                 <div onClick={() => setShowDropdown((s) => !s)}>
@@ -211,6 +214,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 )}
               </div>
             </header>
+
           </>
         )}
 
