@@ -203,7 +203,17 @@ export default function CreateBooking() {
   const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
   const isValidPhoneNumber = (num: string) => /^[0-9]{10}$/.test(num);
   const isAlpha = (val: string) => /^[A-Za-z\s]+$/.test(val);
+  const handleNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+  };
+  const handlePhoneInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ""); 
+    if (value.length > 0 && !/^[6-9]/.test(value)) {
+      value = value.slice(1); 
+    }
 
+    e.target.value = value.slice(0, 10);
+  };
 
   const handleBooking = async () => {
     const customerName = (document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]')?.value || "").trim();
@@ -211,6 +221,8 @@ export default function CreateBooking() {
     const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim();
     const bookingType = (document.querySelector<HTMLSelectElement>('select.booking-type')?.value || "").trim();
     const paymentMode = (document.querySelector<HTMLSelectElement>('select.payment-mode')?.value || "").trim();
+
+    
     
 
     let newErrors: any = {};
@@ -314,17 +326,17 @@ export default function CreateBooking() {
             <div className="form-row">
               <div className="form-group">
                 <label className="required">Customer Name</label>
-                <input type="text" placeholder="Enter customer name" />
+                <input type="text" placeholder="Enter customer name" onInput={handleNameInput} />
                 {errors.customerName && <span className="error-text">{errors.customerName}</span>}
               </div>
               <div className="form-group">
                 <label className="required">Mobile No.</label>
-                <input type="text" placeholder="Enter mobile number" />
+                <input type="text" placeholder="Enter mobile number" onInput={handlePhoneInput } />
                 {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
               </div>
               <div className="form-group">
                 <label>Alternate No.</label>
-                <input type="text" placeholder="Enter alternate number" />
+                <input type="text" placeholder="Enter alternate number" onInput={handlePhoneInput } />
                 {errors.phoneNumberSecondary && <span className="error-text">{errors.phoneNumberSecondary}</span>}
               </div>
             </div>

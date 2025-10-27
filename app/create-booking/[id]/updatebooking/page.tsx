@@ -73,6 +73,12 @@ export default function UpdateBooking() {
   const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
   const isValidPhoneNumber = (num: string) => /^[0-9]{10}$/.test(num);
   const isAlpha = (val: string) => /^[A-Za-z\s]+$/.test(val);
+  const handleNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+  };
+  const handlePhoneInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+  };
 
   const addDays = (dateStr: string, days: number) => {
     const date = new Date(dateStr);
@@ -315,17 +321,17 @@ export default function UpdateBooking() {
             <div className="form-row">
               <div className="form-group">
                 <label className="required">Customer Name</label>
-                <input type="text" placeholder="Enter customer name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+                <input type="text" placeholder="Enter customer name" onInput={handleNameInput}  value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
                 {errors.customerName && <span className="error-text">{errors.customerName}</span>}
               </div>
               <div className="form-group">
                 <label className="required">Mobile No.</label>
-                <input type="text" placeholder="Enter mobile number" value={phoneNumberPrimary} onChange={(e) => setPhoneNumberPrimary(e.target.value)} />
+                <input type="text" placeholder="Enter mobile number"  onInput={handlePhoneInput }  value={phoneNumberPrimary} onChange={(e) => setPhoneNumberPrimary(e.target.value)} />
                 {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
               </div>
               <div className="form-group">
                 <label>Alternate No.</label>
-                <input type="text" placeholder="Enter alternate number" value={phoneNumberSecondary} onChange={(e) => setPhoneNumberSecondary(e.target.value)} />
+                <input type="text" placeholder="Enter alternate number"  onInput={handlePhoneInput }  value={phoneNumberSecondary} onChange={(e) => setPhoneNumberSecondary(e.target.value)} />
                 {errors.phoneNumberSecondary && <span className="error-text">{errors.phoneNumberSecondary}</span>}
               </div>
             </div>

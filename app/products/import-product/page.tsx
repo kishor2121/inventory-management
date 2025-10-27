@@ -150,6 +150,7 @@ KIDS HOODIE,Warm hoodie for kids with cartoon print,399,HOODIE001565,"36,38"
           className={styles.select}
           value={category}
           onChange={handleCategoryChange}
+          disabled={gender === ''}   // <<< Disable until gender is selected
         >
           <option value="">Select category</option>
           {categories.map((cat) => (
