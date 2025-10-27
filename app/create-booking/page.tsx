@@ -200,7 +200,13 @@ export default function CreateBooking() {
     setReturnAmount(retAmt);
   }, [productCards, discountValue, securityDeposit, advance, additionalCharges]);
 
-  const safeNumber = (val: string) => (isNaN(parseFloat(val)) ? 0 : parseFloat(val));
+  
+  const positiveNumber = (val: string) => {
+    const num = parseFloat(val);
+    if (isNaN(num) || num <= 0) return 0;
+    return num;
+  };
+
   const isValidPhoneNumber = (num: string) => /^[0-9]{10}$/.test(num);
   const isAlpha = (val: string) => /^[A-Za-z\s]+$/.test(val);
   const handleNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -403,7 +409,18 @@ export default function CreateBooking() {
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
                   <label className="required">Amount</label>
-                  <input type="number" placeholder="Amount" value={card.amount === "0" ? "" : card.amount} onChange={(e) => handleChange(card.id, "amount", e.target.value)} readOnly  />
+                  <input 
+                    type="number"
+                    placeholder="Amount"
+                    value={card.amount}
+                    onChange={(e) => {
+                      let v = e.target.value.replace(/\D/g, "");
+                      if (parseInt(v) <= 0) v = "";
+                      handleChange(card.id, "amount", v);
+                    }}
+                    readOnly
+                  />
+
                 </div>
               </div>
 
@@ -440,7 +457,8 @@ export default function CreateBooking() {
           <div className="card">
             <div className="form-group">
               <label className="required">(a) Adv. Payment (₹)</label>
-              <input type="number" placeholder="Adv. Payment" value={advance === 0 ? "" : advance} onChange={(e) => setAdvance(safeNumber(e.target.value))} />
+              <input type="number" placeholder="Adv. Payment" value={advance === 0 ? "" : advance} onChange={(e) => setAdvance(positiveNumber(e.target.value))}
+ />
               {errors.advance && <span className="error-text">{errors.advance}</span>}
             </div>
 
@@ -450,7 +468,8 @@ export default function CreateBooking() {
                 type="number"
                 placeholder="Deposit"
                 value={securityDeposit === 0 ? "" : securityDeposit}
-                onChange={(e) => setSecurityDeposit(safeNumber(e.target.value))}
+                onChange={(e) => setSecurityDeposit(positiveNumber(e.target.value))}
+
               />
               {errors.securityDeposit && <span className="error-text">{errors.securityDeposit}</span>}
             </div>
@@ -467,12 +486,13 @@ export default function CreateBooking() {
 
             <div className="form-group">
               <label>(c) Additional Charges (₹)</label>
-              <input type="number" placeholder="Additional Charges" value={additionalCharges === 0 ? "" : additionalCharges} onChange={(e) => setAdditionalCharges(safeNumber(e.target.value))} />
+              <input type="number" placeholder="Additional Charges" value={additionalCharges === 0 ? "" : additionalCharges}onChange={(e) => setAdditionalCharges(Math.max(0, parseFloat(e.target.value) || 0)) } />
             </div>
 
             <div className="form-group">
               <label>Discount (₹)</label>
-              <input type="number" placeholder="Discount" value={discountValue === 0 ? "" : discountValue} onChange={(e) => setDiscountValue(safeNumber(e.target.value))} />
+              <input type="number" placeholder="Discount" value={discountValue === 0 ? "" : discountValue} onChange={(e) => setDiscountValue(Math.max(0, parseFloat(e.target.value) || 0))}
+ />
             </div>
 
             <div className="form-group">
@@ -500,7 +520,10 @@ export default function CreateBooking() {
           </div>
 
           <div className="action-buttons">
-            <button className="cancel-btn">Cancel</button>
+            <button className="cancel-btn" onClick={() => router.push("/")}>
+              Cancel
+            </button>
+
             <button className="book-btn" onClick={handleBooking}>Book Now</button>
           </div>
         </div>

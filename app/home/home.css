@@ -14,10 +14,11 @@ body, html {
   width: 100%;
   justify-content: flex-start;
   background-color: #FFDEE9, #B5FFFC;
-  height: 100vh;
+  min-height: 100vh;
   padding: 20px 0;
   box-sizing: border-box;
 }
+
 
 .calendar-toolbar {
   width: 95%;
