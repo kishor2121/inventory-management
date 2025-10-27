@@ -5,11 +5,21 @@ import Papa from "papaparse";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 function generateProductId(name: string, gender: string) {
-  const prefix = gender.toLowerCase() === "men" ? "pm" : gender.toLowerCase() === "women" ? "pw" : "px";
-  const last4 = name.slice(-4).toLowerCase();
-  const randomDigits = Math.floor(1000 + Math.random() * 9000); 
+  const prefix =
+    gender.toLowerCase() === "men"
+      ? "pm"
+      : gender.toLowerCase() === "women"
+      ? "pw"
+      : "px";
+
+  const cleanName = name.replace(/\s+/g, ""); 
+  const last4 = cleanName.slice(-4).toLowerCase();
+
+  const randomDigits = Math.floor(1000 + Math.random() * 9000);
+
   return `${prefix}${last4}${randomDigits}`;
 }
+
 
 export async function GET(req: Request) {
   await validate();
