@@ -15,6 +15,8 @@ import {
   BarChart3,
   Menu,
   X,
+  Eye,
+  EyeOff, // 👈 added for password visibility toggle
 } from "lucide-react";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -25,9 +27,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   // Inside RootLayout
 
+  // Statistics modal states
   const [showStatsPassword, setShowStatsPassword] = useState(false);
   const [statsPassword, setStatsPassword] = useState("");
   const [statsError, setStatsError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // 👈 new state for eye icon
 
   const handleStatisticsClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -190,7 +194,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div className="top-left">
                 <button className="hamburger-menu" onClick={() => setShowMobileSidebar(true)}>
                   <Menu size={24} />
-                </button> 
+                </button>
                 <img src="/icons/icon-512x512.png" alt="Logo" className="header-logo" />
               </div>
 
@@ -222,17 +226,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
 
+        {/* Password Modal with Eye Icon */}
         {showStatsPassword && (
           <div className="modal-backdrop">
             <div className="modal">
               <h3>Enter Statistics Password</h3>
-              <input
-                type="password"
-                value={statsPassword}
-                onChange={(e) => setStatsPassword(e.target.value)}
-                placeholder="Password"
-              />
+
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={statsPassword}
+                  onChange={(e) => setStatsPassword(e.target.value)}
+                  placeholder="Password"
+                />
+                <button
+                  type="button"
+                  className="toggle-password-btn"
+                  onClick={() => setShowPassword((p) => !p)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
               {statsError && <p className="error">{statsError}</p>}
+
               <div className="modal-actions">
                 <button onClick={verifyStatsPassword}>Submit</button>
                 <button onClick={() => setShowStatsPassword(false)}>Cancel</button>
