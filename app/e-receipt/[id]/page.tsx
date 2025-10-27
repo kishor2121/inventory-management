@@ -69,12 +69,19 @@ export default function EReceiptPage() {
       <div className="invoice-card">
         {/* === HEADER === */}
         <div className="invoice-header">
-          <div className="org-details">
-            <h2>{organizationInfo.organizationName}</h2>
-            <p>{organizationInfo.address}</p>
-            <p>Email: {organizationInfo.email}</p>
-            <p>Phone: {organizationInfo.contactNumber}</p>
+          <div className="org-header">
+            <div className="org-logo">
+              <img src="/icons/icon-512x512.png" alt="Logo" />
+            </div>
+
+            <div className="org-details">
+              <h2>{organizationInfo.organizationName}</h2>
+              <p>{organizationInfo.address}</p>
+              <p>Email: {organizationInfo.email}</p>
+              <p>Phone: {organizationInfo.contactNumber}</p>
+            </div>
           </div>
+
 
           <div className="invoice-meta">
             <p>
@@ -172,6 +179,31 @@ export default function EReceiptPage() {
             </div>
           </div>
         </div>
+
+
+       {/* === SPECIAL NOTE === */}
+        {order.notes && (
+          <div className="special-note">
+            <h4>Special Note:</h4>
+            <p>{order.notes}</p>
+          </div>
+        )}
+
+
+
+        {/* === TERMS & CONDITIONS === */}
+        <div className="terms-box">
+          <h4>Terms & Conditions</h4>
+          <ul>
+            <li>1. Extra Day Charge: ₹250 will be charged per gown or blazer for each extra day.</li>
+            <li>2. Dress Care: Dresses must be returned clean and without any damage. Do not use fire bombs, cold bombs, or color bombs.</li>
+            <li>3. Damage Fee: Minimum charge of ₹2,000 will apply for any damage.</li>
+            <li>4. Pickup & Return: Customers must handle collection and return of dresses.</li>
+            <li>5. Delivery Charges: All courier or delivery costs (Dunzo, Swiggy, etc.) must be paid by the customer for both pickup and return.</li>
+          </ul>
+        </div>
+
+
 
 
         {/* === FOOTER === */}
