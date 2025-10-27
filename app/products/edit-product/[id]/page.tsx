@@ -345,6 +345,7 @@ export default function EditProductPage() {
           >
             {loading ? <span className={styles.loader}></span> : 'Save Changes'}
           </button>
+
         </div>
 
         {/* Success message */}

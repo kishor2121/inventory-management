@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Select from 'react-select';
 import styles from './addProduct.module.css';
@@ -44,8 +45,14 @@ export default function AddProductPage() {
     }
   };
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) addImages(e.target.files);
+    if (e.target.files) {
+      addImages(e.target.files);
+    }
+    e.target.value = ""; 
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -230,51 +237,60 @@ export default function AddProductPage() {
 
           <div className={styles.gridItem}>
             <label>Upload Images</label>
-            <div
-              className={`${styles.uploadBox} ${isDragging ? styles.dragOver : ''}`}
-              onDrop={handleDrop}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onClick={() => document.getElementById('upload')?.click()}
-            >
+              <div
+                className={`${styles.uploadBox} ${isDragging ? styles.dragOver : ''}`}
+                onDrop={handleDrop}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {previewUrls.length > 0 ? (
+                  <div className={styles.previewContainer}>
+                    {previewUrls.map((src, i) => (
+                      <div key={i} className={styles.previewWrapper}>
+                        <img src={src} alt={`Preview ${i}`} className={styles.previewImage} />
+                        <button
+                          type="button"
+                          className={styles.removeButton}
+                          onClick={(e) => {
+                            e.stopPropagation(); // ✅ prevent triggering click to upload again
+                            handleRemoveImage(i);
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    <span className={styles.addMoreText}>Click or drop more</span>
+                  </div>
+                ) : (
+                  <p className={styles.uploadText}>
+                    Drag & Drop images here or{' '}
+                    <span className={styles.uploadLink}>Click to select</span>
+                    <br />
+                    <span className={styles.uploadNote}>
+                      Supported: PNG, JPG, JPEG — Max 25MB
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              {/* ✅ Place input OUTSIDE box & hide it */}
               <input
-                id="upload"
+                ref={fileInputRef}
                 type="file"
                 multiple
                 accept="image/*"
-                className={styles.uploadInput}
-                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  if (e.target.files) addImages(e.target.files);
+                  e.target.value = ''; // ✅ reset safely
+                }}
               />
-              {previewUrls.length > 0 ? (
-                <div className={styles.previewContainer}>
-                  {previewUrls.map((src, i) => (
-                    <div key={i} className={styles.previewWrapper}>
-                      <img src={src} alt={`Preview ${i}`} className={styles.previewImage} />
-                      <button
-                        type="button"
-                        className={styles.removeButton}
-                        onClick={() => handleRemoveImage(i)}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                  <span className={styles.addMoreText}>Click or drop more</span>
-                </div>
-              ) : (
-                <p className={styles.uploadText}>
-                  Drag & Drop images here or{' '}
-                  <span className={styles.uploadLink}>Click to select</span>
-                  <br />
-                  <span className={styles.uploadNote}>
-                    Supported: PNG, JPG, JPEG — Max 25MB
-                  </span>
-                </p>
-              )}
-            </div>
+
           </div>
         </div>
 
@@ -286,6 +302,7 @@ export default function AddProductPage() {
           >
             Cancel
           </button>
+
 
           <button
             type="submit"

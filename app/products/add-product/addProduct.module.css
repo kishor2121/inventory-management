@@ -163,13 +163,25 @@
 
 /* Loader */
 .loader {
-  width: 18px;
-  height: 18px;
+  width: 22px;     /* ✅ bigger */
+  height: 22px;    /* ✅ bigger */
   border: 3px solid #fff;
-  border-top: 3px solid #2563eb;
+  border-top: 3px solid transparent; /* ✅ smooth animation */
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+
+.submitButton {
+  background: #0f172a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px; /* ✅ set fixed height */
+  min-width: 140px; /* ✅ optional to keep button width */
+}
+
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .successMessage {
@@ -215,6 +227,60 @@
   color: #ff4d4d;
   font-weight: bold;
 }
+
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.previewContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: flex-start;
+}
+
+.previewWrapper {
+  position: relative;
+  width: 120px; /* ✅ preview width */
+  height: 140px; /* ✅ preview height */
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* ✅ ensures image is cropped nicely */
+  border-radius: 10px;
+}
+
+/* remove (X) button */
+.removeButton {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 
 
 
