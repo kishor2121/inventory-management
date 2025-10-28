@@ -93,7 +93,7 @@ export default function UpdateBooking() {
       const data = await res.json();
       const formatted = data.data.map((p: any) => ({
         value: p.id,
-        label: p.name,
+        label: `${p.sku || p.id}${p.size?.length ? "-" + p.size.join(",") : ""} : ${p.name}`,
         price: p.price,
         image: p.images?.[0] || "",
         size: p.size?.length ? p.size : [],
