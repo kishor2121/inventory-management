@@ -46,6 +46,11 @@ export default function CreateBooking() {
   const [modalMessage, setModalMessage] = useState("");
   const [modalType, setModalType] = useState<"error" | "success">("error");
   const [redirectAfterModal, setRedirectAfterModal] = useState<string | null>(null);
+  const [selectedBookingType, setSelectedBookingType] = useState<{ value: string; label: string } | null>(null);
+  const [bookingTypeOptions, setBookingTypeOptions] = useState<{ value: string; label: string }[]>([]);
+
+
+
 
 
   const [errors, setErrors] = useState({
@@ -80,6 +85,29 @@ export default function CreateBooking() {
     date.setDate(date.getDate() + days);
     return date.toISOString().split("T")[0];
   };
+
+  useEffect(() => {
+  const fetchBookingTypes = async () => {
+    try {
+      const res = await fetch("/api/category?parentName=Wedding");
+      const data = await res.json();
+
+      if (data?.data) {
+        const formatted = data.data.map((item: any) => ({
+          value: item.id,
+          label: item.name,
+        }));
+        setBookingTypeOptions(formatted);
+      }
+    } catch (err) {
+      console.error("Failed to fetch booking types:", err);
+    }
+  };
+
+  fetchBookingTypes();
+}, []);
+
+
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -225,11 +253,9 @@ export default function CreateBooking() {
     const customerName = (document.querySelector<HTMLInputElement>('input[placeholder="Enter customer name"]')?.value || "").trim();
     const phoneNumber = (document.querySelector<HTMLInputElement>('input[placeholder="Enter mobile number"]')?.value || "").trim();
     const phoneNumberSecondary = (document.querySelector<HTMLInputElement>('input[placeholder="Enter alternate number"]')?.value || "").trim();
-    const bookingType = (document.querySelector<HTMLSelectElement>('select.booking-type')?.value || "").trim();
-    const paymentMode = (document.querySelector<HTMLSelectElement>('select.payment-mode')?.value || "").trim();
+    const bookingType = selectedBookingType?.value || "";
 
-    
-    
+    const paymentMode = (document.querySelector<HTMLSelectElement>('select.payment-mode')?.value || "").trim();
 
     let newErrors: any = {};
 
@@ -248,7 +274,9 @@ export default function CreateBooking() {
       newErrors.phoneNumberSecondary = "Alternate No. must be 10 digits and contain only numbers.";
     }
 
-    if (!bookingType || bookingType === "Select Booking Type") newErrors.bookingType = "Booking Type is required.";
+    if (!bookingType || bookingType === "Select Booking Type")
+      newErrors.bookingType = "Booking Type is required.";
+
 
     const firstProduct = productCards[0];
     if (!firstProduct.product) newErrors.product = "Please select a product.";
@@ -289,10 +317,12 @@ export default function CreateBooking() {
     formData.append("securityDeposit", String(securityDeposit));
     formData.append("discount", String(discountValue));
     formData.append("discountType", "flat");
-    formData.append("rentalType", bookingType);
+    formData.append("rentalType", selectedBookingType?.label || "");
+
     formData.append("advancePaymentMethod", paymentMode);
     formData.append("products", JSON.stringify(productsData));
     formData.append("additionalCharges", String(additionalCharges));
+    
 
     try {
       const res = await fetch("/api/booking/create-booking", {
@@ -346,28 +376,21 @@ export default function CreateBooking() {
                 {errors.phoneNumberSecondary && <span className="error-text">{errors.phoneNumberSecondary}</span>}
               </div>
             </div>
-
             <div className="form-row align-center">
               <div className="form-group booking-type">
                 <label className="required">Booking Type</label>
                   <Select
                     className="booking-type-select"
-                    options={[
-                      { value: "pre_wedding", label: "Pre Wedding" },
-                      { value: "maternity", label: "Maternity" },
-                      { value: "reception", label: "Reception" },
-                      { value: "other", label: "Other" },
-                    ]}
+                    options={bookingTypeOptions}
                     placeholder="Select Booking Type"
-                    onChange={(val) => {
-                      const event = new Event("change", { bubbles: true });
-                      const select = document.querySelector("select.booking-type") as HTMLSelectElement;
-                      if (select) {
-                        select.value = val?.label || "";
-                        select.dispatchEvent(event);
-                      }
+                    value={selectedBookingType}
+                    onChange={(val) => setSelectedBookingType(val)}
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                     }}
                   />
+
                 {errors.bookingType && <span className="error-text">{errors.bookingType}</span>}
               </div>
 

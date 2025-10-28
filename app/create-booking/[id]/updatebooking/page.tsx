@@ -58,6 +58,8 @@ export default function UpdateBooking() {
   const [modalMessage, setModalMessage] = useState("");
   const [modalType, setModalType] = useState<"success" | "error">("success");
   const [redirectAfterModal, setRedirectAfterModal] = useState<string | null>(null);
+  const [bookingTypeOptions, setBookingTypeOptions] = useState<{ value: string; label: string }[]>([]);
+
 
   const showModal = (
     msg: string,
@@ -102,6 +104,28 @@ export default function UpdateBooking() {
     };
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+  const fetchBookingTypes = async () => {
+    try {
+      const res = await fetch("/api/category?parentName=Wedding");
+      const data = await res.json();
+
+      if (data?.data) {
+        const formatted = data.data.map((item: any) => ({
+          value: item.id,
+          label: item.name,
+        }));
+        setBookingTypeOptions(formatted);
+      }
+    } catch (err) {
+      console.error("Failed to fetch booking types:", err);
+    }
+  };
+
+  fetchBookingTypes();
+}, []);
+
 
   // Fetch booking details
   useEffect(() => {
@@ -339,16 +363,21 @@ export default function UpdateBooking() {
            <div className="form-row align-center">
             <div className="form-group booking-type">
               <label className="required">Booking Type</label>
-              <select
-                className="booking-type-select native"
-                value={selectedBookingType}
-                onChange={(e) => setSelectedBookingType(e.target.value)}
-              >
-                <option value="">Select Booking Type</option>
-                <option value="Engagement">Engagement</option>
-                <option value="Wedding">Wedding</option>
-                <option value="Other">Other</option>
-              </select>
+              <Select
+                className="booking-type-select"
+                classNamePrefix="react-select"
+                placeholder="Select Booking Type"
+                options={bookingTypeOptions}
+                value={
+                  bookingTypeOptions.find((option) => option.label === selectedBookingType) || null
+                }
+                onChange={(val) => setSelectedBookingType(val?.label || "")}
+                menuPortalTarget={document.body}
+                styles={{
+                  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                }}
+              />
+
               {errors.bookingType && <span className="error-text">{errors.bookingType}</span>}
             </div>
 
