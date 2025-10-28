@@ -379,9 +379,11 @@ textarea {
   font-weight: 600;
 }
 
-/* Make labels non-clickable */
 label {
   pointer-events: none;
 }
 
+label.checkbox-label {
+  pointer-events: auto;
+}
 

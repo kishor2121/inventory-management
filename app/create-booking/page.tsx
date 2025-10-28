@@ -361,14 +361,16 @@ export default function CreateBooking() {
               </div>
 
               <div className="checkbox-right">
-                <label>
-                  <input 
-                    type="checkbox" 
-                    checked={sameDate} 
+
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={sameDate}
                     onChange={(e) => setSameDate(e.target.checked)}
                   />
                   <span>Same Delivery/Return Date for All</span>
                 </label>
+
 
               </div>
             </div>
