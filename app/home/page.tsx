@@ -24,10 +24,13 @@ export default function HomePage() {
       try {
         const res = await fetch("/api/products");
         const json = await res.json();
-        const formatted = json.data.map((p: any) => ({
-          value: p.id,
-          label: p.name,
-        }));
+          const formatted = json.data.map((p: any) => {
+            const sizes = Array.isArray(p.size) ? p.size.join(",") : p.size;
+            return {
+              value: p.id,
+              label: `${p.sku}-${sizes} : ${p.name}`,
+            };
+          });
         setProducts(formatted);
       } catch (err) {
         console.error("❌ Failed to fetch products:", err);
