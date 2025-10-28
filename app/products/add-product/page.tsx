@@ -12,6 +12,7 @@ export default function AddProductPage() {
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
   const [category, setCategory] = useState('');
+  const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
   const [price, setPrice] = useState('');
   const [size, setSize] = useState<string[]>([]);
   const [description, setDescription] = useState('');
@@ -20,11 +21,10 @@ export default function AddProductPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-
   const [sizeError, setSizeError] = useState('');
 
-  const menCategories = ['Blazer', 'Sherwani', 'Suit', 'Couple Tshirt'];
-  const womenCategories = ['Lehenga', 'Gown', 'Overcoat', 'Saree'];
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
   const womenSizes = ['Free Size', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -35,7 +35,32 @@ export default function AddProductPage() {
       ? womenSizes.map((s) => ({ value: s, label: s }))
       : [];
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // ✅ Fetch categories based on selected gender
+  const handleGenderChange = async (selectedGender: string) => {
+    setGender(selectedGender);
+    setCategory('');
+    setSize([]);
+
+    const parentName = selectedGender === 'Men' ? 'Male' : 'Female';
+
+    try {
+      const res = await fetch(`/api/category?parentName=${parentName}`);
+      const data = await res.json();
+
+      if (data?.data) {
+        const formatted = data.data.map((item: any) => ({
+          value: item.name,
+          label: item.name,
+        }));
+        setCategoryOptions(formatted);
+      } else {
+        setCategoryOptions([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+      setCategoryOptions([]);
+    }
+  };
 
   const addImages = (files: FileList | File[]) => {
     const validImages = Array.from(files).filter((f) =>
@@ -46,11 +71,6 @@ export default function AddProductPage() {
       setImages(newImages);
       setPreviewUrls(newImages.map((f) => URL.createObjectURL(f)));
     }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) addImages(e.target.files);
-    e.target.value = '';
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -67,7 +87,6 @@ export default function AddProductPage() {
   };
 
   const handleSubmit = async () => {
-    // ✅ Validation for required fields including size
     if (!gender || !name || !sku || !category || !price) {
       alert('Please fill all required fields');
       return;
@@ -106,7 +125,6 @@ export default function AddProductPage() {
     }
   };
 
-  // Allow only letters and spaces
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (/^[A-Za-z\s]*$/.test(value)) {
@@ -114,7 +132,6 @@ export default function AddProductPage() {
     }
   };
 
-  // Allow only numbers
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (/^\d*$/.test(value)) {
@@ -122,13 +139,13 @@ export default function AddProductPage() {
     }
   };
 
-  const categories =
-    gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
-
   return (
     <div className={styles.container}>
       <div className={styles.breadcrumb}>
-        <span className={styles.breadcrumbLink} onClick={() => router.push('/products')}>
+        <span
+          className={styles.breadcrumbLink}
+          onClick={() => router.push('/products')}
+        >
           Products
         </span>
         <span className={styles.breadcrumbDivider}>›</span>
@@ -152,11 +169,7 @@ export default function AddProductPage() {
                 name="gender"
                 value="Men"
                 checked={gender === 'Men'}
-                onChange={(e) => {
-                  setGender(e.target.value);
-                  setCategory('');
-                  setSize([]);
-                }}
+                onChange={() => handleGenderChange('Men')}
               />
               Men
             </label>
@@ -166,11 +179,7 @@ export default function AddProductPage() {
                 name="gender"
                 value="Women"
                 checked={gender === 'Women'}
-                onChange={(e) => {
-                  setGender(e.target.value);
-                  setCategory('');
-                  setSize([]);
-                }}
+                onChange={() => handleGenderChange('Women')}
               />
               Women
             </label>
@@ -204,23 +213,27 @@ export default function AddProductPage() {
 
         {/* Category, Price, Size */}
         <div className={styles.row}>
+          {/* Category */}
           <div className={styles.formGroup}>
             <label className={styles.required}>Category</label>
-            <select
-              className={styles.select}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              disabled={!gender}
-            >
-              <option value="">Select category</option>
-              {categories.map((c) => (
-                <option key={c} value={c.toLowerCase()}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <Select
+              className="category-select"
+              classNamePrefix="react-select"
+              options={categoryOptions}
+              value={
+                categoryOptions.find((opt) => opt.value === category) || null
+              }
+              onChange={(val) => setCategory(val?.value || '')}
+              placeholder="Select category"
+              isDisabled={!gender}
+              menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+              styles={{
+                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+              }}
+            />
           </div>
 
+          {/* Price */}
           <div className={styles.formGroup}>
             <label className={styles.required}>Price (₹)</label>
             <input
@@ -233,17 +246,16 @@ export default function AddProductPage() {
             />
           </div>
 
+          {/* Size */}
           <div className={styles.formGroup} style={{ flex: 1 }}>
-            <label className={styles.required}>
-              Size 
-            </label>
+            <label className={styles.required}>Size</label>
             <Select
               isMulti
               options={sizeOptions}
               value={sizeOptions.filter((opt) => size.includes(opt.value))}
               onChange={(selected) => {
                 setSize(selected.map((opt) => opt.value));
-                setSizeError(''); // Clear error when user selects
+                setSizeError('');
               }}
               placeholder="Select size(s)"
               isDisabled={!gender}

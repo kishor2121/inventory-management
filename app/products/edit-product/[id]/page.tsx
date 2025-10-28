@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Select from 'react-select';
-import styles from './editProduct.module.css'; // ✅ use same CSS as AddProduct
+import styles from './editProduct.module.css';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -23,11 +23,10 @@ export default function EditProductPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [sizeError, setSizeError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const menCategories = ['Blazer', 'Sherwani', 'Suit', 'Couple Tshirt'];
-  const womenCategories = ['Lehenga', 'Gown', 'Overcoat', 'Saree'];
   const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
   const womenSizes = ['Free Size', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -38,6 +37,7 @@ export default function EditProductPage() {
       ? womenSizes.map((s) => ({ value: s, label: s }))
       : [];
 
+  // ✅ Fetch existing product for editing
   useEffect(() => {
     if (id) fetchProduct();
   }, [id]);
@@ -61,12 +61,44 @@ export default function EditProductPage() {
     setDescription(p.description || '');
     setGender(p.gender || '');
     setExistingImages(p.images || []);
+
+    // Fetch categories for that gender
+    if (p.gender) {
+      await handleGenderChange(p.gender, true);
+    }
+  };
+
+  // ✅ Fetch categories dynamically based on gender
+  const handleGenderChange = async (selectedGender: string, keepCategory = false) => {
+    setGender(selectedGender);
+    if (!keepCategory) {
+      setCategory('');
+      setSize([]);
+    }
+
+    const parentName = selectedGender === 'Men' ? 'Male' : 'Female';
+
+    try {
+      const res = await fetch(`/api/category?parentName=${parentName}`);
+      const data = await res.json();
+
+      if (data?.data) {
+        const formatted = data.data.map((item: any) => ({
+          value: item.name,
+          label: item.name,
+        }));
+        setCategoryOptions(formatted);
+      } else {
+        setCategoryOptions([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+      setCategoryOptions([]);
+    }
   };
 
   const addImages = (files: FileList | File[]) => {
-    const validImages = Array.from(files).filter((f) =>
-      f.type.startsWith('image/')
-    );
+    const validImages = Array.from(files).filter((f) => f.type.startsWith('image/'));
     if (validImages.length > 0) {
       const newImages = [...images, ...validImages];
       setImages(newImages);
@@ -94,6 +126,7 @@ export default function EditProductPage() {
     }
   };
 
+  // ✅ Update product
   const handleSubmit = async () => {
     if (!gender || !name || !sku || !category || !price) {
       alert('Please fill all required fields');
@@ -113,7 +146,7 @@ export default function EditProductPage() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('sku', sku);
-    formData.append('category', category);
+    formData.append('category', category); // saving category name
     formData.append('price', price);
     formData.append('size', size.join(','));
     formData.append('description', description);
@@ -138,9 +171,6 @@ export default function EditProductPage() {
       alert('Error: ' + (data?.message || 'Something went wrong!'));
     }
   };
-
-  const categories =
-    gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
 
   return (
     <div className={styles.container}>
@@ -169,11 +199,7 @@ export default function EditProductPage() {
                 name="gender"
                 value="Men"
                 checked={gender === 'Men'}
-                onChange={(e) => {
-                  setGender(e.target.value);
-                  setCategory('');
-                  setSize([]);
-                }}
+                onChange={() => handleGenderChange('Men')}
               />
               Men
             </label>
@@ -183,11 +209,7 @@ export default function EditProductPage() {
                 name="gender"
                 value="Women"
                 checked={gender === 'Women'}
-                onChange={(e) => {
-                  setGender(e.target.value);
-                  setCategory('');
-                  setSize([]);
-                }}
+                onChange={() => handleGenderChange('Women')}
               />
               Women
             </label>
@@ -223,19 +245,18 @@ export default function EditProductPage() {
         <div className={styles.row}>
           <div className={styles.formGroup}>
             <label className={styles.required}>Category</label>
-            <select
-              className={styles.select}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              disabled={!gender}
-            >
-              <option value="">Select category</option>
-              {categories.map((c) => (
-                <option key={c} value={c.toLowerCase()}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <Select
+              classNamePrefix="react-select"
+              options={categoryOptions}
+              value={categoryOptions.find((opt) => opt.value === category) || null}
+              onChange={(val) => setCategory(val?.value || '')}
+              placeholder="Select category"
+              isDisabled={!gender}
+              menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+              styles={{
+                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+              }}
+            />
           </div>
 
           <div className={styles.formGroup}>
