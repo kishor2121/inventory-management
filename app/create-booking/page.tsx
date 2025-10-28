@@ -350,13 +350,24 @@ export default function CreateBooking() {
             <div className="form-row align-center">
               <div className="form-group booking-type">
                 <label className="required">Booking Type</label>
-                <select className="booking-type">
-                  <option>Select Booking Type</option>
-                  <option>Pre Wedding</option>
-                  <option>Maternity</option>
-                  <option>Reception</option>
-                  <option>Other</option>
-                </select>
+                  <Select
+                    className="booking-type-select"
+                    options={[
+                      { value: "pre_wedding", label: "Pre Wedding" },
+                      { value: "maternity", label: "Maternity" },
+                      { value: "reception", label: "Reception" },
+                      { value: "other", label: "Other" },
+                    ]}
+                    placeholder="Select Booking Type"
+                    onChange={(val) => {
+                      const event = new Event("change", { bubbles: true });
+                      const select = document.querySelector("select.booking-type") as HTMLSelectElement;
+                      if (select) {
+                        select.value = val?.label || "";
+                        select.dispatchEvent(event);
+                      }
+                    }}
+                  />
                 {errors.bookingType && <span className="error-text">{errors.bookingType}</span>}
               </div>
 

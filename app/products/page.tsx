@@ -192,7 +192,15 @@ export default function ProductsPage() {
                     <div className={styles.noImage}>No Image</div>
                   )}
                 </td>
-                <td>{product.sku}</td>
+                  <td>
+                    {Array.isArray(product.size)
+                      ? product.size.length > 0
+                        ? `${product.sku}-${product.size.join(', ')}`
+                        : product.sku
+                      : product.size
+                        ? `${product.sku}-${product.size}`
+                        : product.sku}
+                  </td>
                 <td className={styles.productName}>
                   <Link href={`/products/view/${product.id}`} className={styles.productLink}>
                     {product.name}
