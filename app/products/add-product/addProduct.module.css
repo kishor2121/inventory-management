@@ -228,6 +228,13 @@
   font-weight: bold;
 }
 
+.errorText {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+
 .textarea {
   width: 100%;
   min-height: 120px;

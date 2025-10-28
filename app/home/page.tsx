@@ -134,45 +134,46 @@ export default function HomePage() {
 
   return (
     <div className="home-container">
-      <div className="calendar-toolbar">
-        <div className="toolbar-left">Home</div>
-        <div className="toolbar-right">
-          <div style={{ width: "220px" }}>
-                <Select
-                  options={products}
-                  value={selectedProduct}
-                  onChange={setSelectedProduct}
-                  placeholder="Select a product"
-                  isSearchable
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      borderRadius: "8px",
-                      borderColor: "#d1d5db",
-                      boxShadow: "none",
-                      "&:hover": { borderColor: "#2563eb" },
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                    menuList: (base) => ({
-                      ...base,
-                      maxHeight: products.length > 5 ? "180px" : "auto", 
-                      overflowY: products.length > 5 ? "auto" : "visible", 
-                      paddingRight: "6px",
-                      scrollbarWidth: "thin",
-                      "&::-webkit-scrollbar": {
-                        width: "6px", 
-                      },
-                      "&::-webkit-scrollbar-thumb": {
-                        backgroundColor: "#cbd5e1",
-                        borderRadius: "4px",
-                      },
-                    }),
-                  }}
-                />
-          </div>
+  <div className="calendar-toolbar">
+    <div className="toolbar-left">Home</div>
+    <div className="toolbar-right">
+      <div className="product-filter-box">
+        <Select
+          options={products}
+          value={selectedProduct}
+          onChange={setSelectedProduct}
+          placeholder="Select a product"
+          isSearchable
+          styles={{
+            control: (base) => ({
+              ...base,
+              borderRadius: "8px",
+              borderColor: "#d1d5db",
+              boxShadow: "none",
+              "&:hover": { borderColor: "#2563eb" },
+            }),
+            menu: (base) => ({
+              ...base,
+              zIndex: 9999,
+              width: "100%", 
+            }),
+            menuList: (base) => ({
+              ...base,
+              maxHeight: products.length > 5 ? "180px" : "auto",
+              overflowY: products.length > 5 ? "auto" : "visible",
+              paddingRight: "6px",
+              scrollbarWidth: "thin",
+              "&::-webkit-scrollbar": {
+                width: "6px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#cbd5e1",
+                borderRadius: "4px",
+              },
+            }),
+          }}
+        />
+      </div>
           <button
             className="create-btn"
             onClick={() => router.push("/create-booking")}
