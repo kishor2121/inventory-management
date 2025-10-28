@@ -23,7 +23,7 @@ export default function AddProductPage() {
 
   const [sizeError, setSizeError] = useState('');
 
-  const menCategories = ['Blazer', 'Sherwani', 'Suite', 'Couple Tshirt'];
+  const menCategories = ['Blazer', 'Sherwani', 'Suit', 'Couple Tshirt'];
   const womenCategories = ['Lehenga', 'Gown', 'Overcoat', 'Saree'];
   const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
   const womenSizes = ['Free Size', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
