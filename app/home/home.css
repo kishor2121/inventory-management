@@ -348,3 +348,26 @@ td.booked:hover {
 }
 
 
+.product-filter-box {
+  width: 400px;
+}
+
+@media (max-width: 1024px) {
+  .product-filter-box {
+    width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-filter-box {
+    width: 100%; 
+  }
+}
+
+@media (max-width: 480px) {
+  .product-filter-box {
+    width: 100%;
+  }
+}
+
+

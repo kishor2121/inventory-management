@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Select from 'react-select';
 import styles from './addProduct.module.css';
@@ -22,8 +21,10 @@ export default function AddProductPage() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const menCategories = ['Blazer', 'Sherwani', 'Shirt', 'Pant'];
-  const womenCategories = ['Chaniya-Choli', 'Gown', 'Overcoat'];
+  const [sizeError, setSizeError] = useState('');
+
+  const menCategories = ['Blazer', 'Sherwani', 'Suite', 'Couple Tshirt'];
+  const womenCategories = ['Lehenga', 'Gown', 'Overcoat', 'Saree'];
   const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
   const womenSizes = ['Free Size', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -33,6 +34,8 @@ export default function AddProductPage() {
       : gender === 'Women'
       ? womenSizes.map((s) => ({ value: s, label: s }))
       : [];
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const addImages = (files: FileList | File[]) => {
     const validImages = Array.from(files).filter((f) =>
@@ -45,14 +48,9 @@ export default function AddProductPage() {
     }
   };
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      addImages(e.target.files);
-    }
-    e.target.value = ""; 
+    if (e.target.files) addImages(e.target.files);
+    e.target.value = '';
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -69,9 +67,17 @@ export default function AddProductPage() {
   };
 
   const handleSubmit = async () => {
+    // ✅ Validation for required fields including size
     if (!gender || !name || !sku || !category || !price) {
       alert('Please fill all required fields');
       return;
+    }
+
+    if (size.length === 0) {
+      setSizeError('Size is Required');
+      return;
+    } else {
+      setSizeError('');
     }
 
     setLoading(true);
@@ -108,14 +114,13 @@ export default function AddProductPage() {
     }
   };
 
-  // Allow only numbers and prevent negative
+  // Allow only numbers
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (/^\d*$/.test(value)) {   // Only digits allowed
+    if (/^\d*$/.test(value)) {
       setPrice(value);
     }
   };
-
 
   const categories =
     gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
@@ -137,6 +142,7 @@ export default function AddProductPage() {
           handleSubmit();
         }}
       >
+        {/* Gender */}
         <div className={styles.row}>
           <label className={styles.required}>Gender Type:</label>
           <div className={styles.radioGroup}>
@@ -171,6 +177,7 @@ export default function AddProductPage() {
           </div>
         </div>
 
+        {/* SKU & Name */}
         <div className={styles.row}>
           <div className={styles.formGroup}>
             <label className={styles.required}>SKU</label>
@@ -186,16 +193,16 @@ export default function AddProductPage() {
           <div className={styles.formGroup}>
             <label className={styles.required}>Product Name</label>
             <input
-                className={styles.input}
-                type="text"
-                value={name}
-                onChange={handleNameChange}
-                placeholder="Product Name"
+              className={styles.input}
+              type="text"
+              value={name}
+              onChange={handleNameChange}
+              placeholder="Product Name"
             />
-
           </div>
         </div>
 
+        {/* Category, Price, Size */}
         <div className={styles.row}>
           <div className={styles.formGroup}>
             <label className={styles.required}>Category</label>
@@ -224,22 +231,32 @@ export default function AddProductPage() {
               placeholder="Enter Price"
               inputMode="numeric"
             />
-
           </div>
 
           <div className={styles.formGroup} style={{ flex: 1 }}>
-            <label>Size</label>
+            <label className={styles.required}>
+              Size 
+            </label>
             <Select
               isMulti
               options={sizeOptions}
               value={sizeOptions.filter((opt) => size.includes(opt.value))}
-              onChange={(selected) => setSize(selected.map((opt) => opt.value))}
+              onChange={(selected) => {
+                setSize(selected.map((opt) => opt.value));
+                setSizeError(''); // Clear error when user selects
+              }}
               placeholder="Select size(s)"
               isDisabled={!gender}
             />
+            {sizeError && (
+              <p style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
+                {sizeError}
+              </p>
+            )}
           </div>
         </div>
 
+        {/* Description + Image Upload */}
         <div className={styles.gridTwo}>
           <div className={styles.gridItem}>
             <label>Description</label>
@@ -257,63 +274,62 @@ export default function AddProductPage() {
 
           <div className={styles.gridItem}>
             <label>Upload Images</label>
-              <div
-                className={`${styles.uploadBox} ${isDragging ? styles.dragOver : ''}`}
-                onDrop={handleDrop}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={() => setIsDragging(false)}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {previewUrls.length > 0 ? (
-                  <div className={styles.previewContainer}>
-                    {previewUrls.map((src, i) => (
-                      <div key={i} className={styles.previewWrapper}>
-                        <img src={src} alt={`Preview ${i}`} className={styles.previewImage} />
-                        <button
-                          type="button"
-                          className={styles.removeButton}
-                          onClick={(e) => {
-                            e.stopPropagation(); // ✅ prevent triggering click to upload again
-                            handleRemoveImage(i);
-                          }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                    <span className={styles.addMoreText}>Click or drop more</span>
-                  </div>
-                ) : (
-                  <p className={styles.uploadText}>
-                    Drag & Drop images here or{' '}
-                    <span className={styles.uploadLink}>Click to select</span>
-                    <br />
-                    <span className={styles.uploadNote}>
-                      Supported: PNG, JPG, JPEG — Max 25MB
-                    </span>
-                  </p>
-                )}
-              </div>
+            <div
+              className={`${styles.uploadBox} ${isDragging ? styles.dragOver : ''}`}
+              onDrop={handleDrop}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {previewUrls.length > 0 ? (
+                <div className={styles.previewContainer}>
+                  {previewUrls.map((src, i) => (
+                    <div key={i} className={styles.previewWrapper}>
+                      <img src={src} alt={`Preview ${i}`} className={styles.previewImage} />
+                      <button
+                        type="button"
+                        className={styles.removeButton}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveImage(i);
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <span className={styles.addMoreText}>Click or drop more</span>
+                </div>
+              ) : (
+                <p className={styles.uploadText}>
+                  Drag & Drop images here or{' '}
+                  <span className={styles.uploadLink}>Click to select</span>
+                  <br />
+                  <span className={styles.uploadNote}>
+                    Supported: PNG, JPG, JPEG — Max 25MB
+                  </span>
+                </p>
+              )}
+            </div>
 
-              {/* ✅ Place input OUTSIDE box & hide it */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  if (e.target.files) addImages(e.target.files);
-                  e.target.value = ''; // ✅ reset safely
-                }}
-              />
-
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                if (e.target.files) addImages(e.target.files);
+                e.target.value = '';
+              }}
+            />
           </div>
         </div>
 
+        {/* Buttons */}
         <div className={styles.actions}>
           <button
             type="button"
@@ -322,7 +338,6 @@ export default function AddProductPage() {
           >
             Cancel
           </button>
-
 
           <button
             type="submit"

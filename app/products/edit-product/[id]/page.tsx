@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Select from 'react-select';
-import styles from './editProduct.module.css';
+import styles from './editProduct.module.css'; // ✅ use same CSS as AddProduct
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -21,13 +21,15 @@ export default function EditProductPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [sizeError, setSizeError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
 
-  const [hasMounted, setHasMounted] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const menCategories = ['Shirt', 'Sherwani', 'Blazer'];
-  const womenCategories = ['Gown', 'Saree'];
-  const menSizes = ['34', '36', '38', '40', '42'];
-  const womenSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+  const menCategories = ['Blazer', 'Sherwani', 'Suite', 'Couple Tshirt'];
+  const womenCategories = ['Lehenga', 'Gown', 'Overcoat', 'Saree'];
+  const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
+  const womenSizes = ['Free Size', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   const sizeOptions =
     gender === 'Men'
@@ -35,10 +37,6 @@ export default function EditProductPage() {
       : gender === 'Women'
       ? womenSizes.map((s) => ({ value: s, label: s }))
       : [];
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   useEffect(() => {
     if (id) fetchProduct();
@@ -65,31 +63,59 @@ export default function EditProductPage() {
     setExistingImages(p.images || []);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setImages(files);
-      setPreviewUrls(files.map((f) => URL.createObjectURL(f)));
+  const addImages = (files: FileList | File[]) => {
+    const validImages = Array.from(files).filter((f) =>
+      f.type.startsWith('image/')
+    );
+    if (validImages.length > 0) {
+      const newImages = [...images, ...validImages];
+      setImages(newImages);
+      setPreviewUrls(newImages.map((f) => URL.createObjectURL(f)));
     }
   };
-  
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) addImages(e.target.files);
+    e.target.value = '';
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    addImages(e.dataTransfer.files);
+  };
+
+  const handleRemoveImage = (index: number, isExisting: boolean = false) => {
+    if (isExisting) {
+      setExistingImages(existingImages.filter((_, i) => i !== index));
+    } else {
+      setImages(images.filter((_, i) => i !== index));
+      setPreviewUrls(previewUrls.filter((_, i) => i !== index));
+    }
+  };
 
   const handleSubmit = async () => {
-    if (!name || !sku || !category || !price) {
+    if (!gender || !name || !sku || !category || !price) {
       alert('Please fill all required fields');
       return;
     }
 
+    if (size.length === 0) {
+      setSizeError('Size is Required');
+      return;
+    } else {
+      setSizeError('');
+    }
+
     setLoading(true);
     setSuccessMessage('');
-
 
     const formData = new FormData();
     formData.append('name', name);
     formData.append('sku', sku);
     formData.append('category', category);
     formData.append('price', price);
-    formData.append('size', JSON.stringify(size));
+    formData.append('size', size.join(','));
     formData.append('description', description);
     formData.append('gender', gender);
     formData.append('status', 'available');
@@ -106,45 +132,20 @@ export default function EditProductPage() {
 
     if (res.ok) {
       setSuccessMessage('✅ Product updated successfully!');
-      setTimeout(() => {
-        router.push('/products');
-      }, 1500);
+      setTimeout(() => router.push('/products'), 1500);
     } else {
       const data = await res.json();
       alert('Error: ' + (data?.message || 'Something went wrong!'));
     }
   };
 
-  // Allow only letters and spaces
-      const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (/^[A-Za-z\s]*$/.test(value)) {
-          setName(value);
-        }
-      };
-
-      // Allow only positive whole numbers
-      const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (/^\d*$/.test(value)) { // only numbers
-          setPrice(value);
-        }
-      };
-
   const categories =
-    gender === 'Men'
-      ? menCategories
-      : gender === 'Women'
-      ? womenCategories
-      : [];
+    gender === 'Men' ? menCategories : gender === 'Women' ? womenCategories : [];
 
   return (
     <div className={styles.container}>
       <div className={styles.breadcrumb}>
-        <span
-          className={styles.breadcrumbLink}
-          onClick={() => router.push('/products')}
-        >
+        <span className={styles.breadcrumbLink} onClick={() => router.push('/products')}>
           Products
         </span>
         <span className={styles.breadcrumbDivider}>›</span>
@@ -160,7 +161,7 @@ export default function EditProductPage() {
       >
         {/* Gender */}
         <div className={styles.row}>
-          <label>Gender Type:</label>
+          <label className={styles.required}>Gender Type:</label>
           <div className={styles.radioGroup}>
             <label>
               <input
@@ -193,93 +194,84 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* SKU + Name */}
+        {/* SKU & Name */}
         <div className={styles.row}>
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="SKU"
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-          />
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="Product Name"
-            value={name}
-            onChange={handleNameChange}
-          />
+          <div className={styles.formGroup}>
+            <label className={styles.required}>SKU</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              placeholder="SKU"
+            />
+          </div>
 
+          <div className={styles.formGroup}>
+            <label className={styles.required}>Product Name</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Product Name"
+            />
+          </div>
         </div>
 
-        {/* Category + Price + Size */}
+        {/* Category, Price, Size */}
         <div className={styles.row}>
-          <select
-            className={styles.select}
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            disabled={!gender}
-          >
-            <option value="">Select category</option>
-            {categories.map((c) => (
-              <option key={c} value={c.toLowerCase()}>
-                {c}
-              </option>
-            ))}
-          </select>
+          <div className={styles.formGroup}>
+            <label className={styles.required}>Category</label>
+            <select
+              className={styles.select}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              disabled={!gender}
+            >
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c} value={c.toLowerCase()}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="Enter Price"
-            value={price}
-            onChange={handlePriceChange}
-            inputMode="numeric"
-          />
+          <div className={styles.formGroup}>
+            <label className={styles.required}>Price (₹)</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="Enter Price"
+              inputMode="numeric"
+            />
+          </div>
 
-
-          <div style={{ flex: 1 }}>
-            {/* Render Select only after mount to prevent hydration errors */}
-            {hasMounted ? (
-              <Select
-                isMulti
-                options={sizeOptions}
-                value={sizeOptions.filter((opt) => size.includes(opt.value))}
-                onChange={(selected) =>
-                  setSize(selected.map((opt) => opt.value))
-                }
-                placeholder="Select size(s)"
-                isDisabled={!gender}
-                classNamePrefix="react-select"
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    borderRadius: '8px',
-                    borderColor: '#d1d5db',
-                    minHeight: '40px',
-                    fontSize: '14px',
-                  }),
-                  multiValue: (base) => ({
-                    ...base,
-                    backgroundColor: '#e5e7eb',
-                  }),
-                }}
-              />
-            ) : (
-              // Placeholder for SSR to match initial markup
-              <div
-                style={{
-                  height: '40px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  backgroundColor: '#f9fafb',
-                }}
-              />
+          <div className={styles.formGroup} style={{ flex: 1 }}>
+            <label className={styles.required}>Size</label>
+            <Select
+              isMulti
+              options={sizeOptions}
+              value={sizeOptions.filter((opt) => size.includes(opt.value))}
+              onChange={(selected) => {
+                setSize(selected.map((opt) => opt.value));
+                setSizeError('');
+              }}
+              placeholder="Select size(s)"
+              isDisabled={!gender}
+            />
+            {sizeError && (
+              <p style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
+                {sizeError}
+              </p>
             )}
           </div>
         </div>
 
-        {/* Description + Upload */}
+        {/* Description & Images */}
         <div className={styles.gridTwo}>
           <div className={styles.gridItem}>
             <label>Description</label>
@@ -297,55 +289,55 @@ export default function EditProductPage() {
 
           <div className={styles.gridItem}>
             <label>Upload Images</label>
-            <div className={styles.uploadBox}>
-              <input
-                id="upload"
-                type="file"
-                multiple
-                accept="image/*"
-                className={styles.uploadInput}
-                onChange={handleImageUpload}
-              />
+            <div
+              className={`${styles.uploadBox} ${isDragging ? styles.dragOver : ''}`}
+              onDrop={handleDrop}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onClick={() => fileInputRef.current?.click()}
+            >
               {existingImages.length > 0 || previewUrls.length > 0 ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '10px',
-                    justifyContent: 'center',
-                  }}
-                >
+                <div className={styles.previewContainer}>
                   {[...existingImages, ...previewUrls].map((src, i) => (
-                    <img
-                      key={i}
-                      src={src}
-                      alt={`Preview ${i}`}
-                      style={{
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '8px',
-                        objectFit: 'cover',
-                        border: '1px solid #e5e7eb',
-                      }}
-                    />
+                    <div key={i} className={styles.previewWrapper}>
+                      <img src={src} alt={`Preview ${i}`} className={styles.previewImage} />
+                      <button
+                        type="button"
+                        className={styles.removeButton}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveImage(i, i < existingImages.length);
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ))}
+                  <span className={styles.addMoreText}>Click or drop more</span>
                 </div>
               ) : (
                 <p className={styles.uploadText}>
-                  Drag & Drop images here, or{' '}
-                  <label
-                    htmlFor="upload"
-                    style={{ color: '#000', cursor: 'pointer' }}
-                  >
-                    click to select
-                  </label>
+                  Drag & Drop images here or{' '}
+                  <span className={styles.uploadLink}>Click to select</span>
                   <br />
-                  <span style={{ color: '#9ca3af' }}>
+                  <span className={styles.uploadNote}>
                     Supported: PNG, JPG, JPEG — Max 25MB
                   </span>
                 </p>
               )}
             </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImageUpload}
+            />
           </div>
         </div>
 
@@ -366,10 +358,8 @@ export default function EditProductPage() {
           >
             {loading ? <span className={styles.loader}></span> : 'Save Changes'}
           </button>
-
         </div>
 
-        {/* Success message */}
         {successMessage && (
           <p className={styles.successMessage}>{successMessage}</p>
         )}
