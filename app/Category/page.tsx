@@ -23,6 +23,7 @@ export default function CategoryPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const parentOptions = ["Wedding", "Male", "Female"];
 
@@ -58,13 +59,17 @@ export default function CategoryPage() {
     const method = editing ? "PUT" : "POST";
 
     const res = await fetch(url, { method, body: formData });
-    if (res.ok) {
-      await fetchCategories();
-      setShowModal(false);
-      setEditing(null);
-      setName("");
-      setParentName("");
-    }
+      if (res.ok) {
+        await fetchCategories();
+        setShowModal(false);
+        setEditing(null);
+        setName("");
+        setParentName("");
+        setErrorMsg(""); 
+      } else {
+        const err = await res.json();
+        setErrorMsg(err.message || "Something went wrong");
+      }
     setLoading(false);
   };
 
@@ -198,6 +203,13 @@ export default function CategoryPage() {
                   required
                 />
               </div>
+
+              {/* 🔴 ERROR MESSAGE HERE */}
+              {errorMsg && (
+                <p style={{ color: "red", marginBottom: "10px", fontSize: "14px" }}>
+                  {errorMsg}
+                </p>
+              )}
 
               <div className="modal-actions">
                 <button type="submit" className="save-btn" disabled={loading}>
