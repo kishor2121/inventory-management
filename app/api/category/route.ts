@@ -30,10 +30,21 @@ export async function POST(req: Request) {
   const name = form.get("name") as string;
   const parentName = form.get("parentName") as string | null;
 
-  const data = await prisma.category.create({
-    data: { name, parentName },
-  });
+  try {
+    const data = await prisma.category.create({
+      data: { name, parentName },
+    });
 
-  return NextResponse.json({ message: "Created", data: data });
+    return NextResponse.json({ message: "Created", data });
+  } catch (err: any) {
+    if (err.code === "P2002") {
+      return NextResponse.json(
+        { message: "Category name already exists" },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json({ message: "Something went wrong" }, { status: 500 });
+  }
 }
+
 
