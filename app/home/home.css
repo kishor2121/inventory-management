@@ -259,3 +259,92 @@ td.booked:hover {
   }
 }
 
+/* RESPONSIVE STYLES */
+@media (max-width: 768px) {
+  .calendar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .calendar-header h2 {
+    font-size: 1rem;
+  }
+
+  .calendar-header button {
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  th, td {
+    font-size: 11px;
+    padding: 3px 2px;
+    height: 55px;
+    word-wrap: break-word;
+    white-space: normal; 
+  }
+
+  .date-num {
+    font-size: 10px;
+  }
+
+  .product-name {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar {
+    width: 100%;
+    border-radius: 8px;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  th, td {
+    font-size: 10px;
+    padding: 2px;
+    height: 50px;
+  }
+
+  .date-num {
+    font-size: 9px;
+  }
+
+  .product-name {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  th {
+    font-size: 11px;
+    white-space: nowrap;
+    position: relative;
+    color: transparent; 
+  }
+
+  th:nth-child(1)::before { content: "Sun"; color: #475569; }
+  th:nth-child(2)::before { content: "Mon"; color: #475569; }
+  th:nth-child(3)::before { content: "Tue"; color: #475569; }
+  th:nth-child(4)::before { content: "Wed"; color: #475569; }
+  th:nth-child(5)::before { content: "Thu"; color: #475569; }
+  th:nth-child(6)::before { content: "Fri"; color: #475569; }
+  th:nth-child(7)::before { content: "Sat"; color: #475569; }
+
+  table th {
+    padding: 4px 0;
+    font-weight: 600;
+  }
+}
+
+
