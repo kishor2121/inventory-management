@@ -336,19 +336,26 @@ export default function UpdateBooking() {
               </div>
             </div>
 
-            <div className="form-row align-center">
-              <div className="form-group booking-type">
-                <label className="required">Booking Type</label>
-                <select value={selectedBookingType} onChange={(e) => setSelectedBookingType(e.target.value)}>
-                  <option value="">Select Booking Type</option>
-                  <option value="Engagement">Engagement</option>
-                  <option value="Wedding">Wedding</option>
-                  <option value="Other">Other</option>
-                </select>
-                {errors.bookingType && <span className="error-text">{errors.bookingType}</span>}
-              </div>
+           <div className="form-row align-center">
+            <div className="form-group booking-type">
+              <label className="required">Booking Type</label>
+              <select
+                className="booking-type-select native"
+                value={selectedBookingType}
+                onChange={(e) => setSelectedBookingType(e.target.value)}
+              >
+                <option value="">Select Booking Type</option>
+                <option value="Engagement">Engagement</option>
+                <option value="Wedding">Wedding</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.bookingType && <span className="error-text">{errors.bookingType}</span>}
+            </div>
+
+
+              
               <div className="checkbox-right">
-                <label>
+                <label className="checkbox-label">
                   <input type="checkbox" checked={sameDate} onChange={(e) => setSameDate(e.target.checked)} /> Same Delivery/Return Date for All
                 </label>
               </div>
