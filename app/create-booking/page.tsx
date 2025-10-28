@@ -385,7 +385,7 @@ export default function CreateBooking() {
                     placeholder="Select Booking Type"
                     value={selectedBookingType}
                     onChange={(val) => setSelectedBookingType(val)}
-                    menuPortalTarget={document.body}
+                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                     styles={{
                       menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                     }}

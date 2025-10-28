@@ -252,7 +252,7 @@ export default function EditProductPage() {
               onChange={(val) => setCategory(val?.value || '')}
               placeholder="Select category"
               isDisabled={!gender}
-              menuPortalTarget={document.body}
+              menuPortalTarget={typeof document !== "undefined" ? document.body : null}
               styles={{
                 menuPortal: (base) => ({ ...base, zIndex: 9999 }),
               }}

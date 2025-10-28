@@ -372,7 +372,7 @@ export default function UpdateBooking() {
                   bookingTypeOptions.find((option) => option.label === selectedBookingType) || null
                 }
                 onChange={(val) => setSelectedBookingType(val?.label || "")}
-                menuPortalTarget={document.body}
+                menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                 styles={{
                   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                 }}
