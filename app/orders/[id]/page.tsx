@@ -209,7 +209,7 @@ export default function ViewOrderPage() {
     const dividerY_Left = boxY + step * 2 + gapAfterDivider;
     doc.line(leftX + 3, dividerY_Left, leftX + boxWidth - 3, dividerY_Left);
     doc.setFont("helvetica", "bold");
-    doc.text("(d) Total:", leftX + 4, dividerY_Left + step);
+    doc.text("(d) Total Deposit:", leftX + 4, dividerY_Left + step);
     doc.text(formatCurrency(order.securityDeposit + order.advancePayment), leftX + boxWidth - 4, dividerY_Left + step, { align: "right" });
 
     doc.setFont("helvetica", "normal");
@@ -228,7 +228,7 @@ export default function ViewOrderPage() {
     const dividerY_Right = boxY + step * 2 + gapAfterDivider;
     doc.line(rightX + 3, dividerY_Right, rightX + boxWidth - 3, dividerY_Right);
     doc.setFont("helvetica", "bold");
-    doc.text("(c) Total:", rightX + 4, dividerY_Right + step);
+    doc.text("(c) Total Rent:", rightX + 4, dividerY_Right + step);
     doc.text(formatCurrency(total), rightX + boxWidth - 4, dividerY_Right + step, { align: "right" });
 
     currentY = boxY + boxHeight + 10; 
@@ -415,7 +415,7 @@ export default function ViewOrderPage() {
                 <span>₹{securityDeposit}</span>
               </div>
               <div className="payment-total">
-                <span>(d) Total:</span>
+                <span>(d) Total Deposite:</span>
                 <span>₹{securityDeposit + (order.advancePayment)}</span>
               </div>
               <div>
@@ -434,7 +434,7 @@ export default function ViewOrderPage() {
                 <span className="discount">-₹{discount}</span>
               </div>
               <div className="total">
-                <span>(c) Total:</span>
+                <span>(c) Total Rent:</span>
                 <span>₹{total}</span>
               </div>
             </div>

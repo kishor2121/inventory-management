@@ -149,7 +149,7 @@ export default function EReceiptPage() {
             <div className="divider" />
 
             <div className="row total-row">
-              <span>(d) Total:</span>
+              <span>(d) Total Deposit:</span>
               <span>Rs.{order.advancePayment + order.securityDeposit}</span>
             </div>
 
@@ -174,7 +174,7 @@ export default function EReceiptPage() {
             <div className="divider" />
 
             <div className="row total-row">
-              <span>(c) Total:</span>
+              <span>(c) Total Rent:</span>
               <span>Rs.{total + order.discount}</span>
             </div>
           </div>
