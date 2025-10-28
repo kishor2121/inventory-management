@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   BarChart3,
   Menu,
+  Tags,
   X,
   Eye,
   EyeOff, // 👈 added for password visibility toggle
@@ -129,6 +130,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li><a href="/return"><RotateCcw className="nav-icon" size={18} /> Return</a></li>
                   <li><a href="/products"><Package className="nav-icon" size={18} /> Products</a></li>
                   <li><a href="/orders"><ShoppingBag className="nav-icon" size={18} /> Orders</a></li>
+                  <li><a href="/Category"><Tags className="nav-icon" size={18} /> Category</a></li>
                   <li>
                     <a href="/statistics" onClick={handleStatisticsClick}>
                       <BarChart3 className="nav-icon" size={18} /> Statistics
@@ -175,6 +177,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       <li>
                         <a href="/orders" onClick={(e) => { e.preventDefault(); handleMobileLink("/orders"); }}>
                           <ShoppingBag className="nav-icon" size={18} /> Orders
+                        </a>
+                      </li>
+                      <li>
+                        <a href="/Category" onClick={(e) => { e.preventDefault(); handleMobileLink("/Category"); }}>
+                          <Tags className="nav-icon" size={18} /> Category
                         </a>
                       </li>
                       <li>
