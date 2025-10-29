@@ -218,6 +218,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <button onClick={() => handleDropdownLink("/change-password")} className="dropdown-item">
                       <Lock className="icon" size={16} /> Change Password
                     </button>
+                    <button onClick={() => handleDropdownLink("/change-stats-password")} className="dropdown-item">
+                      <BarChart3 className="icon" size={16} /> Change Statistics Password
+                    </button>
                     <button onClick={handleLogout} className="dropdown-item logout">
                       <LogOut className="icon" size={16} /> Logout
                     </button>
