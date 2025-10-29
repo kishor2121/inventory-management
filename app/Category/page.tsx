@@ -112,19 +112,21 @@ export default function CategoryPage() {
         <h2 className="category-title">Category Management</h2>
 
         <div className="header-right">
-          <select
-            className="filter-dropdown"
-            value={filterParent}
-            onChange={(e) => setFilterParent(e.target.value)}
-          >
-            <option value="All">All</option>
-            {parentOptions.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-
+            <div className="dropdown-wrapper">
+              <select
+                className="filter-dropdown"
+                value={filterParent}
+                onChange={(e) => setFilterParent(e.target.value)}
+              >
+                <option value="All">All</option>
+                {parentOptions.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+              <span className="dropdown-arrow"></span> {/* custom arrow */}
+            </div>
           <button className="create-btn" onClick={() => setShowModal(true)}>
             + Create Category
           </button>
