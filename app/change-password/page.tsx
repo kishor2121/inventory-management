@@ -64,6 +64,7 @@ export default function ChangePassword() {
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
+        router.push("/home");
       } else {
         setMessage(`❌ ${data.message || "Current password is incorrect."}`);
         setIsError(true);
