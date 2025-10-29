@@ -25,7 +25,12 @@ export default function CategoryPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const parentOptions = ["Wedding", "Male", "Female"];
+  // ✅ Use label (UI text) and value (backend save value)
+  const parentOptions = [
+    { label: "Wedding", value: "Wedding" },
+    { label: "Men", value: "Male" },
+    { label: "Women", value: "Female" },
+  ];
 
   const fetchCategories = async () => {
     const res = await fetch("/api/category");
@@ -43,7 +48,9 @@ export default function CategoryPage() {
     if (filterParent === "All") {
       setFilteredCategories(categories);
     } else {
-      setFilteredCategories(categories.filter((cat) => cat.parentName === filterParent));
+      setFilteredCategories(
+        categories.filter((cat) => cat.parentName === filterParent)
+      );
     }
   }, [filterParent, categories]);
 
@@ -59,17 +66,17 @@ export default function CategoryPage() {
     const method = editing ? "PUT" : "POST";
 
     const res = await fetch(url, { method, body: formData });
-      if (res.ok) {
-        await fetchCategories();
-        setShowModal(false);
-        setEditing(null);
-        setName("");
-        setParentName("");
-        setErrorMsg(""); 
-      } else {
-        const err = await res.json();
-        setErrorMsg(err.message || "Something went wrong");
-      }
+    if (res.ok) {
+      await fetchCategories();
+      setShowModal(false);
+      setEditing(null);
+      setName("");
+      setParentName("");
+      setErrorMsg("");
+    } else {
+      const err = await res.json();
+      setErrorMsg(err.message || "Something went wrong");
+    }
     setLoading(false);
   };
 
@@ -101,28 +108,28 @@ export default function CategoryPage() {
 
   return (
     <div className="category-container">
-     <div className="category-header">
+      <div className="category-header">
         <h2 className="category-title">Category Management</h2>
 
         <div className="header-right">
-            <select
+          <select
             className="filter-dropdown"
             value={filterParent}
             onChange={(e) => setFilterParent(e.target.value)}
-            >
+          >
             <option value="All">All</option>
             {parentOptions.map((p) => (
-                <option key={p} value={p}>
-                {p}
-                </option>
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
             ))}
-            </select>
+          </select>
 
-            <button className="create-btn" onClick={() => setShowModal(true)}>
+          <button className="create-btn" onClick={() => setShowModal(true)}>
             + Create Category
-            </button>
+          </button>
         </div>
-        </div>
+      </div>
 
 
 
@@ -139,7 +146,7 @@ export default function CategoryPage() {
             {filteredCategories.length > 0 ? (
               filteredCategories.map((cat) => (
                 <tr key={cat.id}>
-                  <td>{cat.parentName}</td>
+                  <td>{cat.parentName === "Male" ? "Men" : cat.parentName === "Female" ? "Women" : cat.parentName}</td>
                   <td>{cat.name}</td>
                   <td>
                     <div className="action-icons">
@@ -187,8 +194,8 @@ export default function CategoryPage() {
                 >
                   <option value="">Select Parent</option>
                   {parentOptions.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
+                    <option key={p.value} value={p.value}>
+                      {p.label}
                     </option>
                   ))}
                 </select>
