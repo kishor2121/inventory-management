@@ -12,25 +12,39 @@ export default function ImportProductPage() {
   const [file, setFile] = useState<File | null>(null);
   const [gender, setGender] = useState<string>('');
   const [category, setCategory] = useState<string>('');
+  const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]); // ✅ same structure
   const [isImporting, setIsImporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [skippedProducts, setSkippedProducts] = useState<Array<{ sku: string, reason: string }>>([]);
 
-  const menCategories = ['Blazer', 'Sherwani', 'Shirt', 'Pant'];
-  const womenCategories = ['Chaniya-Choli', 'Gown', 'Overcoat'];
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
-    }
-  };
-
-  const handleGenderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setGender(e.target.value);
+  // ✅ EXACT same logic as AddProductPage
+  const handleGenderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedGender = e.target.value;
+    setGender(selectedGender);
     setCategory('');
     setFile(null);
     setSkippedProducts([]);
     setErrorMessage(null);
+
+    const parentName = selectedGender === 'Men' ? 'Male' : 'Female';
+
+    try {
+      const res = await fetch(`/api/category?parentName=${parentName}`);
+      const data = await res.json();
+
+      if (data?.data) {
+        const formatted = data.data.map((item: any) => ({
+          value: item.name,
+          label: item.name,
+        }));
+        setCategoryOptions(formatted);
+      } else {
+        setCategoryOptions([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+      setCategoryOptions([]);
+    }
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -38,6 +52,12 @@ export default function ImportProductPage() {
     setFile(null);
     setSkippedProducts([]);
     setErrorMessage(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
   };
 
   const handleImport = async () => {
@@ -92,11 +112,6 @@ export default function ImportProductPage() {
     }
   };
 
-  const categories =
-    gender === 'Men' ? menCategories :
-    gender === 'Women' ? womenCategories :
-    [];
-
   const isFileInputEnabled = gender !== '' && category !== '';
   const isImportEnabled = isFileInputEnabled && file !== null;
 
@@ -146,15 +161,18 @@ KIDS HOODIE,Warm hoodie for kids with cartoon print,399,HOODIE001565,"36,38"
           </label>
         </div>
 
+        {/* ✅ Same dynamic category dropdown like AddProductPage */}
         <select
           className={styles.select}
           value={category}
           onChange={handleCategoryChange}
-          disabled={gender === ''}   // <<< Disable until gender is selected
+          disabled={gender === ''}
         >
           <option value="">Select category</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
+          {categoryOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
 
@@ -179,7 +197,6 @@ KIDS HOODIE,Warm hoodie for kids with cartoon print,399,HOODIE001565,"36,38"
           />
         </div>
 
-                {/* ✅ Show File Name Here */}
         {file && (
           <p className={styles.fileName}>
             📄 {file.name}
@@ -220,6 +237,7 @@ KIDS HOODIE,Warm hoodie for kids with cartoon print,399,HOODIE001565,"36,38"
             onClick={() => {
               setGender('');
               setCategory('');
+              setCategoryOptions([]);
               setFile(null);
               setSkippedProducts([]);
               setErrorMessage(null);
