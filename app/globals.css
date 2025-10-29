@@ -455,7 +455,7 @@ html, body {
   height: 50px;
   
   object-fit: cover;
-  cursor: pointer;
+  cursor: default; 
   transition: transform 0.2s ease;
 }
 
