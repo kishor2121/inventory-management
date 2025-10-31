@@ -114,13 +114,24 @@ export async function PUT(req: Request, context: any) {
       const newImages: string[] = [];
 
       if (files.length > 0 && files.some((f) => typeof f === "object" && "arrayBuffer" in f)) {
+        if (existingProduct.images && existingProduct.images.length > 0) {
+          for (const oldImage of existingProduct.images) {
+            try {
+              await deleteImageFromCloudinary(oldImage);
+            } catch (err) {
+              console.warn("Failed to delete old image:", oldImage, err);
+            }
+          }
+        }
+
         for (const file of files) {
           if (typeof file === "object" && "arrayBuffer" in file) {
             const url = await uploadImageToCloudinary(file, "inventory-products");
             newImages.push(url);
           }
         }
-        images = [...images, ...newImages];
+
+        images = newImages;
       }
     } else {
       return NextResponse.json(
@@ -165,6 +176,7 @@ export async function PUT(req: Request, context: any) {
     );
   }
 }
+
 
 export async function DELETE(req: Request, context: any) {
   await validate();
