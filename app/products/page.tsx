@@ -21,19 +21,20 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // for custom dropdown
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     fetchProducts();
   }, []);
 
   const fetchProducts = async () => {
-    setLoading(true);
     const res = await fetch('/api/products');
     const data = await res.json();
     setProducts(data.data);
-    setLoading(false);
   };
 
   const openDeleteModal = (id: string) => {
@@ -102,6 +103,15 @@ export default function ProductsPage() {
       p.status.toLowerCase() === filter.toLowerCase()
   );
 
+  // pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'available':
@@ -131,10 +141,8 @@ export default function ProductsPage() {
   return (
     <>
       <div className={styles.container}>
-        <div className={styles.breadcrumb}>
-          Product
-        </div>
-          <div className={styles.header}>
+        <div className={styles.breadcrumb}>Product</div>
+        <div className={styles.header}>
           <div className={styles.controls}>
             <select
               value={filter}
@@ -161,25 +169,19 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {loading ? (
-          <div className={styles.loader}>
-            <div className={styles.spinner}></div>
-            <span className={styles.loadingText}>Loading products...</span>
-          </div>
-        ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>SKU</th>
-                <th>Product Name</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-            {filteredProducts.map((product) => (
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>SKU</th>
+              <th>Product Name</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentItems.map((product) => (
               <tr key={product.id}>
                 <td className={styles.imageCell}>
                   {product.images?.[0] ? (
@@ -192,21 +194,20 @@ export default function ProductsPage() {
                     <div className={styles.noImage}>No Image</div>
                   )}
                 </td>
-                  <td>
-                    {Array.isArray(product.size)
-                      ? product.size.length > 0
-                        ? `${product.sku}-${product.size.join(', ')}`
-                        : product.sku
-                      : product.size
-                        ? `${product.sku}-${product.size}`
-                        : product.sku}
-                  </td>
+                <td>
+                  {Array.isArray(product.size)
+                    ? product.size.length > 0
+                      ? `${product.sku}-${product.size.join(', ')}`
+                      : product.sku
+                    : product.size
+                      ? `${product.sku}-${product.size}`
+                      : product.sku}
+                </td>
                 <td className={styles.productName}>
                   <Link href={`/products/view/${product.id}`} className={styles.productLink}>
                     {product.name}
                   </Link>
                 </td>
-
                 <td>₹{product.price}</td>
                 <td>
                   <div
@@ -231,7 +232,7 @@ export default function ProductsPage() {
                 </td>
               </tr>
             ))}
-            {filteredProducts.length === 0 && (
+            {currentItems.length === 0 && (
               <tr>
                 <td colSpan={6} className={styles.noData}>
                   No products found.
@@ -240,9 +241,39 @@ export default function ProductsPage() {
             )}
           </tbody>
         </table>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className={styles.pagination}>
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={styles.pageBtn}
+            >
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => handlePageChange(i + 1)}
+                className={`${styles.pageBtn} ${currentPage === i + 1 ? styles.activePage : ''}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={styles.pageBtn}
+            >
+              Next
+            </button>
+          </div>
         )}
 
-        {/* Fixed positioned dropdown menu */}
+        {/* Dropdown Menu */}
         {openDropdownId && dropdownPosition && (
           <div
             className={styles.dropdownMenu}
@@ -252,21 +283,21 @@ export default function ProductsPage() {
             }}
           >
             <div
-              className={`${styles.dropdownOption}`}
+              className={styles.dropdownOption}
               onClick={() => handleStatusChange(openDropdownId, 'available')}
             >
               <CheckCircle size={14} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
               Available
             </div>
             <div
-              className={`${styles.dropdownOption}`}
+              className={styles.dropdownOption}
               onClick={() => handleStatusChange(openDropdownId, 'in Laundry')}
             >
               <WashingMachine size={14} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
               In Laundry
             </div>
             <div
-              className={`${styles.dropdownOption}`}
+              className={styles.dropdownOption}
               onClick={() => handleStatusChange(openDropdownId, 'archived')}
             >
               <Archive size={14} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
@@ -275,7 +306,6 @@ export default function ProductsPage() {
           </div>
         )}
 
-        {/* Backdrop to close dropdown when clicking outside */}
         {openDropdownId && (
           <div
             className={styles.dropdownBackdrop}

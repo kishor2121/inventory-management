@@ -24,20 +24,24 @@ export default function EditProductPage() {
   const [sizeError, setSizeError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<{ index: number; isExisting: boolean; url?: string } | null>(null);
+
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const menSizes = ['34', '36', '38', '40', '42', '44', '46'];
   const womenSizes = ['Free Size', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-  const sizeOptions =
-    gender === 'Men'
-      ? menSizes.map((s) => ({ value: s, label: s }))
-      : gender === 'Women'
-      ? womenSizes.map((s) => ({ value: s, label: s }))
-      : [];
+  // ✅ Generate size options dynamically
+  const getSizeOptions = (gender: string) => {
+    if (gender === 'Men') return menSizes.map((s) => ({ value: s, label: s }));
+    if (gender === 'Women') return womenSizes.map((s) => ({ value: s, label: s }));
+    return [];
+  };
 
-  // ✅ Fetch existing product for editing
+  const [sizeOptions, setSizeOptions] = useState<{ value: string; label: string }[]>([]);
+
   useEffect(() => {
     if (id) fetchProduct();
   }, [id]);
@@ -47,30 +51,37 @@ export default function EditProductPage() {
     const data = await res.json();
     const p = data.data;
 
+    const productGender = p.gender || '';
+    setGender(productGender);
+
+    // Fetch categories + setup size options based on gender
+    await handleGenderChange(productGender, true);
+
+    // ✅ After categories are loaded and gender is set
     setName(p.name || '');
     setSku(p.sku || '');
     setCategory(p.category || '');
     setPrice(p.price?.toString() || '');
-    setSize(
-      Array.isArray(p.size)
-        ? p.size
-        : typeof p.size === 'string'
-        ? p.size.split(',')
-        : []
-    );
     setDescription(p.description || '');
-    setGender(p.gender || '');
     setExistingImages(p.images || []);
 
-    // Fetch categories for that gender
-    if (p.gender) {
-      await handleGenderChange(p.gender, true);
-    }
+    // ✅ Normalize size field
+    const sizes = Array.isArray(p.size)
+      ? p.size[0]?.split(',') ?? []
+      : typeof p.size === 'string'
+      ? p.size.split(',')
+      : [];
+    const trimmedSizes = sizes.map((s: string) => s.trim());
+    setSize(trimmedSizes);
+
+    // ✅ Update size options for selected gender
+    setSizeOptions(getSizeOptions(productGender));
   };
 
-  // ✅ Fetch categories dynamically based on gender
   const handleGenderChange = async (selectedGender: string, keepCategory = false) => {
     setGender(selectedGender);
+    setSizeOptions(getSizeOptions(selectedGender));
+
     if (!keepCategory) {
       setCategory('');
       setSize([]);
@@ -119,14 +130,52 @@ export default function EditProductPage() {
 
   const handleRemoveImage = (index: number, isExisting: boolean = false) => {
     if (isExisting) {
-      setExistingImages(existingImages.filter((_, i) => i !== index));
+      setImageToDelete({
+        index,
+        isExisting,
+        url: existingImages[index],
+      });
+    } else {
+      setImageToDelete({ index, isExisting });
+    }
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteImage = async () => {
+    if (!imageToDelete) return;
+
+    const { index, isExisting, url } = imageToDelete;
+
+    if (isExisting && url) {
+      try {
+        const res = await fetch(`/api/products/delete-image`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: url, productId: id }),
+        });
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          const msg = data?.message || 'Failed to delete image';
+          throw new Error(msg);
+        }
+
+        setExistingImages(existingImages.filter((_, i) => i !== index));
+      } catch (err) {
+        alert('❌ Error deleting image: ' + String(err));
+        console.error(err);
+      }
     } else {
       setImages(images.filter((_, i) => i !== index));
       setPreviewUrls(previewUrls.filter((_, i) => i !== index));
     }
+
+    setShowDeleteModal(false);
+    setImageToDelete(null);
   };
 
-  // ✅ Update product
+
+
   const handleSubmit = async () => {
     if (!gender || !name || !sku || !category || !price) {
       alert('Please fill all required fields');
@@ -146,7 +195,7 @@ export default function EditProductPage() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('sku', sku);
-    formData.append('category', category); // saving category name
+    formData.append('category', category);
     formData.append('price', price);
     formData.append('size', size.join(','));
     formData.append('description', description);
@@ -252,7 +301,7 @@ export default function EditProductPage() {
               onChange={(val) => setCategory(val?.value || '')}
               placeholder="Select category"
               isDisabled={!gender}
-              menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
               styles={{
                 menuPortal: (base) => ({ ...base, zIndex: 9999 }),
               }}
@@ -271,6 +320,7 @@ export default function EditProductPage() {
             />
           </div>
 
+          {/* ✅ SIZE field */}
           <div className={styles.formGroup} style={{ flex: 1 }}>
             <label className={styles.required}>Size</label>
             <Select
@@ -285,9 +335,7 @@ export default function EditProductPage() {
               isDisabled={!gender}
             />
             {sizeError && (
-              <p style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
-                {sizeError}
-              </p>
+              <p style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{sizeError}</p>
             )}
           </div>
         </div>
@@ -303,9 +351,7 @@ export default function EditProductPage() {
               onChange={(e) => setDescription(e.target.value)}
               maxLength={1000}
             />
-            <p style={{ fontSize: '12px', color: '#6b7280' }}>
-              {description.length} / 1000
-            </p>
+            <p style={{ fontSize: '12px', color: '#6b7280' }}>{description.length} / 1000</p>
           </div>
 
           <div className={styles.gridItem}>
@@ -341,12 +387,9 @@ export default function EditProductPage() {
                 </div>
               ) : (
                 <p className={styles.uploadText}>
-                  Drag & Drop images here or{' '}
-                  <span className={styles.uploadLink}>Click to select</span>
+                  Drag & Drop images here or <span className={styles.uploadLink}>Click to select</span>
                   <br />
-                  <span className={styles.uploadNote}>
-                    Supported: PNG, JPG, JPEG — Max 25MB
-                  </span>
+                  <span className={styles.uploadNote}>Supported: PNG, JPG, JPEG — Max 5MB</span>
                 </p>
               )}
             </div>
@@ -381,10 +424,69 @@ export default function EditProductPage() {
           </button>
         </div>
 
-        {successMessage && (
-          <p className={styles.successMessage}>{successMessage}</p>
-        )}
+        {successMessage && <p className={styles.successMessage}>{successMessage}</p>}
       </form>
+
+      {showDeleteModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: 'rgba(0, 0, 0, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: '12px',
+              padding: '24px 30px',
+              width: '90%',
+              maxWidth: '400px',
+              textAlign: 'center',
+              boxShadow: '0 4px 25px rgba(0,0,0,0.2)',
+            }}
+          >
+            <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>
+              Are you sure you want to delete this image?
+            </h3>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: '#e5e7eb',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteImage}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: '#ef4444',
+                  color: 'white',
+                  cursor: 'pointer',
+                }}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
