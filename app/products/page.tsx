@@ -253,15 +253,26 @@ export default function ProductsPage() {
               Prev
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => handlePageChange(i + 1)}
-                className={`${styles.pageBtn} ${currentPage === i + 1 ? styles.activePage : ''}`}
-              >
-                {i + 1}
-              </button>
-            ))}
+            {(() => {
+              const windowSize = 3; // number of visible page buttons
+              const windowStart = Math.floor((currentPage - 1) / windowSize) * windowSize + 1;
+              const windowEnd = Math.min(windowStart + windowSize - 1, totalPages);
+
+              const visiblePages = [];
+              for (let i = windowStart; i <= windowEnd; i++) {
+                visiblePages.push(i);
+              }
+
+              return visiblePages.map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`${styles.pageBtn} ${currentPage === page ? styles.activePage : ''}`}
+                >
+                  {page}
+                </button>
+              ));
+            })()}
 
             <button
               onClick={() => handlePageChange(currentPage + 1)}
@@ -272,6 +283,8 @@ export default function ProductsPage() {
             </button>
           </div>
         )}
+
+
 
         {/* Dropdown Menu */}
         {openDropdownId && dropdownPosition && (
