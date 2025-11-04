@@ -55,14 +55,12 @@ export default function EReceiptPage() {
     0
   );
 
-  const total =
-    productAmount +
-    (order.additionalCharges || 0) +
-    order.securityDeposit -
-    order.discount;
 
-  const remainingPayment = total - order.advancePayment;
-  const returnAmount = remainingPayment - order.advancePayment;
+
+  const TOTAL = productAmount + (order.additionalCharges || 0) 
+
+  const remainingPayment = order.advancePayment + order.securityDeposit;
+  const returnAmount = (remainingPayment - (TOTAL - order.discount));
 
   return (
     <div className="invoice-wrapper">
@@ -163,7 +161,7 @@ export default function EReceiptPage() {
           <div className="calc-box">
             <div className="row">
               <span>(a) Rent Amount:</span>
-              <span>Rs.{productAmount}</span>
+              <span>Rs.{TOTAL}</span>
             </div>
 
             <div className="row">
@@ -175,7 +173,7 @@ export default function EReceiptPage() {
 
             <div className="row total-row">
               <span>(c) Total Rent:</span>
-              <span>Rs.{total + order.discount}</span>
+              <span>Rs.{TOTAL - order.discount}</span>
             </div>
           </div>
         </div>
