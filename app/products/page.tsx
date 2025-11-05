@@ -97,13 +97,21 @@ export default function ProductsPage() {
     setDropdownPosition(null);
   };
 
-const filteredProducts = products.filter(
-  (p) =>
-    (p.sku.toLowerCase().includes(search.toLowerCase()) ||
-      p.name.toLowerCase().includes(search.toLowerCase())) &&
-    p.status.toLowerCase() === filter.toLowerCase()
-);
-
+  const filteredProducts = products
+    .filter(
+      (p) => {
+        const searchLower = search.toLowerCase();
+        return (
+          (p.sku.toLowerCase().startsWith(searchLower) ||
+            p.name.toLowerCase().startsWith(searchLower)) &&
+          p.status.toLowerCase() === filter.toLowerCase()
+        );
+      }
+    )
+    .sort((a, b) => {
+      const skuCompare = a.sku.localeCompare(b.sku);
+      return skuCompare !== 0 ? skuCompare : a.name.localeCompare(b.name);
+    });
 
   // pagination logic
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
