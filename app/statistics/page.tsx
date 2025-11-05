@@ -121,6 +121,11 @@ export default function Statistics() {
       const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
       from = lastMonth.toISOString().split("T")[0];
       to = lastMonthEnd.toISOString().split("T")[0];
+    } else if (filter === "Current Month") {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      from = start.toLocaleDateString("en-CA"); 
+      to = now.toLocaleDateString("en-CA");
     } else if (filter === "Custom Date" && fromDate && toDate) {
       from = fromDate;
       to = toDate;
@@ -141,6 +146,7 @@ export default function Statistics() {
         <div className="filter-bar">
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option>Today</option>
+            <option>Current Month</option>
             <option>Last Week</option>
             <option>Last Month</option>
             <option>Custom Date</option>
