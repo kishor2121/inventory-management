@@ -97,11 +97,13 @@ export default function ProductsPage() {
     setDropdownPosition(null);
   };
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.sku.toLowerCase().includes(search.toLowerCase()) &&
-      p.status.toLowerCase() === filter.toLowerCase()
-  );
+const filteredProducts = products.filter(
+  (p) =>
+    (p.sku.toLowerCase().includes(search.toLowerCase()) ||
+      p.name.toLowerCase().includes(search.toLowerCase())) &&
+    p.status.toLowerCase() === filter.toLowerCase()
+);
+
 
   // pagination logic
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -155,7 +157,7 @@ export default function ProductsPage() {
             </select>
             <input
               type="text"
-              placeholder="Search by SKU"
+              placeholder="Search by SKU or NAME"
               className={styles.search}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
