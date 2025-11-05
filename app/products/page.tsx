@@ -99,7 +99,7 @@ export default function ProductsPage() {
 
   const filteredProducts = products
     .filter((p) => {
-      const searchLower = search.toLowerCase();
+      const searchLower = search.trim().toLowerCase();
       return (
         (p.sku.toLowerCase().startsWith(searchLower) ||
           p.name.toLowerCase().startsWith(searchLower)) &&
