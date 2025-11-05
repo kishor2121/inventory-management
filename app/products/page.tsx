@@ -98,19 +98,20 @@ export default function ProductsPage() {
   };
 
   const filteredProducts = products
-    .filter(
-      (p) => {
-        const searchLower = search.toLowerCase();
-        return (
-          (p.sku.toLowerCase().startsWith(searchLower) ||
-            p.name.toLowerCase().startsWith(searchLower)) &&
-          p.status.toLowerCase() === filter.toLowerCase()
-        );
-      }
-    )
+    .filter((p) => {
+      const searchLower = search.toLowerCase();
+      return (
+        (p.sku.toLowerCase().startsWith(searchLower) ||
+          p.name.toLowerCase().startsWith(searchLower)) &&
+        p.status.toLowerCase() === filter.toLowerCase()
+      );
+    })
     .sort((a, b) => {
-      const skuCompare = a.sku.localeCompare(b.sku);
-      return skuCompare !== 0 ? skuCompare : a.name.localeCompare(b.name);
+      if (search.trim() !== "") {
+        const skuCompare = a.sku.localeCompare(b.sku);
+        return skuCompare !== 0 ? skuCompare : a.name.localeCompare(b.name);
+      }
+      return 0;
     });
 
   // pagination logic
