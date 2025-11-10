@@ -43,7 +43,7 @@ model User {
 model Product {
   id             String   @id
   name           String
-  sku            String        @unique
+  sku            String 
   description    String?
   price          Float
   images         String[]      @default([])
