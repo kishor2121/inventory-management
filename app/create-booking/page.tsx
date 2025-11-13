@@ -290,8 +290,6 @@ export default function CreateBooking() {
       if (!firstProduct.returnDate) newErrors.returnDate = "Return date is required.";
     }
 
-    if (!securityDeposit) newErrors.securityDeposit = "Deposit Amount is required.";
-    if (!advance) newErrors.advance = "Adv. Payment is required.";
     if (!paymentMode || paymentMode === "Select Payment Mode") newErrors.paymentMode = "Payment mode is required.";
 
     setErrors(newErrors);
@@ -492,14 +490,13 @@ export default function CreateBooking() {
         <div className="booking-right">
           <div className="card">
             <div className="form-group">
-              <label className="required">(a) Adv. Payment (₹)</label>
+              <label>(a) Adv. Payment (₹)</label>
               <input type="number" placeholder="Adv. Payment" value={advance === 0 ? "" : advance} onChange={(e) => setAdvance(positiveNumber(e.target.value))}
  />
-              {errors.advance && <span className="error-text">{errors.advance}</span>}
             </div>
 
             <div className="form-group">
-              <label className="required">(b) Security Deposit (₹)</label>
+              <label>(b) Security Deposit (₹)</label>
               <input
                 type="number"
                 placeholder="Deposit"
@@ -507,7 +504,6 @@ export default function CreateBooking() {
                 onChange={(e) => setSecurityDeposit(positiveNumber(e.target.value))}
 
               />
-              {errors.securityDeposit && <span className="error-text">{errors.securityDeposit}</span>}
             </div>
 
             <div className="form-group">

@@ -291,8 +291,6 @@ export default function UpdateBooking() {
       if (!sameDate && !card.returnDate) newErrors[`returnDate_${card.id}`] = "Return date is required.";
     });
 
-    if (!securityDeposit) newErrors.securityDeposit = "Deposit Amount is required.";
-    if (!advance) newErrors.advance = "Adv. Payment is required.";
     if (!selectedPaymentMode) newErrors.paymentMode = "Payment mode is required.";
 
     setErrors(newErrors);
@@ -448,15 +446,13 @@ export default function UpdateBooking() {
           <div className="card">
 
             <div className="form-group">
-              <label className="required">(a) Adv. Payment (₹)</label>
+              <label>(a) Adv. Payment (₹)</label>
               <input type="number" placeholder="Adv. Payment" value={advance === 0 ? "" : advance} onChange={(e) => setAdvance(safeNumber(e.target.value))} />
-              {errors.advance && <span className="error-text">{errors.advance}</span>}
             </div>
 
             <div className="form-group">
-              <label className="required">(b) Security Deposit (₹)</label>
+              <label>(b) Security Deposit (₹)</label>
               <input type="number" placeholder="Deposit" value={securityDeposit === 0 ? "" : securityDeposit} onChange={(e) => setSecurityDeposit(safeNumber(e.target.value))} />
-              {errors.securityDeposit && <span className="error-text">{errors.securityDeposit}</span>}
             </div>
 
             <div className="form-group">
