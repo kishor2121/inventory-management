@@ -63,7 +63,7 @@ model Product {
 model Booking {
   id                   String   @id    
   customerName         String
-  phoneNumberPrimary   String
+  phoneNumberPrimary   String?
   phoneNumberSecondary String?
   notes                String?
   rentAmount           Float

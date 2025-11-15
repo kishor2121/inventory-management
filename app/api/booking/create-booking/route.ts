@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const productsString = formData.get("products")?.toString() || "[]";
     const additionalCharges = parseFloat(formData.get("additionalCharges")?.toString() || "0");
 
-    if (!customerName || !phoneNumberPrimary || !productsString) {
+    if (!customerName || !productsString) {
       return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 });
     }
 

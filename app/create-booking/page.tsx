@@ -264,11 +264,10 @@ export default function CreateBooking() {
     } else if (!isAlpha(customerName)) {
       newErrors.customerName = "Customer Name can only contain letters and spaces.";
     }
-    if (!phoneNumber) {
-      newErrors.phoneNumber = "Mobile No. is required.";
-    } else if (!isValidPhoneNumber(phoneNumber)) {
-      newErrors.phoneNumber = "Mobile No. must be 10 digits and contain only numbers.";
+    if (phoneNumber && !isValidPhoneNumber(phoneNumber)) {
+      newErrors.phoneNumber = "Mobile No. must be 10 digits.";
     }
+
 
     if (phoneNumberSecondary && !isValidPhoneNumber(phoneNumberSecondary)) {
       newErrors.phoneNumberSecondary = "Alternate No. must be 10 digits and contain only numbers.";
@@ -364,7 +363,7 @@ export default function CreateBooking() {
                 {errors.customerName && <span className="error-text">{errors.customerName}</span>}
               </div>
               <div className="form-group">
-                <label className="required">Mobile No.</label>
+                <label>Mobile No.</label>
                 <input type="text" placeholder="Enter mobile number" onInput={handlePhoneInput } />
                 {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
               </div>

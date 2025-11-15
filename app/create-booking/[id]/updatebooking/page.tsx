@@ -277,8 +277,9 @@ export default function UpdateBooking() {
     if (!customerName.trim()) newErrors.customerName = "Customer Name is required.";
     else if (!isAlpha(customerName)) newErrors.customerName = "Customer Name can only contain letters and spaces.";
 
-    if (!phoneNumberPrimary.trim()) newErrors.phoneNumber = "Mobile No. is required.";
-    else if (!isValidPhoneNumber(phoneNumberPrimary)) newErrors.phoneNumber = "Mobile No. must be 10 digits and contain only numbers.";
+    if (phoneNumberPrimary && !isValidPhoneNumber(phoneNumberPrimary)) {
+      newErrors.phoneNumber = "Mobile No. must be 10 digits.";
+    }
 
     if (phoneNumberSecondary && !isValidPhoneNumber(phoneNumberSecondary))
       newErrors.phoneNumberSecondary = "Alternate No. must be 10 digits and contain only numbers.";
@@ -347,7 +348,7 @@ export default function UpdateBooking() {
                 {errors.customerName && <span className="error-text">{errors.customerName}</span>}
               </div>
               <div className="form-group">
-                <label className="required">Mobile No.</label>
+                <label>Mobile No.</label>
                 <input type="text" placeholder="Enter mobile number"  onInput={handlePhoneInput }  value={phoneNumberPrimary} onChange={(e) => setPhoneNumberPrimary(e.target.value)} />
                 {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
               </div>
