@@ -9,6 +9,20 @@
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
 }
+.export-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: #0d6efd;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+.export-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 
 /* HEADER */
 .orders-header {

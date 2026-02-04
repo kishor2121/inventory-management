@@ -1,5 +1,5 @@
 "use client";
-
+import * as XLSX from "xlsx";
 import { useState, useEffect } from "react";
 import React from "react";
 import DatePicker from "react-datepicker";
@@ -187,6 +187,37 @@ export default function DeliveryPage() {
 
   const getReturnDate = (booking: DeliveryRecord) =>
     booking.productLocks?.[0]?.returnDate;
+  const exportExcel = () => {
+    if (!filteredData.length) return;
+
+    const rows = filteredData.map((b) => ({
+      "Receiving Date": formatUI(getReceivingDate(b)),
+      "Return Date": formatUI(getReturnDate(b)),
+      "Customer Name": b.customerName,
+      "Mobile No.": b.phoneNumberPrimary,
+      "Advance Payment": b.advancePayment,
+      "Security Deposit": b.securityDeposit,
+      "Rent": (b.rentAmount || 0) - (b.discount || 0),
+
+      "Refund": b.returnAmount ?? 0,
+      "Notes": b.notes || "-",
+
+
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Delivery");
+
+    XLSX.writeFile(
+      workbook,
+      `delivery_export_${new Date().toISOString().slice(0, 10)}.xlsx`
+    );
+  };
+  const getRentAfterDiscount = (b: DeliveryRecord) =>
+    Math.max(0, (b.rentAmount || 0) - (b.discount || 0));
+
 
   return (
     <div className="orders-container">
@@ -235,7 +266,13 @@ export default function DeliveryPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          {filterType === "Custom Date" && fromDate && toDate && (
+            <button className="export-btn" onClick={exportExcel}>
+              Export
+            </button>
+          )}
         </div>
+
       </div>
 
       <div className="table-container">
@@ -244,20 +281,20 @@ export default function DeliveryPage() {
         ) : (
           <table className="orders-table">
             <thead>
-  <tr>
-    <th>Receiving Date</th>
-    <th>Return Date</th>
-    <th>Customer Name</th>
-    <th>Mobile No.</th>
-    <th>Advance Payment</th>
-    <th>Security Deposit</th>
-    <th>Rent </th>
-    <th>Refund</th>
-    <th>Notes</th>
-    <th>Payment Mode</th>
-    <th></th>
-  </tr>
-</thead>
+              <tr>
+                <th>Receiving Date</th>
+                <th>Return Date</th>
+                <th>Customer Name</th>
+                <th>Mobile No.</th>
+                <th>Advance Payment</th>
+                <th>Security Deposit</th>
+                <th>Rent </th>
+                <th>Refund</th>
+                <th>Notes</th>
+                <th>Payment Mode</th>
+                <th></th>
+              </tr>
+            </thead>
 
             <tbody>
               {paginatedData.length > 0 ? (
@@ -276,42 +313,42 @@ export default function DeliveryPage() {
                   return (
                     <React.Fragment key={booking.id}>
                       <tr>
-  <td>{formatUI(getReceivingDate(booking))}</td>
-  <td>{formatUI(getReturnDate(booking))}</td>
-  <td>{booking.customerName}</td>
-  <td>{booking.phoneNumberPrimary}</td>
+                        <td>{formatUI(getReceivingDate(booking))}</td>
+                        <td>{formatUI(getReturnDate(booking))}</td>
+                        <td>{booking.customerName}</td>
+                        <td>{booking.phoneNumberPrimary}</td>
 
-  <td>₹{booking.advancePayment.toLocaleString()}</td>
-  <td>₹{booking.securityDeposit.toLocaleString()}</td>
-  <td>₹{booking.rentAmount.toLocaleString()}</td>
-  <td>₹{booking.returnAmount.toLocaleString()}</td>
+                        <td>₹{booking.advancePayment.toLocaleString()}</td>
+                        <td>₹{booking.securityDeposit.toLocaleString()}</td>
+                        <td>₹{getRentAfterDiscount(booking).toLocaleString()}</td>
 
-  <td>{booking.notes || "-"}</td>
+                        <td>₹{(booking.returnAmount ?? 0).toLocaleString()}</td>
+                        <td>{booking.notes || "-"}</td>
 
-  <td>
-    <select
-      value={booking.deliverypaymnetMethod || "Cash"}
-      disabled={updatingBookingId === booking.id}
-      onChange={(e) =>
-        handlePaymentMethodChange(
-          booking.id,
-          e.target.value as "Cash" | "Bank"
-        )
-      }
-    >
-      <option value="Cash">Cash</option>
-      <option value="Bank">Bank</option>
-    </select>
-  </td>
+                        <td>
+                          <select
+                            value={booking.deliverypaymnetMethod || "Cash"}
+                            disabled={updatingBookingId === booking.id}
+                            onChange={(e) =>
+                              handlePaymentMethodChange(
+                                booking.id,
+                                e.target.value as "Cash" | "Bank"
+                              )
+                            }
+                          >
+                            <option value="Cash">Cash</option>
+                            <option value="Bank">Bank</option>
+                          </select>
+                        </td>
 
-  <td
-    className="arrow-cell"
-    onClick={() => toggleRow(booking.id)}
-    aria-label={isExpanded ? "Collapse" : "Expand"}
-  >
-    {isExpanded ? "▲" : "▼"}
-  </td>
-</tr>
+                        <td
+                          className="arrow-cell"
+                          onClick={() => toggleRow(booking.id)}
+                          aria-label={isExpanded ? "Collapse" : "Expand"}
+                        >
+                          {isExpanded ? "▲" : "▼"}
+                        </td>
+                      </tr>
 
                       {isExpanded && (
                         <tr>
