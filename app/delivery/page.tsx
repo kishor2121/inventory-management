@@ -230,11 +230,56 @@ export default function DeliveryPage() {
             <Search size={16} className="icon" />
             <input
               type="text"
-              placeholder="Search by mobile no/name"
+              placeholder="Search by mobile no or name"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
+          {/* Export button: visible for Custom Date or when search is non-empty */}
+          {(filterType === "Custom Date" || search.trim()) && (
+            <button
+              className="export-btn"
+              onClick={async () => {
+                // export logic
+                try {
+                  const filterValue = filterType === "Custom Date" ? "custom" : filterType.toLowerCase();
+                  let url = `/api/booking/export-delivery?filter=${encodeURIComponent(filterValue)}`;
+                  if (filterValue === "custom" && fromDate && toDate) {
+                    url += `&start=${formatDate(fromDate)}&end=${formatDate(toDate)}`;
+                  }
+                  if (search.trim()) url += `&search=${encodeURIComponent(search.trim())}`;
+
+                  const res = await fetch(url, { method: "GET", credentials: "include" });
+                  if (!res.ok) {
+                    alert("Export failed. Check console for details.");
+                    return;
+                  }
+
+                  const blob = await res.blob();
+                  const contentDisposition = res.headers.get("Content-Disposition") || "";
+                  let fileName = "delivery_export.xlsx";
+                  if (contentDisposition.includes("filename=")) {
+                    fileName = contentDisposition.split("filename=")[1].replace(/\"/g, "");
+                  }
+
+                  const downloadUrl = window.URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = downloadUrl;
+                  a.download = fileName;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  window.URL.revokeObjectURL(downloadUrl);
+                } catch (err) {
+                  console.error("Failed to export delivery report:", err);
+                  alert("Export failed. Check console for details.");
+                }
+              }}
+            >
+              Export
+            </button>
+          )}
         </div>
       </div>
 
