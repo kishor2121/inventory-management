@@ -65,7 +65,9 @@ export default function DeliveryPage() {
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
-  const formatDate = (date: Date) => date.toISOString().split("T")[0];
+  // Format as local date-only (YYYY-MM-DD) to avoid UTC offset when serializing
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const formatDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
   const toggleRow = (bookingId: string) => {
     setExpandedRows((prev) =>
@@ -225,8 +227,7 @@ export default function DeliveryPage() {
     <th>Mobile No.</th>
     <th>Advance Payment</th>
     <th>Security Deposit</th>
-    <th>Rent Amount</th>
-    <th>Total Deposit</th>
+    <th>Rent </th>
     <th>Refund</th>
     <th>Notes</th>
     <th>Payment Mode</th>
@@ -259,7 +260,6 @@ export default function DeliveryPage() {
   <td>₹{booking.advancePayment.toLocaleString()}</td>
   <td>₹{booking.securityDeposit.toLocaleString()}</td>
   <td>₹{booking.rentAmount.toLocaleString()}</td>
-  <td>₹{booking.totalDeposit.toLocaleString()}</td>
   <td>₹{booking.returnAmount.toLocaleString()}</td>
 
   <td>{booking.notes || "-"}</td>
@@ -291,7 +291,7 @@ export default function DeliveryPage() {
 
                       {isExpanded && (
                         <tr>
-                          <td colSpan={12} style={{ padding: 0 }}>
+                          <td colSpan={11} style={{ padding: 0 }}>
                             <table className="product-details-table">
                               <thead>
                                 <tr>
@@ -333,7 +333,7 @@ export default function DeliveryPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={12} className="no-data">
+                  <td colSpan={11} className="no-data">
                     No deliveries found.
                   </td>
                 </tr>

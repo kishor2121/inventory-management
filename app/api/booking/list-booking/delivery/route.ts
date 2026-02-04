@@ -22,7 +22,16 @@ export async function GET(req: NextRequest) {
     } else if (filter === "tomorrow") {
       productLockWhere = { deliveryDate: { gte: tomorrow, lt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000) } };
     } else if (filter === "custom" && start && end) {
-      productLockWhere = { deliveryDate: { gte: new Date(start), lte: new Date(end) } };
+      // Parse date-only string as local date (avoid relying on Date parsing of "YYYY-MM-DD" which can be treated as UTC)
+      const parseDateOnly = (s: string) => {
+        const [y, m, d] = s.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      };
+
+      const startDate = getDateOnly(parseDateOnly(start));
+      const endDate = getDateOnly(parseDateOnly(end));
+      // make end exclusive to match the behavior used for "today"/"tomorrow"
+      productLockWhere = { deliveryDate: { gte: startDate, lt: new Date(endDate.getTime() + 24 * 60 * 60 * 1000) } };
     }
 
     // Fetch only bookings that have at least one matching productLock
