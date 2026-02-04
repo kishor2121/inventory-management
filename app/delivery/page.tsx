@@ -56,7 +56,7 @@ interface DeliveryRecord extends Booking {
 
 
 export default function DeliveryPage() {
-  const [filterType, setFilterType] = useState<string>("Tomorrow");
+  const [filterType, setFilterType] = useState<string>("All");
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [search, setSearch] = useState<string>("");
@@ -64,6 +64,10 @@ export default function DeliveryPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+
+  // Pagination (client-side, 10 per page to match Orders page)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 10;
 
   // Format as local date-only (YYYY-MM-DD) to avoid UTC offset when serializing
   const pad = (n: number) => n.toString().padStart(2, "0");
@@ -111,9 +115,28 @@ export default function DeliveryPage() {
     fetchData();
   }, [filterType, fromDate, toDate]);
 
-  const filteredData = data.filter((item) =>
-    item.phoneNumberPrimary.includes(search.trim())
-  );
+  const q = search.trim().toLowerCase();
+  const filteredData = data.filter((item) => {
+    if (!q) return true;
+    return (
+      (item.phoneNumberPrimary || "").toLowerCase().includes(q) ||
+      (item.phoneNumberSecondary || "").toLowerCase().includes(q) ||
+      (item.customerName || "").toLowerCase().includes(q)
+    );
+  });
+
+  // Reset to first page when filters/search/data change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, fromDate, toDate, search, data]);
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
 
   const handleFilterChange = (value: string) => {
     setFilterType(value);
@@ -176,6 +199,7 @@ export default function DeliveryPage() {
             onChange={(e) => handleFilterChange(e.target.value)}
             className="date-wrapper"
           >
+            <option>All</option>
             <option>Today</option>
             <option>Tomorrow</option>
             <option>Custom Date</option>
@@ -206,7 +230,7 @@ export default function DeliveryPage() {
             <Search size={16} className="icon" />
             <input
               type="text"
-              placeholder="Search by mobile no"
+              placeholder="Search by mobile no/name"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -236,8 +260,8 @@ export default function DeliveryPage() {
 </thead>
 
             <tbody>
-              {filteredData.length > 0 ? (
-                filteredData.map((booking) => {
+              {paginatedData.length > 0 ? (
+                paginatedData.map((booking) => {
                   const isExpanded = expandedRows.includes(booking.id);
 
                   const totalAmount = booking.productLocks.reduce(
@@ -342,6 +366,26 @@ export default function DeliveryPage() {
           </table>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+            Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              className={currentPage === i + 1 ? "active-page" : ""}
+              onClick={() => goToPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

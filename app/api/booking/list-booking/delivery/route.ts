@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const filter = searchParams.get("filter") || "tomorrow";
+    const filter = searchParams.get("filter") || "all";
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
@@ -34,21 +34,43 @@ export async function GET(req: NextRequest) {
       productLockWhere = { deliveryDate: { gte: startDate, lt: new Date(endDate.getTime() + 24 * 60 * 60 * 1000) } };
     }
 
-    // Fetch only bookings that have at least one matching productLock
-    const bookings = await prisma.booking.findMany({
-      where: {
-        productLocks: {
-          some: productLockWhere,
+    // If filter is 'all' return all bookings (include all productLocks). Otherwise return only bookings with matching productLocks.
+    let bookings;
+    if (filter === "all") {
+      bookings = await prisma.booking.findMany({
+        include: {
+          productLocks: {
+            include: { product: true }, // include all locks
+          },
         },
-      },
-      include: {
-        productLocks: {
-          where: productLockWhere, // include only matching locks
-          include: { product: true },
+        orderBy: { createdAt: "asc" },
+      });
+    } else {
+      bookings = await prisma.booking.findMany({
+        where: {
+          productLocks: {
+            some: productLockWhere,
+          },
         },
-      },
-      orderBy: { createdAt: "asc" },
-    });
+        include: {
+          productLocks: {
+            where: productLockWhere, // include only matching locks
+            include: { product: true },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+    }
+
+    // Sort bookings by the latest deliveryDate among their productLocks (descending => latest first)
+    const getLatestDeliveryTs = (b: any) => {
+      const dates = (b.productLocks || [])
+        .map((l: any) => (l.deliveryDate ? new Date(l.deliveryDate).getTime() : NaN))
+        .filter(Number.isFinite);
+      return dates.length ? Math.max(...dates) : 0;
+    };
+
+    (bookings as any[]).sort((a: any, b: any) => getLatestDeliveryTs(b) - getLatestDeliveryTs(a));
 
     return NextResponse.json({ data: bookings });
   } catch (error) {
