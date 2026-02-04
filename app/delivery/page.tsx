@@ -13,10 +13,21 @@ interface Booking {
   phoneNumberPrimary: string;
   phoneNumberSecondary: string;
   notes: string;
-  securityDeposit: number;
+
+  rentAmount: number;
+  totalDeposit: number;
+  additionalCharges: number;
+  returnAmount: number;
+
   advancePayment: number;
+  securityDeposit: number;
   discount: number;
-  deliverypaymnetMethod: "Cash" | "Bank" | "";
+
+  invoiceNumber: number;
+  rentalType: string;
+
+  advancePaymentMethod: string;
+  deliverypaymnetMethod: "Cash" | "Bank" | "" | null;
 }
 
 interface Product {
@@ -26,6 +37,8 @@ interface Product {
   sku: string;
   images: string[];
   size: string[];
+  category: string;
+  gender: string;
 }
 
 interface ProductLock {
@@ -41,6 +54,7 @@ interface DeliveryRecord extends Booking {
   productLocks: ProductLock[];
 }
 
+
 export default function DeliveryPage() {
   const [filterType, setFilterType] = useState<string>("Tomorrow");
   const [fromDate, setFromDate] = useState<Date | null>(null);
@@ -51,7 +65,9 @@ export default function DeliveryPage() {
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
-  const formatDate = (date: Date) => date.toISOString().split("T")[0];
+  // Format as local date-only (YYYY-MM-DD) to avoid UTC offset when serializing
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const formatDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
   const toggleRow = (bookingId: string) => {
     setExpandedRows((prev) =>
@@ -140,6 +156,14 @@ export default function DeliveryPage() {
       setUpdatingBookingId(null);
     }
   };
+  const formatUI = (d?: string) =>
+    d ? new Date(d).toLocaleDateString() : "-";
+
+  const getReceivingDate = (booking: DeliveryRecord) =>
+    booking.productLocks?.[0]?.deliveryDate;
+
+  const getReturnDate = (booking: DeliveryRecord) =>
+    booking.productLocks?.[0]?.returnDate;
 
   return (
     <div className="orders-container">
@@ -196,17 +220,21 @@ export default function DeliveryPage() {
         ) : (
           <table className="orders-table">
             <thead>
-              <tr>
-                <th>Customer Name</th>
-                <th>Mobile No.</th>
-                <th>Alternate No.</th>
-                <th>Amount</th>
-                <th>Deposit</th>
-                <th>Rem. Payment</th>
-                <th>Rem. Payment Mode</th>
-                <th></th>
-              </tr>
-            </thead>
+  <tr>
+    <th>Receiving Date</th>
+    <th>Return Date</th>
+    <th>Customer Name</th>
+    <th>Mobile No.</th>
+    <th>Advance Payment</th>
+    <th>Security Deposit</th>
+    <th>Rent </th>
+    <th>Refund</th>
+    <th>Notes</th>
+    <th>Payment Mode</th>
+    <th></th>
+  </tr>
+</thead>
+
             <tbody>
               {filteredData.length > 0 ? (
                 filteredData.map((booking) => {
@@ -224,39 +252,46 @@ export default function DeliveryPage() {
                   return (
                     <React.Fragment key={booking.id}>
                       <tr>
-                        <td>{booking.customerName}</td>
-                        <td>{booking.phoneNumberPrimary}</td>
-                        <td>{booking.phoneNumberSecondary}</td>
-                        <td>₹{totalAmount.toLocaleString()}</td>
-                        <td>₹{deposit.toLocaleString()}</td>
-                        <td>₹{remPayment.toLocaleString()}</td>
-                        <td>
-                          <select
-                            value={booking.deliverypaymnetMethod || "Cash"}
-                            disabled={updatingBookingId === booking.id}
-                            onChange={(e) =>
-                              handlePaymentMethodChange(
-                                booking.id,
-                                e.target.value as "Cash" | "Bank"
-                              )
-                            }
-                          >
-                            <option value="Cash">Cash</option>
-                            <option value="Bank">Bank</option>
-                          </select>
-                        </td>
-                        <td
-                          className="arrow-cell"
-                          onClick={() => toggleRow(booking.id)}
-                          aria-label={isExpanded ? "Collapse" : "Expand"}
-                        >
-                          {isExpanded ? "▲" : "▼"}
-                        </td>
-                      </tr>
+  <td>{formatUI(getReceivingDate(booking))}</td>
+  <td>{formatUI(getReturnDate(booking))}</td>
+  <td>{booking.customerName}</td>
+  <td>{booking.phoneNumberPrimary}</td>
+
+  <td>₹{booking.advancePayment.toLocaleString()}</td>
+  <td>₹{booking.securityDeposit.toLocaleString()}</td>
+  <td>₹{booking.rentAmount.toLocaleString()}</td>
+  <td>₹{booking.returnAmount.toLocaleString()}</td>
+
+  <td>{booking.notes || "-"}</td>
+
+  <td>
+    <select
+      value={booking.deliverypaymnetMethod || "Cash"}
+      disabled={updatingBookingId === booking.id}
+      onChange={(e) =>
+        handlePaymentMethodChange(
+          booking.id,
+          e.target.value as "Cash" | "Bank"
+        )
+      }
+    >
+      <option value="Cash">Cash</option>
+      <option value="Bank">Bank</option>
+    </select>
+  </td>
+
+  <td
+    className="arrow-cell"
+    onClick={() => toggleRow(booking.id)}
+    aria-label={isExpanded ? "Collapse" : "Expand"}
+  >
+    {isExpanded ? "▲" : "▼"}
+  </td>
+</tr>
 
                       {isExpanded && (
                         <tr>
-                          <td colSpan={8} style={{ padding: 0 }}>
+                          <td colSpan={11} style={{ padding: 0 }}>
                             <table className="product-details-table">
                               <thead>
                                 <tr>
@@ -298,7 +333,7 @@ export default function DeliveryPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="no-data">
+                  <td colSpan={11} className="no-data">
                     No deliveries found.
                   </td>
                 </tr>
