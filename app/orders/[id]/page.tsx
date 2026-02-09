@@ -258,7 +258,8 @@ export default function ViewOrderPage() {
       "2. Dress Care: Dresses must be returned clean and without any damage. Do not use fire bombs, cold bombs, or color bombs.",
       "3. Damage Fee: Minimum charge of Rs.2,000 will apply for any damage.",
       "4. Pickup & Return: Customers must handle collection and return of dresses.",
-      "5. Delivery Charges: All courier or delivery costs (Dunzo, Swiggy, etc.) must be paid by the customer for both pickup and return."
+      "5. Delivery Charges: All courier or delivery costs (Dunzo, Swiggy, etc.) must be paid by the customer for both pickup and return.",
+      "6. No refund of advance payment on any booking cancellation."
     ];
 
     const boxWidthFull = pageWidth - margin * 2;

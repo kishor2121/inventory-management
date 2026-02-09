@@ -198,6 +198,7 @@ export default function EReceiptPage() {
             <li>3. Damage Fee: Minimum charge of ₹2,000 will apply for any damage.</li>
             <li>4. Pickup & Return: Customers must handle collection and return of dresses.</li>
             <li>5. Delivery Charges: All courier or delivery costs (Dunzo, Swiggy, etc.) must be paid by the customer for both pickup and return.</li>
+            <li>6. No refund of advance payment on any booking cancellation.</li>
           </ul>
         </div>
 
