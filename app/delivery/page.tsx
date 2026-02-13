@@ -138,6 +138,70 @@ export default function DeliveryPage() {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
+  const getPaginationButtons = () => {
+    const buttons = [];
+    const maxVisible = 5; // Show max 5 page buttons
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (endPage - startPage < maxVisible - 1) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+      buttons.push(
+        <button
+          key={1}
+          className={currentPage === 1 ? "active-page" : ""}
+          onClick={() => goToPage(1)}
+        >
+          1
+        </button>
+      );
+      if (startPage > 2) {
+        buttons.push(
+          <span key="ellipsis-start" className="pagination-ellipsis">
+            ...
+          </span>
+        );
+      }
+    }
+
+
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          className={currentPage === i ? "active-page" : ""}
+          onClick={() => goToPage(i)}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        buttons.push(
+          <span key="ellipsis-end" className="pagination-ellipsis">
+            ...
+          </span>
+        );
+      }
+      buttons.push(
+        <button
+          key={totalPages}
+          className={currentPage === totalPages ? "active-page" : ""}
+          onClick={() => goToPage(totalPages)}
+        >
+          {totalPages}
+        </button>
+      );
+    }
+
+    return buttons;
+  };
+
   const handleFilterChange = (value: string) => {
     setFilterType(value);
     if (value !== "Custom Date") {
@@ -409,15 +473,7 @@ export default function DeliveryPage() {
           <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
             Prev
           </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              className={currentPage === i + 1 ? "active-page" : ""}
-              onClick={() => goToPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+          {getPaginationButtons()}
           <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
             Next
           </button>

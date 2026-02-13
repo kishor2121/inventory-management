@@ -449,3 +449,10 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.pagination-ellipsis {
+  color: #666;
+  padding: 6px 10px;
+  font-weight: 600;
+  user-select: none;
+}
