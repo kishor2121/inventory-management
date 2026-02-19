@@ -77,6 +77,7 @@
   border-radius: 12px;
   overflow-x: auto;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-bottom: 24px;
 }
 
 .orders-table {
@@ -249,6 +250,13 @@
 .pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.pagination-ellipsis {
+  color: #666;
+  padding: 6px 10px;
+  font-weight: 600;
+  user-select: none;
 }
 
 .actions {
