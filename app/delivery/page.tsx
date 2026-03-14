@@ -47,6 +47,7 @@ interface ProductLock {
   productId: string;
   deliveryDate: string;
   returnDate: string;
+  isReceived: boolean;
   product: Product;
 }
 
@@ -63,6 +64,7 @@ export default function DeliveryPage() {
   const [data, setData] = useState<DeliveryRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
+  const [updatingProductLockId, setUpdatingProductLockId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
   // Pagination (client-side, 10 per page to match Orders page)
@@ -241,6 +243,38 @@ export default function DeliveryPage() {
       console.error("Error updating delivery payment method:", error);
     } finally {
       setUpdatingBookingId(null);
+    }
+  };
+
+  const handleReceivedChange = async (productLockId: string, isReceived: boolean, customerName: string, productName: string) => {
+    const confirmed = window.confirm(`Are you sure you want to mark "${productName}" as received for customer ${customerName}?`);
+    if (!confirmed) return;
+
+    setUpdatingProductLockId(productLockId);
+    try {
+      const res = await fetch("/api/product-lock/update-received", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productLockId, isReceived }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to update received status");
+        return;
+      }
+
+      setData((prevData) =>
+        prevData.map((booking) => ({
+          ...booking,
+          productLocks: booking.productLocks.map((lock) =>
+            lock.id === productLockId ? { ...lock, isReceived } : lock
+          ),
+        }))
+      );
+    } catch (error) {
+      console.error("Error updating received status:", error);
+    } finally {
+      setUpdatingProductLockId(null);
     }
   };
   const formatUI = (d?: string) =>
@@ -426,6 +460,7 @@ export default function DeliveryPage() {
                                   <th>Delivery Date</th>
                                   <th>Return Date</th>
                                   <th>Amount</th>
+                                  <th>Received</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -446,6 +481,21 @@ export default function DeliveryPage() {
                                     <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
                                     <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
                                     <td>₹{lock.product.price.toLocaleString()}</td>
+                                    <td>
+                                      {lock.isReceived ? (
+                                        <span className="received-label">
+                                          Received ✓
+                                        </span>
+                                      ) : (
+                                        <button
+                                          className="received-btn not-received"
+                                          onClick={() => handleReceivedChange(lock.id, true, booking.customerName, lock.product.name)}
+                                          disabled={updatingProductLockId === lock.id}
+                                        >
+                                          {updatingProductLockId === lock.id ? 'Updating...' : 'Mark as Received'}
+                                        </button>
+                                      )}
+                                    </td>
                                   </tr>
                                 ))}
                               </tbody>
