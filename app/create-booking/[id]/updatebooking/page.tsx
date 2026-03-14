@@ -363,6 +363,7 @@ export default function UpdateBooking() {
             <div className="form-group booking-type">
               <label className="required">Booking Type</label>
               <Select
+                instanceId="booking-type"
                 className="booking-type-select"
                 classNamePrefix="react-select"
                 placeholder="Select Booking Type"
@@ -409,7 +410,7 @@ export default function UpdateBooking() {
               <div className="form-row">
                 <div className="form-group" style={{ flex: 2 }}>
                   <label className="required">Product Name</label>
-                  <Select options={getAvailableProducts(card.id)} value={card.product} onChange={(val) => handleChange(card.id, "product", val)} placeholder="Select a product" isSearchable />
+                  <Select instanceId={`product-select-${card.id}`} options={getAvailableProducts(card.id)} value={card.product} onChange={(val) => handleChange(card.id, "product", val)} placeholder="Select a product" isSearchable />
                   {errors[`product_${card.id}`] && <span className="error-text">{errors[`product_${card.id}`]}</span>}
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>

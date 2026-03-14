@@ -295,6 +295,52 @@
   display: inline-block;
 }
 
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-icon {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon:hover {
+  color: #374151;
+  transform: scale(1.1);
+}
+
+.action-icon.edit {
+  color: #2563eb;
+}
+
+.action-icon.edit:hover {
+  color: #1d4ed8;
+}
+
+.arrow-cell {
+  cursor: pointer;
+  user-select: none;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow-cell:hover {
+  color: #374151;
+  transform: scale(1.1);
+}
+
 .arrow-cell {
   text-align: center;
   vertical-align: middle;

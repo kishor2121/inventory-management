@@ -3,7 +3,8 @@ import * as XLSX from "xlsx";
 import { useState, useEffect } from "react";
 import React from "react";
 import DatePicker from "react-datepicker";
-import { Search } from "lucide-react";
+import { Search, Edit } from "lucide-react";
+import { useRouter } from "next/navigation";
 import "react-datepicker/dist/react-datepicker.css";
 import "./Delivery.css";
 
@@ -57,6 +58,7 @@ interface DeliveryRecord extends Booking {
 
 
 export default function DeliveryPage() {
+  const router = useRouter();
   const [filterType, setFilterType] = useState<string>("All");
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
@@ -439,12 +441,19 @@ export default function DeliveryPage() {
                           </select>
                         </td>
 
-                        <td
-                          className="arrow-cell"
-                          onClick={() => toggleRow(booking.id)}
-                          aria-label={isExpanded ? "Collapse" : "Expand"}
-                        >
-                          {isExpanded ? "▲" : "▼"}
+                        <td className="actions">
+                          <Edit
+                            className="action-icon edit"
+                            size={16}
+                            onClick={() => router.push(`/create-booking/${booking.id}/updatebooking`)}
+                          />
+                          <span
+                            className="arrow-cell"
+                            onClick={() => toggleRow(booking.id)}
+                            aria-label={isExpanded ? "Collapse" : "Expand"}
+                          >
+                            {isExpanded ? "▲" : "▼"}
+                          </span>
                         </td>
                       </tr>
 
